@@ -45,6 +45,7 @@ export const OrderFormSchema = z.object({
   }),
   frecuenciaCredito: z.nativeEnum(CreditFrequency).nullable().optional(),
   metodoPago: z.string().nullable().optional(),
+  total: z.number().optional(), // Added for mock total
   ine: z.any().optional(),
   comprobanteDomicilio: z.any().optional(),
 }).refine(data => data.fechaMaxEntrega >= data.fechaMinEntrega, {
@@ -58,15 +59,8 @@ export const OrderFormSchema = z.object({
 }, {
     message: 'Debe seleccionar una frecuencia para el crédito.',
     path: ['frecuenciaCredito'],
-}).refine(data => {
-    if (data.tipoPago === 'Credito') {
-        return !!data.metodoPago && data.metodoPago.length > 0;
-    }
-    return true;
-}, {
-    message: 'El método de pago es obligatorio para el crédito.',
-    path: ['metodoPago'],
-}).refine(data => {
+})
+.refine(data => {
     if (data.tipoPago === 'Credito') {
         return data.ine && data.ine?.length > 0;
     }
@@ -136,6 +130,7 @@ interface BaseOrder {
   frecuenciaCredito: z.infer<typeof OrderFormSchema.shape.frecuenciaCredito>;
   metodoPago: z.infer<typeof OrderFormSchema.shape.metodoPago>;
   status: keyof typeof OrderStatus;
+  total?: number;
 }
 
 export interface Order extends BaseOrder {
@@ -149,5 +144,3 @@ export interface OrderFirestore extends BaseOrder {
   fechaMaxEntrega: Timestamp;
   createdAt: Timestamp;
 }
-
-    

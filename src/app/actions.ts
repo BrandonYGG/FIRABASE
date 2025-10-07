@@ -6,6 +6,27 @@ import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/firebase/server-config';
 import { OrderFormSchema } from '@/lib/types';
 import { z } from 'zod';
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+
+export async function createPaymentIntentAction(amount: number) {
+    try {
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: Math.round(amount * 100), // Stripe expects the amount in cents
+            currency: 'mxn',
+            automatic_payment_methods: {
+                enabled: true,
+            },
+        });
+
+        return { success: true, clientSecret: paymentIntent.client_secret };
+    } catch (error) {
+        console.error('Error creating payment intent:', error);
+        return { success: false, message: 'No se pudo iniciar el proceso de pago.' };
+    }
+}
+
 
 export async function createOrderAction(data: unknown) {
   const result = OrderFormSchema.safeParse(data);
@@ -32,9 +53,13 @@ export async function createOrderAction(data: unknown) {
       status: 'Pendiente' as const,
     };
     
+    // Clear credit-specific fields if payment is not credit
     if (docData.tipoPago !== 'Credito') {
       docData.frecuenciaCredito = null;
-      docData.metodoPago = null;
+      // We keep 'metodoPago' for "Contado" as it will store the payment intent ID.
+    } else {
+        // If it is credit, we don't need the payment intent ID.
+        docData.metodoPago = null;
     }
 
     await addDoc(collection(db, 'pedidos'), docData);

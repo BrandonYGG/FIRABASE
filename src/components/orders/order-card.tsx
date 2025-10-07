@@ -1,7 +1,7 @@
 
 import type { Order } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarDays, User, HardHat, CreditCard, Wallet, MapPin } from 'lucide-react';
+import { CalendarDays, User, HardHat, CreditCard, Wallet, MapPin, DollarSign } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { UrgencyBadge } from './urgency-badge';
@@ -50,6 +50,12 @@ export function OrderCard({ order }: OrderCardProps) {
           <MapPin className="mr-2 mt-0.5 h-4 w-4 text-muted-foreground flex-shrink-0" />
           <span><span className="font-semibold">Dirección:</span> {fullAddress}</span>
         </div>
+        {order.total && (
+        <div className="flex items-center font-semibold">
+          <DollarSign className="mr-2 h-4 w-4 text-muted-foreground" />
+          <span>Total: ${order.total.toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN</span>
+        </div>
+        )}
       </CardContent>
       <CardFooter>
         <div className="text-xs text-muted-foreground flex items-center">
