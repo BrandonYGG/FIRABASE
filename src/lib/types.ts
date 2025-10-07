@@ -90,7 +90,7 @@ export const OrderFormSchema = z.object({
     }
     return true;
 }, {
-    message: "Formato no válido. Solo se aceptan archivos JPG, PNG, WEBP o PDF.",
+    message: "Formato no válido. Solo se aceptan archivos JPG (fotografia) o PDF.",
     path: ['ine'],
 })
 .refine(data => {
@@ -117,7 +117,7 @@ export const OrderFormSchema = z.object({
     }
     return true;
 }, {
-    message: "Formato no válido. Solo se aceptan archivos JPG, PNG, WEBP o PDF.",
+    message: "Formato no válido. Solo se aceptan archivos JPG (fotografia) o PDF.",
     path: ['comprobanteDomicilio'],
 });
 

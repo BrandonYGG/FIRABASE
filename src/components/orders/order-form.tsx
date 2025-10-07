@@ -361,7 +361,7 @@ export function OrderForm() {
                                     />
                                 </FormControl>
                                 <FormDescription>
-                                    El archivo puede ser JPG, PNG, WEBP o PDF.
+                                    El archivo puede ser JPG (fotografia) o PDF.
                                 </FormDescription>
                                 <FormMessage />
                             </FormItem>
@@ -382,7 +382,7 @@ export function OrderForm() {
                                     />
                                 </FormControl>
                                 <FormDescription>
-                                    No mayor a 3 meses. El archivo puede ser JPG, PNG, WEBP o PDF.
+                                    No mayor a 3 meses. El archivo puede ser JPG (fotografia) o PDF.
                                 </FormDescription>
                                 <FormMessage />
                             </FormItem>
@@ -402,5 +402,3 @@ export function OrderForm() {
     </Card>
   );
 }
-
-    
