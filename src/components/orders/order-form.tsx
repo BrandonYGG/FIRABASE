@@ -78,11 +78,19 @@ export function OrderForm() {
       });
       router.push('/pedidos');
     } else {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: result.message || 'Por favor revise los campos del formulario.',
-      });
+        if (result.errors) {
+            result.errors.forEach(err => {
+                form.setError(err.path.join('.') as keyof OrderFormValues, {
+                    type: 'manual',
+                    message: err.message,
+                });
+            });
+        }
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: result.message || 'Por favor revise los campos del formulario.',
+        });
     }
   }
 

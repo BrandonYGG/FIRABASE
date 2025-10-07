@@ -5,19 +5,20 @@ import { addDoc, collection, Timestamp } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/firebase/server-config';
 import { OrderFormSchema } from '@/lib/types';
+import { z } from 'zod';
 
 export async function createOrderAction(data: unknown) {
   const result = OrderFormSchema.safeParse(data);
 
   if (!result.success) {
-    let formattedErrors = {};
+    let formattedErrors: { path: (string | number)[]; message: string }[] = [];
     result.error.issues.forEach(issue => {
-        const path = issue.path.join('.');
-        if(!formattedErrors[path]){
-            formattedErrors[path] = issue.message;
-        }
+        formattedErrors.push({
+            path: issue.path,
+            message: issue.message
+        });
     });
-    return { success: false, errors: formattedErrors };
+    return { success: false, errors: formattedErrors, message: "Por favor revise los campos del formulario." };
   }
   
   const { ...orderData } = result.data;

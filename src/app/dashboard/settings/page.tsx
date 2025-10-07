@@ -31,17 +31,18 @@ export default function SettingsPage() {
         }
     };
 
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setIsSubmitting(true);
-        // Simulate API call
-        setTimeout(() => {
-            setIsSubmitting(false);
-            toast({
-                title: "Perfil Actualizado",
-                description: "Tu información ha sido guardada con éxito.",
-            });
-        }, 1500);
+        
+        // Simulate a quick API call if needed, but for UI feedback, this is faster.
+        await new Promise(resolve => setTimeout(resolve, 200)); // Short delay for visual feedback
+
+        setIsSubmitting(false);
+        toast({
+            title: "Perfil Actualizado",
+            description: "Tu información ha sido guardada con éxito.",
+        });
     };
 
   return (
