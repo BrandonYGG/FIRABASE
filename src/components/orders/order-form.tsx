@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { z } from 'zod';
 import { useRouter } from 'next/navigation';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -20,13 +20,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -35,9 +28,10 @@ import { cn } from '@/lib/utils';
 import { CalendarIcon, Loader2, Wand2 } from 'lucide-react';
 import { OrderFormSchema, PaymentType, CreditFrequency } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { createOrderAction, getAddressFromPostalCode } from '@/app/actions';
+import { createOrderAction } from '@/app/actions';
 import { getUrgency } from './urgency-badge';
 import type { DateRange } from 'react-day-picker';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type OrderFormValues = z.infer<typeof OrderFormSchema>;
 
@@ -45,8 +39,6 @@ export function OrderForm() {
   const router = useRouter();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isFetchingPostalCode, setIsFetchingPostalCode] = useState(false);
-  const [neighborhoods, setNeighborhoods] = useState<string[]>([]);
   const [date, setDate] = useState<DateRange | undefined>();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
@@ -68,40 +60,7 @@ export function OrderForm() {
   });
 
   const tipoPago = form.watch('tipoPago');
-  const postalCode = form.watch('codigoPostal');
   
-  useEffect(() => {
-    if (postalCode.length === 5) {
-      const fetchAddress = async () => {
-        setIsFetchingPostalCode(true);
-        setNeighborhoods([]);
-        form.setValue('ciudad', '');
-        form.setValue('estado', '');
-        form.setValue('colonia', '');
-
-        const result = await getAddressFromPostalCode(postalCode);
-
-        if (result.success && result.data) {
-          form.setValue('ciudad', result.data.city);
-          form.setValue('estado', result.data.state);
-          setNeighborhoods(result.data.neighborhoods);
-           toast({
-            title: 'Dirección encontrada',
-            description: 'Ciudad y estado autocompletados.',
-          });
-        } else {
-          toast({
-            variant: 'destructive',
-            title: 'Error de Código Postal',
-            description: result.message,
-          });
-        }
-        setIsFetchingPostalCode(false);
-      };
-      fetchAddress();
-    }
-  }, [postalCode, form, toast]);
-
   const urgencySuggestion = useMemo(() => {
     if (!date?.to) return null;
     return getUrgency(date.to).suggestion;
@@ -183,22 +142,16 @@ export function OrderForm() {
                         </FormItem>
                     )}
                     />
-                <div className="grid md:grid-cols-2 gap-8">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     <FormField
                     control={form.control}
                     name="codigoPostal"
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Código Postal</FormLabel>
-                        <div className="relative">
-                            <FormControl>
-                                <Input placeholder="Ej. 50000" {...field} />
-                            </FormControl>
-                            {isFetchingPostalCode && <Loader2 className="absolute right-2 top-2.5 h-5 w-5 animate-spin text-muted-foreground" />}
-                        </div>
-                        <FormDescription>
-                            Ingrese 5 dígitos para autocompletar.
-                        </FormDescription>
+                        <FormControl>
+                            <Input placeholder="Ej. 50000" {...field} />
+                        </FormControl>
                         <FormMessage />
                         </FormItem>
                     )}
@@ -209,24 +162,13 @@ export function OrderForm() {
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Colonia</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value} disabled={neighborhoods.length === 0}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Seleccione una colonia" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                {neighborhoods.map((neighborhood) => (
-                                    <SelectItem key={neighborhood} value={neighborhood}>{neighborhood}</SelectItem>
-                                ))}
-                                </SelectContent>
-                            </Select>
+                             <FormControl>
+                                <Input placeholder="Ej. Centro" {...field} />
+                            </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
                     />
-                </div>
-                <div className="grid md:grid-cols-2 gap-8">
                      <FormField
                     control={form.control}
                     name="ciudad"
@@ -234,26 +176,26 @@ export function OrderForm() {
                         <FormItem>
                         <FormLabel>Ciudad</FormLabel>
                         <FormControl>
-                            <Input placeholder="Autocompletado" {...field} readOnly />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                     <FormField
-                    control={form.control}
-                    name="estado"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Estado</FormLabel>
-                        <FormControl>
-                            <Input placeholder="Autocompletado" {...field} readOnly />
+                            <Input placeholder="Ej. Toluca" {...field} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
                     )}
                     />
                 </div>
+                 <FormField
+                    control={form.control}
+                    name="estado"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Estado</FormLabel>
+                        <FormControl>
+                            <Input placeholder="Ej. México" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
             </div>
 
             <div className="space-y-4">
