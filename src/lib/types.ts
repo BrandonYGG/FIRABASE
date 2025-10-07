@@ -20,8 +20,8 @@ export const OrderStatus = {
     Cancelado: 'Cancelado',
 } as const;
 
-const MAX_FILE_SIZE = 5000000; // 5MB
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "application/pdf"];
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ACCEPTED_FILE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "application/pdf"];
 
 
 export const OrderFormSchema = z.object({
@@ -74,13 +74,50 @@ export const OrderFormSchema = z.object({
 }, {
     message: 'El archivo del INE es obligatorio para el crédito.',
     path: ['ine'],
-}).refine(data => {
+})
+.refine(data => {
+    if (data.tipoPago === 'Credito' && data.ine && data.ine.length > 0) {
+        return data.ine[0].size <= MAX_FILE_SIZE;
+    }
+    return true;
+}, {
+    message: `El tamaño máximo del archivo del INE es de 5MB.`,
+    path: ['ine'],
+})
+.refine(data => {
+    if (data.tipoPago === 'Credito' && data.ine && data.ine.length > 0) {
+        return ACCEPTED_FILE_TYPES.includes(data.ine[0].type);
+    }
+    return true;
+}, {
+    message: "Formato de archivo del INE no válido. Use JPG, PNG, WEBP o PDF.",
+    path: ['ine'],
+})
+.refine(data => {
     if (data.tipoPago === 'Credito') {
         return data.comprobanteDomicilio && data.comprobanteDomicilio?.length > 0;
     }
     return true;
 }, {
     message: 'El comprobante de domicilio es obligatorio para el crédito.',
+    path: ['comprobanteDomicilio'],
+})
+.refine(data => {
+    if (data.tipoPago === 'Credito' && data.comprobanteDomicilio && data.comprobanteDomicilio.length > 0) {
+        return data.comprobanteDomicilio[0].size <= MAX_FILE_SIZE;
+    }
+    return true;
+}, {
+    message: `El tamaño máximo del comprobante es de 5MB.`,
+    path: ['comprobanteDomicilio'],
+})
+.refine(data => {
+    if (data.tipoPago === 'Credito' && data.comprobanteDomicilio && data.comprobanteDomicilio.length > 0) {
+        return ACCEPTED_FILE_TYPES.includes(data.comprobanteDomicilio[0].type);
+    }
+    return true;
+}, {
+    message: "Formato de archivo de comprobante no válido. Use JPG, PNG, WEBP o PDF.",
     path: ['comprobanteDomicilio'],
 });
 
