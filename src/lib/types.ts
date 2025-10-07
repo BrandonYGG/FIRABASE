@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 import type { Timestamp } from 'firebase/firestore';
 
@@ -22,7 +23,11 @@ export const OrderStatus = {
 export const OrderFormSchema = z.object({
   solicitante: z.string().min(3, { message: 'El nombre debe tener al menos 3 caracteres.' }),
   obra: z.string().min(3, { message: 'El nombre de la obra debe tener al menos 3 caracteres.' }),
-  ubicacion: z.string().min(5, { message: 'La ubicación debe tener al menos 5 caracteres.' }),
+  direccion: z.string().min(5, { message: 'La dirección debe tener al menos 5 caracteres.' }),
+  colonia: z.string().min(3, { message: 'La colonia debe tener al menos 3 caracteres.' }),
+  codigoPostal: z.string().regex(/^\d{5}$/, { message: 'El código postal debe tener 5 dígitos.' }),
+  ciudad: z.string().min(3, { message: 'La ciudad debe tener al menos 3 caracteres.' }),
+  estado: z.string().min(2, { message: 'El estado debe tener al menos 2 caracteres.' }),
   fechaMinEntrega: z.coerce.date({
     required_error: "La fecha mínima de entrega es obligatoria.",
     invalid_type_error: "Formato de fecha inválido.",
@@ -63,7 +68,11 @@ interface BaseOrder {
   id: string;
   solicitante: string;
   obra: string;
-  ubicacion: string;
+  direccion: string;
+  colonia: string;
+  codigoPostal: string;
+  ciudad: string;
+  estado: string;
   tipoPago: z.infer<typeof OrderFormSchema.shape.tipoPago>;
   frecuenciaCredito: z.infer<typeof OrderFormSchema.shape.frecuenciaCredito>;
   metodoPago: z.infer<typeof OrderFormSchema.shape.metodoPago>;

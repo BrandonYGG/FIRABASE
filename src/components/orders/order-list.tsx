@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -14,6 +15,7 @@ export function OrderList() {
   const [paymentTypeFilter, setPaymentTypeFilter] = useState('');
 
   const filteredOrders = useMemo(() => {
+    if (!orders) return [];
     return orders.filter((order) => {
       const statusMatch = statusFilter ? order.status === statusFilter : true;
       const paymentTypeMatch = paymentTypeFilter ? order.tipoPago === paymentTypeFilter : true;
@@ -40,7 +42,7 @@ export function OrderList() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="flex flex-col space-y-3">
-              <Skeleton className="h-[125px] w-full rounded-xl" />
+              <Skeleton className="h-[220px] w-full rounded-xl" />
               <div className="space-y-2">
                 <Skeleton className="h-4 w-4/5" />
                 <Skeleton className="h-4 w-3/5" />

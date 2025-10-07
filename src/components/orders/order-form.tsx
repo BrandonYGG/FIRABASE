@@ -30,7 +30,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { CalendarIcon, Loader2, Wand2 } from 'lucide-react';
 import { OrderFormSchema, PaymentType, CreditFrequency } from '@/lib/types';
@@ -54,7 +54,11 @@ export function OrderForm() {
     defaultValues: {
       solicitante: '',
       obra: '',
-      ubicacion: '',
+      direccion: '',
+      colonia: '',
+      codigoPostal: '',
+      ciudad: '',
+      estado: '',
       tipoPago: undefined,
       frecuenciaCredito: undefined,
       metodoPago: '',
@@ -92,202 +96,267 @@ export function OrderForm() {
     <Card className="max-w-4xl mx-auto">
       <CardHeader>
         <CardTitle className="text-2xl font-headline">Registrar Pedido de Materiales</CardTitle>
+        <CardDescription>Complete los detalles para solicitar sus materiales de construcción.</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <div className="grid md:grid-cols-2 gap-8">
-              <FormField
-                control={form.control}
-                name="solicitante"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nombre del Solicitante</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej. Juan Pérez" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="obra"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nombre de la Obra</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej. Edificio Central" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="ubicacion"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ubicación de la Obra</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ej. Av. Principal 123, Ciudad" {...field} />
-                  </FormControl>
-                  <FormDescription>Si ha hecho pedidos previos, intente usar la misma ubicación.</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid md:grid-cols-2 gap-8 items-start">
-               <FormItem className="flex flex-col">
-                  <FormLabel>Rango de Fechas de Entrega</FormLabel>
-                   <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !date && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {date?.from ? (
-                            date.to ? (
-                              <>
-                                {format(date.from, "LLL dd, y", { locale: es })} -{" "}
-                                {format(date.to, "LLL dd, y", { locale: es })}
-                              </>
-                            ) : (
-                              format(date.from, "LLL dd, y", { locale: es })
-                            )
-                          ) : (
-                            <span>Seleccione un rango de fechas</span>
-                          )}
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                       <Calendar
-                        initialFocus
-                        mode="range"
-                        defaultMonth={date?.from}
-                        selected={date}
-                        onSelect={(range) => {
-                            setDate(range);
-                            if(range?.from) form.setValue('fechaMinEntrega', range.from);
-                            if(range?.to) form.setValue('fechaMaxEntrega', range.to);
-                        }}
-                        numberOfMonths={2}
-                        locale={es}
-                        disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))}
-                      />
-                      <div className="p-2 border-t">
-                        <Button
-                            disabled={!date?.from || !date?.to}
-                            onClick={() => setIsCalendarOpen(false)}
-                            className="w-full"
-                            size="sm"
-                        >
-                            Confirmar
-                        </Button>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                  <FormDescription>
-                    La fecha inicial es cuándo te gustaría recibirlo, y la final es el último día que puedes esperarlo.
-                  </FormDescription>
-                  <FormMessage className="mt-2">
-                    {form.formState.errors.fechaMinEntrega?.message || form.formState.errors.fechaMaxEntrega?.message}
-                  </FormMessage>
-               </FormItem>
-              
-               <div className="space-y-2">
-                  <FormLabel>Cronograma de Urgencia</FormLabel>
-                  <div className="p-4 border rounded-md min-h-[40px] flex items-center justify-center">
-                    {date?.to ? (
-                       <UrgencyBadge date={date.to} showText={true}/>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">Seleccione una fecha final</p>
-                    )}
-                  </div>
-                   {urgencySuggestion && (
-                    <div className="flex items-start text-sm text-muted-foreground p-2 rounded-md bg-accent/10 border border-accent/20">
-                      <Wand2 className="h-4 w-4 mr-2 mt-0.5 text-accent flex-shrink-0"/>
-                      <p>{urgencySuggestion}</p>
-                    </div>
-                  )}
-               </div>
-            </div>
-
-            <FormField
-              control={form.control}
-              name="tipoPago"
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <FormLabel>Tipo de Pago</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4"
-                    >
-                      {Object.values(PaymentType).map((type) => (
-                        <FormItem key={type} className="flex items-center space-x-3 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value={type} />
-                          </FormControl>
-                          <FormLabel className="font-normal">{type}</FormLabel>
-                        </FormItem>
-                      ))}
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {tipoPago === 'Credito' && (
-              <div className="grid md:grid-cols-2 gap-8 border-l-4 border-primary pl-4 animate-in fade-in-50">
+            <div className="space-y-4">
+                <CardTitle className="text-lg font-headline">Información del Solicitante</CardTitle>
+                <div className="grid md:grid-cols-2 gap-8">
                 <FormField
-                  control={form.control}
-                  name="frecuenciaCredito"
-                  render={({ field }) => (
+                    control={form.control}
+                    name="solicitante"
+                    render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Frecuencia de Crédito</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormLabel>Nombre del Solicitante</FormLabel>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Seleccione una frecuencia" />
-                          </SelectTrigger>
+                        <Input placeholder="Ej. Juan Pérez" {...field} />
                         </FormControl>
-                        <SelectContent>
-                          {Object.values(CreditFrequency).map((freq) => (
-                            <SelectItem key={freq} value={freq}>{freq}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
+                        <FormMessage />
                     </FormItem>
-                  )}
+                    )}
                 />
                 <FormField
-                  control={form.control}
-                  name="metodoPago"
-                  render={({ field }) => (
+                    control={form.control}
+                    name="obra"
+                    render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Tarjeta o Método de Pago</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ej. Tarjeta VISA **** 1234" {...field} value={field.value ?? ''} />
-                      </FormControl>
-                      <FormMessage />
+                        <FormLabel>Nombre de la Obra</FormLabel>
+                        <FormControl>
+                        <Input placeholder="Ej. Edificio Central" {...field} />
+                        </FormControl>
+                        <FormMessage />
                     </FormItem>
-                  )}
+                    )}
                 />
-              </div>
-            )}
+                </div>
+            </div>
+            
+            <div className="space-y-4">
+                <CardTitle className="text-lg font-headline">Dirección de Entrega</CardTitle>
+                 <FormField
+                    control={form.control}
+                    name="direccion"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Dirección (Calle y Número)</FormLabel>
+                        <FormControl>
+                            <Input placeholder="Ej. Av. Principal 123" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                <div className="grid md:grid-cols-2 gap-8">
+                    <FormField
+                    control={form.control}
+                    name="colonia"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Colonia</FormLabel>
+                        <FormControl>
+                            <Input placeholder="Ej. Centro" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="codigoPostal"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Código Postal</FormLabel>
+                        <FormControl>
+                            <Input placeholder="Ej. 50000" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </div>
+                <div className="grid md:grid-cols-2 gap-8">
+                     <FormField
+                    control={form.control}
+                    name="ciudad"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Ciudad</FormLabel>
+                        <FormControl>
+                            <Input placeholder="Ej. Ciudad de México" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                     <FormField
+                    control={form.control}
+                    name="estado"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Estado</FormLabel>
+                        <FormControl>
+                            <Input placeholder="Ej. CDMX" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </div>
+            </div>
+
+            <div className="space-y-4">
+                <CardTitle className="text-lg font-headline">Cronograma y Pago</CardTitle>
+                <div className="grid md:grid-cols-2 gap-8 items-start">
+                <FormItem className="flex flex-col">
+                    <FormLabel>Rango de Fechas de Entrega</FormLabel>
+                    <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                        <PopoverTrigger asChild>
+                        <FormControl>
+                            <Button
+                            variant={"outline"}
+                            className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !date && "text-muted-foreground"
+                            )}
+                            >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {date?.from ? (
+                                date.to ? (
+                                <>
+                                    {format(date.from, "LLL dd, y", { locale: es })} -{" "}
+                                    {format(date.to, "LLL dd, y", { locale: es })}
+                                </>
+                                ) : (
+                                format(date.from, "LLL dd, y", { locale: es })
+                                )
+                            ) : (
+                                <span>Seleccione un rango de fechas</span>
+                            )}
+                            </Button>
+                        </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                            initialFocus
+                            mode="range"
+                            defaultMonth={date?.from}
+                            selected={date}
+                            onSelect={(range) => {
+                                setDate(range);
+                                if(range?.from) form.setValue('fechaMinEntrega', range.from);
+                                if(range?.to) form.setValue('fechaMaxEntrega', range.to);
+                            }}
+                            numberOfMonths={2}
+                            locale={es}
+                            disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))}
+                        />
+                        <div className="p-2 border-t">
+                            <Button
+                                disabled={!date?.from || !date?.to}
+                                onClick={() => setIsCalendarOpen(false)}
+                                className="w-full"
+                                size="sm"
+                            >
+                                Confirmar
+                            </Button>
+                        </div>
+                        </PopoverContent>
+                    </Popover>
+                    <FormDescription>
+                        La fecha inicial es cuándo te gustaría recibirlo, y la final es el último día que puedes esperarlo.
+                    </FormDescription>
+                    <FormMessage className="mt-2">
+                        {form.formState.errors.fechaMinEntrega?.message || form.formState.errors.fechaMaxEntrega?.message}
+                    </FormMessage>
+                </FormItem>
+                
+                <div className="space-y-2">
+                    <FormLabel>Cronograma de Urgencia</FormLabel>
+                    <div className="p-4 border rounded-md min-h-[40px] flex items-center justify-center">
+                        {date?.to ? (
+                        <UrgencyBadge date={date.to} showText={true}/>
+                        ) : (
+                        <p className="text-sm text-muted-foreground">Seleccione una fecha final</p>
+                        )}
+                    </div>
+                    {urgencySuggestion && (
+                        <div className="flex items-start text-sm text-muted-foreground p-2 rounded-md bg-accent/10 border border-accent/20">
+                        <Wand2 className="h-4 w-4 mr-2 mt-0.5 text-accent flex-shrink-0"/>
+                        <p>{urgencySuggestion}</p>
+                        </div>
+                    )}
+                </div>
+                </div>
+
+                <FormField
+                control={form.control}
+                name="tipoPago"
+                render={({ field }) => (
+                    <FormItem className="space-y-3">
+                    <FormLabel>Tipo de Pago</FormLabel>
+                    <FormControl>
+                        <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4"
+                        >
+                        {Object.values(PaymentType).map((type) => (
+                            <FormItem key={type} className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                                <RadioGroupItem value={type} />
+                            </FormControl>
+                            <FormLabel className="font-normal">{type}</FormLabel>
+                            </FormItem>
+                        ))}
+                        </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+
+                {tipoPago === 'Credito' && (
+                <div className="grid md:grid-cols-2 gap-8 border-l-4 border-primary pl-4 animate-in fade-in-50">
+                    <FormField
+                    control={form.control}
+                    name="frecuenciaCredito"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Frecuencia de Crédito</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Seleccione una frecuencia" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                            {Object.values(CreditFrequency).map((freq) => (
+                                <SelectItem key={freq} value={freq}>{freq}</SelectItem>
+                            ))}
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="metodoPago"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Tarjeta o Método de Pago</FormLabel>
+                        <FormControl>
+                            <Input placeholder="Ej. Tarjeta VISA **** 1234" {...field} value={field.value ?? ''} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </div>
+                )}
+            </div>
 
             <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -299,5 +368,3 @@ export function OrderForm() {
     </Card>
   );
 }
-
-    
