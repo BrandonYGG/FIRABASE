@@ -80,7 +80,7 @@ export default function DashboardLayout({
                             className="overflow-hidden rounded-full"
                         >
                             <Avatar>
-                                <AvatarImage src="https://upload.wikimedia.org/wikipedia/en/3/34/Jimmy_McGill_BCS_S3.png" alt="Avatar" className="object-cover" />
+                                <AvatarImage src="https://upload.wikimedia.org/wikipedia/en/3/34/Jimmy_McGill_BCS_S3.png" alt="Avatar" className="object-contain" />
                                 <AvatarFallback>JM</AvatarFallback>
                             </Avatar>
                         </Button>
