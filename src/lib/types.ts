@@ -3,7 +3,8 @@ import { z } from 'zod';
 import type { Timestamp } from 'firebase/firestore';
 
 export const PaymentType = {
-  Contado: 'Contado',
+  Efectivo: 'Efectivo',
+  Tarjeta: 'Tarjeta',
   Credito: 'Credito',
 } as const;
 
@@ -144,3 +145,5 @@ export interface OrderFirestore extends BaseOrder {
   fechaMaxEntrega: Timestamp;
   createdAt: Timestamp;
 }
+
+    

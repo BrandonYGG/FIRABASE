@@ -54,12 +54,11 @@ export async function createOrderAction(data: unknown) {
     };
     
     // Clear credit-specific fields if payment is not credit
-    if (docData.tipoPago !== 'Credito') {
-      docData.frecuenciaCredito = null;
-      // We keep 'metodoPago' for "Contado" as it will store the payment intent ID.
-    } else {
-        // If it is credit, we don't need the payment intent ID.
+    if (docData.tipoPago === 'Credito') {
+      docData.metodoPago = null;
+    } else if (docData.tipoPago === 'Efectivo') {
         docData.metodoPago = null;
+        docData.frecuenciaCredito = null;
     }
 
     await addDoc(collection(db, 'pedidos'), docData);
@@ -71,3 +70,5 @@ export async function createOrderAction(data: unknown) {
     return { success: false, message: 'No se pudo crear el pedido.' };
   }
 }
+
+    

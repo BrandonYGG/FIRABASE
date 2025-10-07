@@ -72,9 +72,9 @@ export function OrderForm() {
     return getUrgency(date.to).suggestion;
   }, [date]);
 
-  // Create a payment intent when payment type is "Contado"
+  // Create a payment intent when payment type is "Tarjeta"
   useMemo(() => {
-    if (tipoPago === 'Contado') {
+    if (tipoPago === 'Tarjeta') {
       const orderTotal = form.getValues('total') || 1000; // Mock total
       createPaymentIntentAction(orderTotal).then(result => {
         if(result.success && result.clientSecret) {
@@ -96,7 +96,7 @@ export function OrderForm() {
   async function onSubmit(data: OrderFormValues) {
     setIsSubmitting(true);
     
-    if (data.tipoPago === 'Contado') {
+    if (data.tipoPago === 'Tarjeta') {
         if (!stripe || !elements || !clientSecret) {
             toast({ variant: 'destructive', title: 'Error', description: 'El sistema de pago no está listo.' });
             setIsSubmitting(false);
@@ -373,7 +373,7 @@ export function OrderForm() {
                 )}
                 />
                 
-                {tipoPago === 'Contado' && clientSecret && (
+                {tipoPago === 'Tarjeta' && clientSecret && (
                     <div className="space-y-4 border-l-4 border-primary pl-4 animate-in fade-in-50">
                         <h3 className="text-md font-medium">Información de Pago</h3>
                         <PaymentElement options={{layout: 'tabs'}} />
@@ -450,9 +450,9 @@ export function OrderForm() {
                 )}
             </div>
 
-            <Button type="submit" disabled={isSubmitting || (tipoPago ==='Contado' && !stripe)} className="w-full md:w-auto">
+            <Button type="submit" disabled={isSubmitting || (tipoPago ==='Tarjeta' && !stripe)} className="w-full md:w-auto">
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {tipoPago === 'Contado' ? 'Pagar y Registrar Pedido' : 'Registrar Pedido'}
+              {tipoPago === 'Tarjeta' ? 'Pagar y Registrar Pedido' : 'Registrar Pedido'}
             </Button>
           </form>
         </Form>
@@ -460,3 +460,5 @@ export function OrderForm() {
     </Card>
   );
 }
+
+    
