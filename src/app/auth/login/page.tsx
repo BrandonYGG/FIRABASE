@@ -25,15 +25,17 @@ export default function LoginPage() {
       <CardContent className="grid gap-4">
         <div className="grid gap-2">
           <Label htmlFor="email">Correo Electrónico</Label>
-          <Input id="email" type="email" placeholder="nombre@ejemplo.com" required />
+          <Input id="email" type="email" placeholder="nombre@ejemplo.com" required defaultValue="usuario@ejemplo.com" />
         </div>
         <div className="grid gap-2">
           <Label htmlFor="password">Contraseña</Label>
-          <Input id="password" type="password" required />
+          <Input id="password" type="password" required defaultValue="password" />
         </div>
       </CardContent>
       <CardFooter className="flex flex-col gap-4">
-        <Button className="w-full">Iniciar Sesión</Button>
+        <Button className="w-full" asChild>
+          <Link href="/dashboard">Iniciar Sesión</Link>
+        </Button>
         <div className="text-center text-sm">
           ¿No tienes una cuenta?{" "}
           <Link href="/auth/register" className="underline">

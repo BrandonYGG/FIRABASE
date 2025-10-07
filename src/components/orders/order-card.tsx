@@ -3,23 +3,16 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { CalendarDays, User, HardHat, CreditCard, Wallet } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { getUrgency, UrgencyBadge } from './urgency-badge';
+import { UrgencyBadge } from './urgency-badge';
 
 type OrderCardProps = {
   order: Order;
 };
 
 export function OrderCard({ order }: OrderCardProps) {
-  const urgency = getUrgency(order.fechaMaxEntrega);
-
-  const urgencyStyles = {
-    Urgent: 'border-destructive',
-    Soon: 'border-yellow-500',
-    Normal: 'border-green-500',
-  };
-
+  
   return (
-    <Card className={`transition-all hover:shadow-md ${urgencyStyles[urgency.level]}`}>
+    <Card className={`transition-all hover:shadow-md`}>
       <CardHeader>
         <div className="flex justify-between items-start">
           <div>

@@ -1,0 +1,107 @@
+
+'use client';
+
+import Link from 'next/link';
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarProvider,
+  SidebarInset,
+  SidebarTrigger
+} from '@/components/ui/sidebar';
+import { Construction, LayoutDashboard, ListOrdered, FilePlus2, LogOut } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const pathname = usePathname();
+  const isActive = (path: string) => pathname === path;
+
+  const sidebarMenuItems = [
+      { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { href: '/pedidos', label: 'Mis Pedidos', icon: ListOrdered },
+      { href: '/pedidos/nuevo', label: 'Nuevo Pedido', icon: FilePlus2 },
+  ]
+  return (
+    <SidebarProvider>
+        <Sidebar>
+            <SidebarHeader>
+                <div className="flex items-center space-x-2 px-2">
+                    <Construction className="h-6 w-6 text-primary" />
+                    <span className="font-bold font-headline text-lg">OrderFlow</span>
+                </div>
+            </SidebarHeader>
+            <SidebarContent>
+                <SidebarMenu>
+                    {sidebarMenuItems.map((item) =>(
+                    <SidebarMenuItem key={item.href}>
+                        <SidebarMenuButton asChild isActive={isActive(item.href)} tooltip={item.label}>
+                            <Link href={item.href}>
+                                <item.icon/>
+                                {item.label}
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    ))}
+                </SidebarMenu>
+            </SidebarContent>
+        </Sidebar>
+        <SidebarInset>
+            <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+                 <SidebarTrigger className="sm:hidden" />
+                 <div className="ml-auto flex items-center gap-4">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="overflow-hidden rounded-full"
+                        >
+                            <Avatar>
+                                <AvatarImage src="https://picsum.photos/seed/avatar/40/40" alt="Avatar" />
+                                <AvatarFallback>JP</AvatarFallback>
+                            </Avatar>
+                        </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem>Configuración</DropdownMenuItem>
+                        <DropdownMenuItem>Soporte</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                            <Link href="/">
+                                <LogOut className="mr-2" />
+                                Cerrar Sesión
+                            </Link>
+                        </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                 </div>
+            </header>
+            <main className="flex-1 p-4 sm:px-6 sm:py-0">{children}</main>
+        </SidebarInset>
+    </SidebarProvider>
+  );
+}

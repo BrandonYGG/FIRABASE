@@ -1,4 +1,5 @@
-import Header from '@/components/layout/header';
+
+import DashboardLayout from "../dashboard/layout";
 
 export default function PedidosLayout({
   children,
@@ -6,11 +7,8 @@ export default function PedidosLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col">
-      <Header />
-      <main className="flex-1">
+    <DashboardLayout>
         {children}
-      </main>
-    </div>
+    </DashboardLayout>
   );
 }
