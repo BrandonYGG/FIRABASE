@@ -29,7 +29,7 @@ import { CalendarIcon, Loader2, Wand2 } from 'lucide-react';
 import { OrderFormSchema, PaymentType, CreditFrequency } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { createOrderAction } from '@/app/actions';
-import { getUrgency, UrgencyBadge } from './urgency-badge';
+import { getUrgency, UrgencyBadge } from '@/components/orders/urgency-badge';
 import type { DateRange } from 'react-day-picker';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -360,6 +360,9 @@ export function OrderForm() {
                                         {...rest}
                                     />
                                 </FormControl>
+                                <FormDescription>
+                                    El archivo puede ser JPG, PNG, WEBP o PDF.
+                                </FormDescription>
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -378,7 +381,7 @@ export function OrderForm() {
                                         {...rest} 
                                     />
                                 </FormControl>
-                                <FormDescription>No mayor a 3 meses.</FormDescription>
+                                <FormDescription>No mayor a 3 meses. El archivo puede ser JPG, PNG, WEBP o PDF.</FormDescription>
                                 <FormMessage />
                             </FormItem>
                         )}
