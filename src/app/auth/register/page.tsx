@@ -17,7 +17,7 @@ import Link from "next/link"
 
 export default function RegisterPage() {
   return (
-    <Tabs defaultValue="personal" className="w-full max-w-md">
+    <Tabs defaultValue="personal" className="w-full">
       <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="personal">Personal</TabsTrigger>
         <TabsTrigger value="empresa">Empresa</TabsTrigger>
@@ -73,4 +73,21 @@ export default function RegisterPage() {
               <Input id="company-email" placeholder="contacto@constructora.com" type="email" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="company-password">Contraseña</p
+              <Label htmlFor="company-password">Contraseña</Label>
+              <Input id="company-password" type="password" />
+            </div>
+          </CardContent>
+          <CardFooter className="flex flex-col gap-4">
+            <Button className="w-full">Crear Cuenta de Empresa</Button>
+             <div className="text-center text-sm">
+                ¿Ya tienes una cuenta?{" "}
+                <Link href="/auth/login" className="underline">
+                    Iniciar Sesión
+                </Link>
+            </div>
+          </CardFooter>
+        </Card>
+      </TabsContent>
+    </Tabs>
+  );
+}
