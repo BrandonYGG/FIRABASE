@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { Construction } from 'lucide-react';
+import { Construction, LogIn, UserPlus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function Header() {
   return (
@@ -11,19 +12,19 @@ export default function Header() {
             <span className="font-bold font-headline">OrderFlow Construct</span>
           </Link>
         </div>
-        <nav className="flex items-center space-x-6 text-sm font-medium ml-auto">
-          <Link
-            href="/pedidos/nuevo"
-            className="transition-colors hover:text-primary"
-          >
-            Nuevo Pedido
-          </Link>
-          <Link
-            href="/pedidos"
-            className="transition-colors hover:text-primary"
-          >
-            Ver Pedidos
-          </Link>
+        <nav className="flex items-center space-x-2 text-sm font-medium ml-auto">
+          <Button variant="ghost" asChild>
+            <Link href="/auth/login">
+              <LogIn className="mr-2 h-4 w-4" />
+              Iniciar Sesión
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link href="/auth/register">
+               <UserPlus className="mr-2 h-4 w-4" />
+              Registrarse
+            </Link>
+          </Button>
         </nav>
       </div>
     </header>
