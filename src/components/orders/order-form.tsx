@@ -346,6 +346,43 @@ export function OrderForm() {
                         </FormItem>
                     )}
                     />
+                     <FormField
+                        control={form.control}
+                        name="ine"
+                        render={({ field: { onChange, value, ...rest } }) => (
+                            <FormItem>
+                                <FormLabel>INE (Frente y reverso)</FormLabel>
+                                <FormControl>
+                                    <Input 
+                                        type="file" 
+                                        accept="image/*,application/pdf"
+                                        onChange={(e) => onChange(e.target.files)} 
+                                        {...rest}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                    <FormField
+                        control={form.control}
+                        name="comprobanteDomicilio"
+                        render={({ field: { onChange, value, ...rest } }) => (
+                            <FormItem>
+                                <FormLabel>Comprobante de Domicilio</FormLabel>
+                                <FormControl>
+                                    <Input 
+                                        type="file" 
+                                        accept="image/*,application/pdf"
+                                        onChange={(e) => onChange(e.target.files)}
+                                        {...rest} 
+                                    />
+                                </FormControl>
+                                <FormDescription>No mayor a 3 meses.</FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                        />
                 </div>
                 )}
             </div>
@@ -360,5 +397,3 @@ export function OrderForm() {
     </Card>
   );
 }
-
-    

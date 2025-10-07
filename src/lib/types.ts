@@ -20,6 +20,10 @@ export const OrderStatus = {
     Cancelado: 'Cancelado',
 } as const;
 
+const MAX_FILE_SIZE = 5000000; // 5MB
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "application/pdf"];
+
+
 export const OrderFormSchema = z.object({
   solicitante: z.string().min(3, { message: 'El nombre debe tener al menos 3 caracteres.' }),
   obra: z.string().min(3, { message: 'El nombre de la obra debe tener al menos 3 caracteres.' }),
@@ -41,6 +45,8 @@ export const OrderFormSchema = z.object({
   }),
   frecuenciaCredito: z.nativeEnum(CreditFrequency).nullable().optional(),
   metodoPago: z.string().nullable().optional(),
+  ine: z.any().optional(),
+  comprobanteDomicilio: z.any().optional(),
 }).refine(data => data.fechaMaxEntrega >= data.fechaMinEntrega, {
     message: 'La fecha máxima no puede ser anterior a la fecha mínima.',
     path: ['fechaMaxEntrega'],
@@ -60,6 +66,22 @@ export const OrderFormSchema = z.object({
 }, {
     message: 'El método de pago es obligatorio para el crédito.',
     path: ['metodoPago'],
+}).refine(data => {
+    if (data.tipoPago === 'Credito') {
+        return data.ine && data.ine?.length > 0;
+    }
+    return true;
+}, {
+    message: 'El archivo del INE es obligatorio para el crédito.',
+    path: ['ine'],
+}).refine(data => {
+    if (data.tipoPago === 'Credito') {
+        return data.comprobanteDomicilio && data.comprobanteDomicilio?.length > 0;
+    }
+    return true;
+}, {
+    message: 'El comprobante de domicilio es obligatorio para el crédito.',
+    path: ['comprobanteDomicilio'],
 });
 
 export type OrderFormData = z.infer<typeof OrderFormSchema>;
