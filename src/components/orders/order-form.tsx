@@ -183,6 +183,9 @@ export function OrderForm() {
                       />
                     </PopoverContent>
                   </Popover>
+                  <FormDescription>
+                    La fecha inicial es cuándo te gustaría recibirlo, y la final es el último día que puedes esperarlo.
+                  </FormDescription>
                   <FormMessage className="mt-2">
                     {form.formState.errors.fechaMinEntrega?.message || form.formState.errors.fechaMaxEntrega?.message}
                   </FormMessage>
