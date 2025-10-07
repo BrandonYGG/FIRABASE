@@ -61,7 +61,7 @@ export default function SettingsPage() {
                     <div className="flex items-center space-x-6">
                         <div className="relative">
                             <Avatar className="h-24 w-24">
-                                <AvatarImage src={avatarPreview} alt="Avatar de usuario" />
+                                <AvatarImage src={avatarPreview} alt="Avatar de usuario" className="object-cover" />
                                 <AvatarFallback>JM</AvatarFallback>
                             </Avatar>
                             <Button 
