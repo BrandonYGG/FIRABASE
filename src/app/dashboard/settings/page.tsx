@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Camera, Loader2 } from "lucide-react";
-import { useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 
 export default function SettingsPage() {
     const { toast } = useToast();
@@ -62,7 +62,7 @@ export default function SettingsPage() {
                         <div className="relative">
                             <Avatar className="h-24 w-24">
                                 <AvatarImage src={avatarPreview} alt="Avatar de usuario" />
-                                <AvatarFallback>JP</AvatarFallback>
+                                <AvatarFallback>JM</AvatarFallback>
                             </Avatar>
                             <Button 
                                 type="button" 
@@ -84,7 +84,7 @@ export default function SettingsPage() {
                         </div>
                         <div className="flex-grow space-y-2">
                              <Label htmlFor="name">Nombre Completo</Label>
-                             <Input id="name" defaultValue="Juan Pérez" />
+                             <Input id="name" defaultValue="James Morgan McGill" />
                         </div>
                     </div>
                     <div className="flex justify-end">

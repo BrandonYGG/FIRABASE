@@ -81,7 +81,7 @@ export default function DashboardLayout({
                         >
                             <Avatar>
                                 <AvatarImage src="https://upload.wikimedia.org/wikipedia/en/3/34/Jimmy_McGill_BCS_S3.png" alt="Avatar" />
-                                <AvatarFallback>JP</AvatarFallback>
+                                <AvatarFallback>JM</AvatarFallback>
                             </Avatar>
                         </Button>
                         </DropdownMenuTrigger>
