@@ -21,7 +21,7 @@ export const OrderStatus = {
 } as const;
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ACCEPTED_FILE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "application/pdf"];
+const ACCEPTED_FILE_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
 
 
 export const OrderFormSchema = z.object({
@@ -149,3 +149,5 @@ export interface OrderFirestore extends BaseOrder {
   fechaMaxEntrega: Timestamp;
   createdAt: Timestamp;
 }
+
+    

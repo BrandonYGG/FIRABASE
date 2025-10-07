@@ -355,7 +355,7 @@ export function OrderForm() {
                                 <FormControl>
                                     <Input 
                                         type="file" 
-                                        accept="image/*,application/pdf"
+                                        accept="image/jpeg,image/png,image/webp,application/pdf"
                                         onChange={(e) => onChange(e.target.files)} 
                                         {...rest}
                                     />
@@ -376,12 +376,14 @@ export function OrderForm() {
                                 <FormControl>
                                     <Input 
                                         type="file" 
-                                        accept="image/*,application/pdf"
+                                        accept="image/jpeg,image/png,image/webp,application/pdf"
                                         onChange={(e) => onChange(e.target.files)}
                                         {...rest} 
                                     />
                                 </FormControl>
-                                <FormDescription>No mayor a 3 meses. El archivo puede ser JPG, PNG, WEBP o PDF.</FormDescription>
+                                <FormDescription>
+                                    No mayor a 3 meses. El archivo puede ser JPG, PNG, WEBP o PDF.
+                                </FormDescription>
                                 <FormMessage />
                             </FormItem>
                         )}
