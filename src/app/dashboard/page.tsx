@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowUpRight, DollarSign, ListOrdered, FilePlus2 } from 'lucide-react';
+import { ArrowUpRight, DollarSign, ListOrdered, FilePlus2, PlusCircle } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 
 import { Badge } from '@/components/ui/badge';
@@ -43,6 +43,15 @@ const recentOrders: any[] = []
 export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+        <Button asChild>
+          <Link href="/pedidos/nuevo">
+            <PlusCircle />
+            Nuevo Pedido
+          </Link>
+        </Button>
+      </div>
       <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
