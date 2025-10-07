@@ -31,7 +31,6 @@ export async function createOrderAction(data: unknown) {
       status: 'Pendiente' as const,
     };
     
-    // If payment is not credit, nullify credit-specific fields
     if (docData.tipoPago !== 'Credito') {
       docData.frecuenciaCredito = null;
       docData.metodoPago = null;
@@ -44,5 +43,25 @@ export async function createOrderAction(data: unknown) {
   } catch (error) {
     console.error('Error creating order:', error);
     return { success: false, message: 'No se pudo crear el pedido.' };
+  }
+}
+
+export async function getAddressFromPostalCode(postalCode: string) {
+  if (postalCode === '50000') {
+    // Simulación de una respuesta de API exitosa
+    return {
+      success: true,
+      data: {
+        city: 'Toluca de Lerdo',
+        state: 'México',
+        neighborhoods: ['Centro', 'Universidad', 'Morelos'],
+      },
+    };
+  } else {
+    // Simulación de un código postal no encontrado
+    return {
+      success: false,
+      message: 'Código postal no encontrado.',
+    };
   }
 }
