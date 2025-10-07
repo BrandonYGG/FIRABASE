@@ -2,7 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { differenceInDays } from 'date-fns';
 
 type UrgencyLevel = 'Urgent' | 'Soon' | 'Normal';
-type Urgency = { level: UrgencyLevel; text: string; variant: 'destructive' | 'default' | 'secondary' };
+type Urgency = { level: UrgencyLevel; text: string; suggestion: string; variant: 'destructive' | 'default' | 'secondary' };
 
 export function getUrgency(date: Date): Urgency {
   const today = new Date();
@@ -13,12 +13,27 @@ export function getUrgency(date: Date): Urgency {
   const daysDiff = differenceInDays(deliveryDate, today);
 
   if (daysDiff <= 3) {
-    return { level: 'Urgent', text: 'Urgente', variant: 'destructive' };
+    return { 
+        level: 'Urgent', 
+        text: 'Urgente', 
+        variant: 'destructive',
+        suggestion: "Sugerencia IA: Entrega urgente. Se recomienda confirmar disponibilidad del proveedor." 
+    };
   }
   if (daysDiff <= 10) {
-    return { level: 'Soon', text: 'Pronto', variant: 'default' };
+    return { 
+        level: 'Soon', 
+        text: 'Pronto', 
+        variant: 'default',
+        suggestion: "Sugerencia IA: El tiempo de entrega es moderado. Planifique con sus proveedores."
+    };
   }
-  return { level: 'Normal', text: 'Normal', variant: 'secondary' };
+  return { 
+    level: 'Normal', 
+    text: 'Normal', 
+    variant: 'secondary',
+    suggestion: "Sugerencia IA: Cronograma flexible. Puede optar por envíos estándar para optimizar costos."
+  };
 }
 
 type UrgencyBadgeProps = {

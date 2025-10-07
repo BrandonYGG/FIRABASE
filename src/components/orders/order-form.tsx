@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { z } from 'zod';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -31,7 +31,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { CalendarIcon, Loader2 } from 'lucide-react';
+import { CalendarIcon, Loader2, Wand2 } from 'lucide-react';
 import { OrderFormSchema, PaymentType, CreditFrequency } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { createOrderAction } from '@/app/actions';
@@ -59,6 +59,11 @@ export function OrderForm() {
   });
 
   const tipoPago = form.watch('tipoPago');
+  
+  const urgencySuggestion = useMemo(() => {
+    if (!date?.to) return null;
+    return getUrgency(date.to).suggestion;
+  }, [date]);
 
   async function onSubmit(data: OrderFormValues) {
     setIsSubmitting(true);
@@ -192,9 +197,12 @@ export function OrderForm() {
                       <p className="text-sm text-muted-foreground">Seleccione una fecha final</p>
                     )}
                   </div>
-                   <FormDescription>
-                    El nivel de urgencia se calcula basado en la fecha máxima de entrega.
-                  </FormDescription>
+                   {urgencySuggestion && (
+                    <div className="flex items-start text-sm text-accent-foreground/80 p-2 rounded-md bg-accent/10 border border-accent/20">
+                      <Wand2 className="h-4 w-4 mr-2 mt-0.5 text-accent flex-shrink-0"/>
+                      <p>{urgencySuggestion}</p>
+                    </div>
+                  )}
                </div>
             </div>
 
