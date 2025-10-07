@@ -13,7 +13,7 @@ import { useState, useRef } from "react";
 export default function SettingsPage() {
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [avatarPreview, setAvatarPreview] = useState("https://picsum.photos/seed/avatar/128/128");
+    const [avatarPreview, setAvatarPreview] = useState("https://upload.wikimedia.org/wikipedia/en/3/34/Jimmy_McGill_BCS_S3.png");
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleAvatarClick = () => {
