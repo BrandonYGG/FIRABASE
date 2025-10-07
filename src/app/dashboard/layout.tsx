@@ -27,7 +27,7 @@ import {
   SidebarInset,
   SidebarTrigger
 } from '@/components/ui/sidebar';
-import { Construction, LayoutDashboard, ListOrdered, FilePlus2, LogOut } from 'lucide-react';
+import { Construction, LayoutDashboard, ListOrdered, FilePlus2, LogOut, Settings } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
 export default function DashboardLayout({
@@ -42,6 +42,7 @@ export default function DashboardLayout({
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/pedidos', label: 'Mis Pedidos', icon: ListOrdered },
       { href: '/pedidos/nuevo', label: 'Nuevo Pedido', icon: FilePlus2 },
+      { href: '/dashboard/settings', label: 'Configuración', icon: Settings },
   ]
   return (
     <SidebarProvider>
@@ -87,7 +88,9 @@ export default function DashboardLayout({
                         <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>Configuración</DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                            <Link href="/dashboard/settings">Configuración</Link>
+                        </DropdownMenuItem>
                         <DropdownMenuItem>Soporte</DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
