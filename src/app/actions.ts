@@ -2,7 +2,7 @@
 
 import { addDoc, collection, Timestamp } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
-import { db } from '@/lib/firebase/config';
+import { db } from '@/lib/firebase/server-config';
 import { OrderFormSchema } from '@/lib/types';
 
 export async function createOrderAction(data: unknown) {
