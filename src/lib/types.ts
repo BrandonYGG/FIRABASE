@@ -90,7 +90,7 @@ export const OrderFormSchema = z.object({
     }
     return true;
 }, {
-    message: "Formato de archivo del INE no válido. Use JPG, PNG, WEBP o PDF.",
+    message: "Formato no válido. Solo se aceptan archivos JPG, PNG, WEBP o PDF.",
     path: ['ine'],
 })
 .refine(data => {
@@ -117,7 +117,7 @@ export const OrderFormSchema = z.object({
     }
     return true;
 }, {
-    message: "Formato de archivo de comprobante no válido. Use JPG, PNG, WEBP o PDF.",
+    message: "Formato no válido. Solo se aceptan archivos JPG, PNG, WEBP o PDF.",
     path: ['comprobanteDomicilio'],
 });
 
