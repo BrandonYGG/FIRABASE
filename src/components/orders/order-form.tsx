@@ -310,7 +310,7 @@ export function OrderForm() {
                 />
 
                 {tipoPago === 'Credito' && (
-                <div className="grid md:grid-cols-2 gap-8 border-l-4 border-primary pl-4 animate-in fade-in-50">
+                <div className="flex flex-col space-y-8 border-l-4 border-primary pl-4 animate-in fade-in-50">
                     <FormField
                     control={form.control}
                     name="frecuenciaCredito"
@@ -397,3 +397,5 @@ export function OrderForm() {
     </Card>
   );
 }
+
+    
