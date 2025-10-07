@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -45,6 +46,8 @@ export function OrderForm() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [date, setDate] = useState<DateRange | undefined>();
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
 
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(OrderFormSchema),
@@ -140,7 +143,7 @@ export function OrderForm() {
             <div className="grid md:grid-cols-2 gap-8 items-start">
                <FormItem className="flex flex-col">
                   <FormLabel>Rango de Fechas de Entrega</FormLabel>
-                   <Popover>
+                   <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
@@ -181,6 +184,16 @@ export function OrderForm() {
                         locale={es}
                         disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))}
                       />
+                      <div className="p-2 border-t">
+                        <Button
+                            disabled={!date?.from || !date?.to}
+                            onClick={() => setIsCalendarOpen(false)}
+                            className="w-full"
+                            size="sm"
+                        >
+                            Confirmar
+                        </Button>
+                      </div>
                     </PopoverContent>
                   </Popover>
                   <FormDescription>
@@ -286,3 +299,5 @@ export function OrderForm() {
     </Card>
   );
 }
+
+    
