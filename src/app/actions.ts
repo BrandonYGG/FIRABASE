@@ -47,21 +47,21 @@ export async function createOrderAction(data: unknown) {
 }
 
 export async function getAddressFromPostalCode(postalCode: string) {
-  if (postalCode === '50000') {
-    // Simulación de una respuesta de API exitosa
+  // Simulación de una respuesta de API exitosa para cualquier código de 5 dígitos
+  if (postalCode.match(/^\d{5}$/)) {
     return {
       success: true,
       data: {
-        city: 'Toluca de Lerdo',
-        state: 'México',
-        neighborhoods: ['Centro', 'Universidad', 'Morelos'],
+        city: 'Toluca de Lerdo (Ejemplo)',
+        state: 'México (Ejemplo)',
+        neighborhoods: ['Centro', 'Universidad', 'Morelos', 'Industrial'],
       },
     };
   } else {
-    // Simulación de un código postal no encontrado
+    // Simulación de un código postal no válido
     return {
       success: false,
-      message: 'Código postal no encontrado.',
+      message: 'El formato del código postal no es válido.',
     };
   }
 }
