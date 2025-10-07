@@ -198,7 +198,7 @@ export function OrderForm() {
                     )}
                   </div>
                    {urgencySuggestion && (
-                    <div className="flex items-start text-sm text-accent-foreground/80 p-2 rounded-md bg-accent/10 border border-accent/20">
+                    <div className="flex items-start text-sm text-muted-foreground p-2 rounded-md bg-accent/10 border border-accent/20">
                       <Wand2 className="h-4 w-4 mr-2 mt-0.5 text-accent flex-shrink-0"/>
                       <p>{urgencySuggestion}</p>
                     </div>
