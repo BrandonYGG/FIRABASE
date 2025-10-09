@@ -420,7 +420,7 @@ export function OrderForm() {
                                     />
                                 </FormControl>
                                 <FormDescription>
-                                    El archivo puede ser JPG (fotografía) o PDF. ¿Necesitas reducir el tamaño del PDF? <a href="https://www.ilovepdf.com/es/comprimir_pdf" target="_blank" rel="noopener noreferrer" className="underline text-primary">Da click aquí</a>.
+                                    El archivo puede ser JPG (fotografía) o PDF. ¿Necesitas reducir el tamaño? <a href="https://www.iloveimg.com/es/comprimir-imagen/comprimir-jpg" target="_blank" rel="noopener noreferrer" className="underline text-primary">Comprimir imagen</a>, <a href="https://www.ilovepdf.com/es/comprimir_pdf" target="_blank" rel="noopener noreferrer" className="underline text-primary">Comprimir PDF</a>.
                                 </FormDescription>
                                 <FormMessage />
                             </FormItem>
@@ -441,7 +441,7 @@ export function OrderForm() {
                                     />
                                 </FormControl>
                                 <FormDescription>
-                                    No mayor a 3 meses. El archivo puede ser JPG (fotografía) o PDF. ¿Necesitas reducir el tamaño del PDF? <a href="https://www.ilovepdf.com/es/comprimir_pdf" target="_blank" rel="noopener noreferrer" className="underline text-primary">Da click aquí</a>.
+                                    No mayor a 3 meses. El archivo puede ser JPG (fotografía) o PDF. ¿Necesitas reducir el tamaño? <a href="https://www.iloveimg.com/es/comprimir-imagen/comprimir-jpg" target="_blank" rel="noopener noreferrer" className="underline text-primary">Comprimir imagen</a>, <a href="https://www.ilovepdf.com/es/comprimir_pdf" target="_blank" rel="noopener noreferrer" className="underline text-primary">Comprimir PDF</a>.
                                 </FormDescription>
                                 <FormMessage />
                             </FormItem>
