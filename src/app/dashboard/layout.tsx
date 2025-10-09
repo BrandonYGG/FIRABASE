@@ -82,6 +82,14 @@ export default function DashboardLayout({
         <SidebarInset>
             <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
                  <SidebarTrigger className="sm:hidden" />
+                 <div className="flex items-center gap-4">
+                    {currentDate && (
+                    <div className="hidden sm:flex items-center text-sm font-medium text-muted-foreground">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        <span>{currentDate}</span>
+                    </div>
+                    )}
+                 </div>
                  <div className="ml-auto flex items-center gap-4">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -116,14 +124,7 @@ export default function DashboardLayout({
             </header>
             <main className="flex-1 p-4 sm:px-6 sm:py-0">{children}</main>
              <footer className="p-4 sm:px-6">
-                <div className="flex justify-end">
-                    {currentDate && (
-                    <div className="flex items-center text-sm font-medium text-muted-foreground">
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        <span>{currentDate}</span>
-                    </div>
-                    )}
-                </div>
+                
             </footer>
         </SidebarInset>
     </SidebarProvider>
