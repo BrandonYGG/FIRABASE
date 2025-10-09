@@ -162,7 +162,7 @@ export function OrderForm() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="space-y-4">
                 <CardTitle className="text-lg font-headline">Información del Solicitante</CardTitle>
-                <div className="grid md:grid-cols-2 gap-8">
+                <div className="grid md:grid-cols-2 gap-4 md:gap-8">
                 <FormField
                     control={form.control}
                     name="solicitante"
@@ -207,7 +207,7 @@ export function OrderForm() {
                         </FormItem>
                     )}
                     />
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
                     <FormField
                     control={form.control}
                     name="codigoPostal"
@@ -265,7 +265,7 @@ export function OrderForm() {
 
             <div className="space-y-4">
                 <CardTitle className="text-lg font-headline">Cronograma y Pago</CardTitle>
-                <div className="grid md:grid-cols-2 gap-8 items-start">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 items-start">
                 <FormItem className="flex flex-col">
                     <FormLabel>Rango de Fechas de Entrega</FormLabel>
                     <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
@@ -322,7 +322,7 @@ export function OrderForm() {
                         </PopoverContent>
                     </Popover>
                     <FormDescription>
-                        El día de hoy se marca en morado. Elige el primer día que quieres el material (verde) y el último día que puedes esperar (rojo).
+                        Elige el primer y último día para la entrega.
                     </FormDescription>
                     <FormMessage className="mt-2">
                         {form.formState.errors.fechaMinEntrega?.message || form.formState.errors.fechaMaxEntrega?.message}

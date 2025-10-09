@@ -57,7 +57,7 @@ export default function DashboardLayout({
   ]
   return (
     <SidebarProvider>
-        <Sidebar>
+        <Sidebar collapsible="icon" variant="floating" side="left">
             <SidebarHeader>
                 <div className="flex items-center space-x-2 px-2">
                     <Construction className="h-6 w-6 text-primary" />
@@ -71,7 +71,7 @@ export default function DashboardLayout({
                         <SidebarMenuButton asChild isActive={isActive(item.href)} tooltip={item.label}>
                             <Link href={item.href}>
                                 <item.icon/>
-                                {item.label}
+                                <span>{item.label}</span>
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -108,7 +108,7 @@ export default function DashboardLayout({
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
                             <Link href="/">
-                                <LogOut className="mr-2" />
+                                <LogOut className="mr-2 h-4 w-4" />
                                 Cerrar Sesión
                             </Link>
                         </DropdownMenuItem>
@@ -119,7 +119,7 @@ export default function DashboardLayout({
             <main className="flex-1 p-4 sm:px-6 sm:py-0">{children}</main>
             {currentDate && (
                 <div className="fixed bottom-4 left-4 z-50">
-                    <div className="hidden sm:flex items-center rounded-lg bg-background/80 backdrop-blur-sm p-2 border shadow-md text-sm font-bold text-foreground">
+                    <div className="flex items-center rounded-lg bg-background/80 backdrop-blur-sm p-2 border shadow-md text-sm font-bold text-foreground">
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         <span>{currentDate}</span>
                     </div>
@@ -129,3 +129,5 @@ export default function DashboardLayout({
     </SidebarProvider>
   );
 }
+
+    

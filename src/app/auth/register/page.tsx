@@ -52,7 +52,7 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => setShowPersonalPassword(!showPersonalPassword)}
-                className="absolute right-3 top-9 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active:scale-90"
+                className="absolute right-3 top-8 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active:scale-90"
                 aria-label={showPersonalPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
                 {showPersonalPassword ? <EyeOff className="h-5 w-5 transition-transform duration-300 rotate-y-180" /> : <Eye className="h-5 w-5 transition-transform duration-300" />}
@@ -64,7 +64,7 @@ export default function RegisterPage() {
                <button
                 type="button"
                 onClick={() => setShowPersonalConfirmPassword(!showPersonalConfirmPassword)}
-                className="absolute right-3 top-9 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active:scale-90"
+                className="absolute right-3 top-8 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active:scale-90"
                 aria-label={showPersonalConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
                 {showPersonalConfirmPassword ? <EyeOff className="h-5 w-5 transition-transform duration-300 rotate-y-180" /> : <Eye className="h-5 w-5 transition-transform duration-300" />}
@@ -91,21 +91,25 @@ export default function RegisterPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="company-name">Nombre de la Empresa</Label>
-              <Input id="company-name" placeholder="Constructora S.A." />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                <Label htmlFor="company-name">Nombre de la Empresa</Label>
+                <Input id="company-name" placeholder="Constructora S.A." />
+                </div>
+                <div className="space-y-2">
+                <Label htmlFor="legal-representative">Representante Legal</Label>
+                <Input id="legal-representative" placeholder="Juan Pérez" />
+                </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="legal-representative">Representante Legal</Label>
-              <Input id="legal-representative" placeholder="Juan Pérez" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="company-rfc">RFC</Label>
-              <Input id="company-rfc" placeholder="XAXX010101000" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="company-phone">Número Telefónico</Label>
-              <Input id="company-phone" placeholder="55 1234 5678" type="tel" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                <Label htmlFor="company-rfc">RFC</Label>
+                <Input id="company-rfc" placeholder="XAXX010101000" />
+                </div>
+                <div className="space-y-2">
+                <Label htmlFor="company-phone">Número Telefónico</Label>
+                <Input id="company-phone" placeholder="55 1234 5678" type="tel" />
+                </div>
             </div>
              <div className="space-y-2">
               <Label htmlFor="company-email">Correo Electrónico de la Empresa</Label>
@@ -117,7 +121,7 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => setShowCompanyPassword(!showCompanyPassword)}
-                className="absolute right-3 top-9 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active:scale-90"
+                className="absolute right-3 top-8 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active:scale-90"
                 aria-label={showCompanyPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
                 {showCompanyPassword ? <EyeOff className="h-5 w-5 transition-transform duration-300 rotate-y-180" /> : <Eye className="h-5 w-5 transition-transform duration-300" />}
@@ -129,7 +133,7 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => setShowCompanyConfirmPassword(!showCompanyConfirmPassword)}
-                className="absolute right-3 top-9 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active:scale-90"
+                className="absolute right-3 top-8 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active-scale-90"
                 aria-label={showCompanyConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
                 {showCompanyConfirmPassword ? <EyeOff className="h-5 w-5 transition-transform duration-300 rotate-y-180" /> : <Eye className="h-5 w-5 transition-transform duration-300" />}
@@ -150,3 +154,5 @@ export default function RegisterPage() {
     </Tabs>
   );
 }
+
+    
