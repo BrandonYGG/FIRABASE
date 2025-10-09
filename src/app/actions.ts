@@ -7,6 +7,7 @@ import { db } from '@/lib/firebase/server-config';
 import { OrderFormSchema } from '@/lib/types';
 import { z } from 'zod';
 import Stripe from 'stripe';
+import 'dotenv/config';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
