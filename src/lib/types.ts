@@ -4,7 +4,6 @@ import type { Timestamp } from 'firebase/firestore';
 
 export const PaymentType = {
   Efectivo: 'Efectivo',
-  Tarjeta: 'Tarjeta',
   Credito: 'Credito',
 } as const;
 

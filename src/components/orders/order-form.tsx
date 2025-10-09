@@ -8,7 +8,6 @@ import { useRouter } from 'next/navigation';
 import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -29,11 +28,10 @@ import { cn } from '@/lib/utils';
 import { CalendarIcon, Loader2, Wand2 } from 'lucide-react';
 import { OrderFormSchema, PaymentType, CreditFrequency } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { createOrderAction, createPaymentIntentAction } from '@/app/actions';
+import { createOrderAction } from '@/app/actions';
 import { getUrgency, UrgencyBadge } from '@/components/orders/urgency-badge';
 import type { DateRange } from 'react-day-picker';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js';
 
 type OrderFormValues = z.infer<typeof OrderFormSchema>;
 
@@ -43,10 +41,6 @@ export function OrderForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [date, setDate] = useState<DateRange | undefined>();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
-
-  const stripe = useStripe();
-  const elements = useElements();
 
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(OrderFormSchema),
@@ -73,57 +67,9 @@ export function OrderForm() {
     return getUrgency(date.to).suggestion;
   }, [date]);
 
-  // Create a payment intent when payment type is "Tarjeta"
-  useMemo(() => {
-    if (tipoPago === 'Tarjeta') {
-      const orderTotal = form.getValues('total') || 1000; // Mock total
-      createPaymentIntentAction(orderTotal).then(result => {
-        if(result.success && result.clientSecret) {
-          setClientSecret(result.clientSecret);
-        } else {
-            toast({
-                variant: 'destructive',
-                title: 'Error de Pago',
-                description: result.message || 'No se pudo inicializar el formulario de pago. Intente de nuevo.',
-            });
-        }
-      })
-    } else {
-      setClientSecret(null);
-    }
-  }, [tipoPago, form, toast]);
-
 
   async function onSubmit(data: OrderFormValues) {
     setIsSubmitting(true);
-    
-    if (data.tipoPago === 'Tarjeta') {
-        if (!stripe || !elements || !clientSecret) {
-            toast({ variant: 'destructive', title: 'Error', description: 'El sistema de pago no está listo.' });
-            setIsSubmitting(false);
-            return;
-        }
-
-        const { error: stripeError } = await stripe.confirmPayment({
-            elements,
-            confirmParams: {
-                // This is where you would redirect the user after payment.
-                // For this example, we handle the result on the same page.
-                return_url: `${window.location.origin}/pedidos`,
-            },
-            redirect: 'if_required',
-        });
-
-        if (stripeError) {
-            toast({ variant: 'destructive', title: 'Error de Pago', description: stripeError.message });
-            setIsSubmitting(false);
-            return;
-        }
-        
-        // After successful payment, get the payment intent ID and save it.
-        const pi = await stripe.retrievePaymentIntent(clientSecret);
-        data.metodoPago = pi.paymentIntent?.id;
-    }
     
     const result = await createOrderAction(data);
 
@@ -373,13 +319,6 @@ export function OrderForm() {
                     </FormItem>
                 )}
                 />
-                
-                {tipoPago === 'Tarjeta' && clientSecret && (
-                    <div className="space-y-4 border-l-4 border-primary pl-4 animate-in fade-in-50">
-                        <h3 className="text-md font-medium">Información de Pago</h3>
-                        <PaymentElement options={{layout: 'tabs'}} />
-                    </div>
-                )}
 
                 {tipoPago === 'Credito' && (
                 <div className="flex flex-col space-y-8 border-l-4 border-primary pl-4 animate-in fade-in-50">
@@ -451,9 +390,9 @@ export function OrderForm() {
                 )}
             </div>
 
-            <Button type="submit" disabled={isSubmitting || (tipoPago ==='Tarjeta' && !stripe)} className="w-full md:w-auto">
+            <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {tipoPago === 'Tarjeta' ? 'Pagar y Registrar Pedido' : 'Registrar Pedido'}
+              Registrar Pedido
             </Button>
           </form>
         </Form>
@@ -461,5 +400,3 @@ export function OrderForm() {
     </Card>
   );
 }
-
-    
