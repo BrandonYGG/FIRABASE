@@ -118,8 +118,8 @@ export default function DashboardLayout({
             </header>
             <main className="flex-1 p-4 sm:px-6 sm:py-0">{children}</main>
             {currentDate && (
-                <div className="fixed bottom-4 right-4 z-50">
-                    <div className="hidden sm:flex items-center rounded-lg bg-background/80 backdrop-blur-sm p-2 border shadow-md text-sm font-medium text-muted-foreground">
+                <div className="fixed bottom-4 left-4 z-50">
+                    <div className="hidden sm:flex items-center rounded-lg bg-background/80 backdrop-blur-sm p-2 border shadow-md text-sm font-bold text-foreground">
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         <span>{currentDate}</span>
                     </div>
