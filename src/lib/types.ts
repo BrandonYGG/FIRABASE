@@ -146,4 +146,3 @@ export interface OrderFirestore extends BaseOrder {
   createdAt: Timestamp;
 }
 
-    

@@ -16,6 +16,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import type { z } from 'zod';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { PersonalRegistrationSchema, CompanyRegistrationSchema } from "@/lib/schemas";
+
+type PersonalFormValues = z.infer<typeof PersonalRegistrationSchema>;
+type CompanyFormValues = z.infer<typeof CompanyRegistrationSchema>;
 
 export default function RegisterPage() {
     const [showPersonalPassword, setShowPersonalPassword] = useState(false);
@@ -23,136 +38,282 @@ export default function RegisterPage() {
     const [showCompanyPassword, setShowCompanyPassword] = useState(false);
     const [showCompanyConfirmPassword, setShowCompanyConfirmPassword] = useState(false);
 
+    const personalForm = useForm<PersonalFormValues>({
+        resolver: zodResolver(PersonalRegistrationSchema),
+        defaultValues: {
+            fullName: '',
+            email: '',
+            password: '',
+            confirmPassword: '',
+        }
+    });
+
+    const companyForm = useForm<CompanyFormValues>({
+        resolver: zodResolver(CompanyRegistrationSchema),
+        defaultValues: {
+            companyName: '',
+            legalRepresentative: '',
+            rfc: '',
+            phone: '',
+            email: '',
+            password: '',
+            confirmPassword: '',
+        }
+    });
+
+    function onPersonalSubmit(data: PersonalFormValues) {
+        console.log('Personal data:', data);
+        // TODO: Handle personal registration
+    }
+
+    function onCompanySubmit(data: CompanyFormValues) {
+        console.log('Company data:', data);
+        // TODO: Handle company registration
+    }
+
   return (
-    <Tabs defaultValue="personal" className="w-full">
+    <Tabs defaultValue="personal" className="w-full max-w-lg">
       <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="personal">Personal</TabsTrigger>
         <TabsTrigger value="empresa">Empresa</TabsTrigger>
       </TabsList>
       <TabsContent value="personal">
         <Card>
-          <CardHeader>
-            <CardTitle className="font-headline">Registro Personal</CardTitle>
-            <CardDescription>
-              Crea tu cuenta para gestionar tus pedidos personales.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="personal-name">Nombre Completo</Label>
-              <Input id="personal-name" placeholder="Juan Pérez" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="personal-email">Correo Electrónico</Label>
-              <Input id="personal-email" placeholder="nombre@ejemplo.com" type="email" />
-            </div>
-            <div className="relative space-y-2">
-              <Label htmlFor="personal-password">Contraseña</Label>
-              <Input id="personal-password" type={showPersonalPassword ? "text" : "password"} />
-              <button
-                type="button"
-                onClick={() => setShowPersonalPassword(!showPersonalPassword)}
-                className="absolute right-3 top-8 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active:scale-90"
-                aria-label={showPersonalPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-              >
-                {showPersonalPassword ? <EyeOff className="h-5 w-5 transition-transform duration-300 rotate-y-180" /> : <Eye className="h-5 w-5 transition-transform duration-300" />}
-              </button>
-            </div>
-            <div className="relative space-y-2">
-              <Label htmlFor="personal-confirm-password">Confirmar Contraseña</Label>
-              <Input id="personal-confirm-password" type={showPersonalConfirmPassword ? "text" : "password"} />
-               <button
-                type="button"
-                onClick={() => setShowPersonalConfirmPassword(!showPersonalConfirmPassword)}
-                className="absolute right-3 top-8 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active:scale-90"
-                aria-label={showPersonalConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-              >
-                {showPersonalConfirmPassword ? <EyeOff className="h-5 w-5 transition-transform duration-300 rotate-y-180" /> : <Eye className="h-5 w-5 transition-transform duration-300" />}
-              </button>
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-4">
-            <Button className="w-full">Crear Cuenta Personal</Button>
-             <div className="text-center text-sm">
-                ¿Ya tienes una cuenta?{" "}
-                <Link href="/auth/login" className="underline">
-                    Iniciar Sesión
-                </Link>
-            </div>
-          </CardFooter>
+          <Form {...personalForm}>
+            <form onSubmit={personalForm.handleSubmit(onPersonalSubmit)}>
+              <CardHeader>
+                <CardTitle className="font-headline">Registro Personal</CardTitle>
+                <CardDescription>
+                  Crea tu cuenta para gestionar tus pedidos personales.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <FormField
+                  control={personalForm.control}
+                  name="fullName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nombre Completo</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Juan Pérez" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={personalForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Correo Electrónico</FormLabel>
+                      <FormControl>
+                        <Input placeholder="nombre@ejemplo.com" type="email" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={personalForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contraseña</FormLabel>
+                       <div className="relative">
+                        <FormControl>
+                            <Input type={showPersonalPassword ? "text" : "password"} {...field} />
+                        </FormControl>
+                        <button
+                            type="button"
+                            onClick={() => setShowPersonalPassword(!showPersonalPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active:scale-90"
+                            aria-label={showPersonalPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                        >
+                            {showPersonalPassword ? <EyeOff className="h-5 w-5 transition-transform duration-300 rotate-y-180" /> : <Eye className="h-5 w-5 transition-transform duration-300" />}
+                        </button>
+                       </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={personalForm.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirmar Contraseña</FormLabel>
+                      <div className="relative">
+                        <FormControl>
+                            <Input type={showPersonalConfirmPassword ? "text" : "password"} {...field} />
+                        </FormControl>
+                        <button
+                            type="button"
+                            onClick={() => setShowPersonalConfirmPassword(!showPersonalConfirmPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active:scale-90"
+                            aria-label={showPersonalConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                        >
+                            {showPersonalConfirmPassword ? <EyeOff className="h-5 w-5 transition-transform duration-300 rotate-y-180" /> : <Eye className="h-5 w-5 transition-transform duration-300" />}
+                        </button>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+              <CardFooter className="flex flex-col gap-4">
+                <Button className="w-full" type="submit">Crear Cuenta Personal</Button>
+                 <div className="text-center text-sm">
+                    ¿Ya tienes una cuenta?{" "}
+                    <Link href="/auth/login" className="underline">
+                        Iniciar Sesión
+                    </Link>
+                </div>
+              </CardFooter>
+            </form>
+          </Form>
         </Card>
       </TabsContent>
       <TabsContent value="empresa">
         <Card>
-          <CardHeader>
-            <CardTitle className="font-headline">Registro de Empresa</CardTitle>
-            <CardDescription>
-              Registra tu empresa para centralizar todos los pedidos.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                <Label htmlFor="company-name">Nombre de la Empresa</Label>
-                <Input id="company-name" placeholder="Constructora S.A." />
+          <Form {...companyForm}>
+            <form onSubmit={companyForm.handleSubmit(onCompanySubmit)}>
+              <CardHeader>
+                <CardTitle className="font-headline">Registro de Empresa</CardTitle>
+                <CardDescription>
+                  Registra tu empresa para centralizar todos los pedidos.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={companyForm.control}
+                      name="companyName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nombre de la Empresa</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Constructora S.A." {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={companyForm.control}
+                      name="legalRepresentative"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Representante Legal</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Juan Pérez" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                 </div>
-                <div className="space-y-2">
-                <Label htmlFor="legal-representative">Representante Legal</Label>
-                <Input id="legal-representative" placeholder="Juan Pérez" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={companyForm.control}
+                      name="rfc"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>RFC</FormLabel>
+                          <FormControl>
+                            <Input placeholder="XAXX010101000" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={companyForm.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Número Telefónico</FormLabel>
+                          <FormControl>
+                            <Input placeholder="55 1234 5678" type="tel" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                 </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                <Label htmlFor="company-rfc">RFC</Label>
-                <Input id="company-rfc" placeholder="XAXX010101000" />
+                 <FormField
+                  control={companyForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Correo Electrónico de la Empresa</FormLabel>
+                      <FormControl>
+                        <Input placeholder="contacto@constructora.com" type="email" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={companyForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contraseña</FormLabel>
+                       <div className="relative">
+                        <FormControl>
+                            <Input type={showCompanyPassword ? "text" : "password"} {...field} />
+                        </FormControl>
+                        <button
+                            type="button"
+                            onClick={() => setShowCompanyPassword(!showCompanyPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active:scale-90"
+                            aria-label={showCompanyPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                        >
+                            {showCompanyPassword ? <EyeOff className="h-5 w-5 transition-transform duration-300 rotate-y-180" /> : <Eye className="h-5 w-5 transition-transform duration-300" />}
+                        </button>
+                       </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={companyForm.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirmar Contraseña</FormLabel>
+                       <div className="relative">
+                        <FormControl>
+                            <Input type={showCompanyConfirmPassword ? "text" : "password"} {...field} />
+                        </FormControl>
+                        <button
+                            type="button"
+                            onClick={() => setShowCompanyConfirmPassword(!showCompanyConfirmPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active:scale-90"
+                            aria-label={showCompanyConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                        >
+                            {showCompanyConfirmPassword ? <EyeOff className="h-5 w-5 transition-transform duration-300 rotate-y-180" /> : <Eye className="h-5 w-5 transition-transform duration-300" />}
+                        </button>
+                       </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+              <CardFooter className="flex flex-col gap-4">
+                <Button className="w-full" type="submit">Crear Cuenta de Empresa</Button>
+                 <div className="text-center text.sm">
+                    ¿Ya tienes una cuenta?{" "}
+                    <Link href="/auth/login" className="underline">
+                        Iniciar Sesión
+                    </Link>
                 </div>
-                <div className="space-y-2">
-                <Label htmlFor="company-phone">Número Telefónico</Label>
-                <Input id="company-phone" placeholder="55 1234 5678" type="tel" />
-                </div>
-            </div>
-             <div className="space-y-2">
-              <Label htmlFor="company-email">Correo Electrónico de la Empresa</Label>
-              <Input id="company-email" placeholder="contacto@constructora.com" type="email" />
-            </div>
-            <div className="relative space-y-2">
-              <Label htmlFor="company-password">Contraseña</Label>
-              <Input id="company-password" type={showCompanyPassword ? "text" : "password"} />
-              <button
-                type="button"
-                onClick={() => setShowCompanyPassword(!showCompanyPassword)}
-                className="absolute right-3 top-8 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active:scale-90"
-                aria-label={showCompanyPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-              >
-                {showCompanyPassword ? <EyeOff className="h-5 w-5 transition-transform duration-300 rotate-y-180" /> : <Eye className="h-5 w-5 transition-transform duration-300" />}
-              </button>
-            </div>
-            <div className="relative space-y-2">
-              <Label htmlFor="company-confirm-password">Confirmar Contraseña</Label>
-              <Input id="company-confirm-password" type={showCompanyConfirmPassword ? "text" : "password"} />
-              <button
-                type="button"
-                onClick={() => setShowCompanyConfirmPassword(!showCompanyConfirmPassword)}
-                className="absolute right-3 top-8 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active-scale-90"
-                aria-label={showCompanyConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-              >
-                {showCompanyConfirmPassword ? <EyeOff className="h-5 w-5 transition-transform duration-300 rotate-y-180" /> : <Eye className="h-5 w-5 transition-transform duration-300" />}
-              </button>
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-4">
-            <Button className="w-full">Crear Cuenta de Empresa</Button>
-             <div className="text-center text.sm">
-                ¿Ya tienes una cuenta?{" "}
-                <Link href="/auth/login" className="underline">
-                    Iniciar Sesión
-                </Link>
-            </div>
-          </CardFooter>
+              </CardFooter>
+            </form>
+          </Form>
         </Card>
       </TabsContent>
     </Tabs>
   );
 }
-
-    
