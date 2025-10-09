@@ -13,9 +13,16 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
+import { useState } from "react"
 
 export default function RegisterPage() {
+    const [showPersonalPassword, setShowPersonalPassword] = useState(false);
+    const [showPersonalConfirmPassword, setShowPersonalConfirmPassword] = useState(false);
+    const [showCompanyPassword, setShowCompanyPassword] = useState(false);
+    const [showCompanyConfirmPassword, setShowCompanyConfirmPassword] = useState(false);
+
   return (
     <Tabs defaultValue="personal" className="w-full">
       <TabsList className="grid w-full grid-cols-2">
@@ -39,13 +46,29 @@ export default function RegisterPage() {
               <Label htmlFor="personal-email">Correo Electrónico</Label>
               <Input id="personal-email" placeholder="nombre@ejemplo.com" type="email" />
             </div>
-            <div className="space-y-2">
+            <div className="relative space-y-2">
               <Label htmlFor="personal-password">Contraseña</Label>
-              <Input id="personal-password" type="password" />
+              <Input id="personal-password" type={showPersonalPassword ? "text" : "password"} />
+              <button
+                type="button"
+                onClick={() => setShowPersonalPassword(!showPersonalPassword)}
+                className="absolute right-3 top-9 text-muted-foreground"
+                aria-label={showPersonalPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                {showPersonalPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
             </div>
-            <div className="space-y-2">
+            <div className="relative space-y-2">
               <Label htmlFor="personal-confirm-password">Confirmar Contraseña</Label>
-              <Input id="personal-confirm-password" type="password" />
+              <Input id="personal-confirm-password" type={showPersonalConfirmPassword ? "text" : "password"} />
+               <button
+                type="button"
+                onClick={() => setShowPersonalConfirmPassword(!showPersonalConfirmPassword)}
+                className="absolute right-3 top-9 text-muted-foreground"
+                aria-label={showPersonalConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                {showPersonalConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
@@ -88,13 +111,29 @@ export default function RegisterPage() {
               <Label htmlFor="company-email">Correo Electrónico de la Empresa</Label>
               <Input id="company-email" placeholder="contacto@constructora.com" type="email" />
             </div>
-            <div className="space-y-2">
+            <div className="relative space-y-2">
               <Label htmlFor="company-password">Contraseña</Label>
-              <Input id="company-password" type="password" />
+              <Input id="company-password" type={showCompanyPassword ? "text" : "password"} />
+              <button
+                type="button"
+                onClick={() => setShowCompanyPassword(!showCompanyPassword)}
+                className="absolute right-3 top-9 text-muted-foreground"
+                aria-label={showCompanyPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                {showCompanyPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
             </div>
-            <div className="space-y-2">
+            <div className="relative space-y-2">
               <Label htmlFor="company-confirm-password">Confirmar Contraseña</Label>
-              <Input id="company-confirm-password" type="password" />
+              <Input id="company-confirm-password" type={showCompanyConfirmPassword ? "text" : "password"} />
+              <button
+                type="button"
+                onClick={() => setShowCompanyConfirmPassword(!showCompanyConfirmPassword)}
+                className="absolute right-3 top-9 text-muted-foreground"
+                aria-label={showCompanyConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                {showCompanyConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">

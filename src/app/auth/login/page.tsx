@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from "@/components/ui/button"
@@ -11,9 +12,13 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link"
+import { useState } from "react";
 
 export default function LoginPage() {
+    const [showPassword, setShowPassword] = useState(false);
+
   return (
     <Card className="w-full max-w-sm">
       <CardHeader>
@@ -27,9 +32,17 @@ export default function LoginPage() {
           <Label htmlFor="email">Correo Electrónico</Label>
           <Input id="email" type="email" placeholder="nombre@ejemplo.com" required defaultValue="usuario@ejemplo.com" />
         </div>
-        <div className="grid gap-2">
+        <div className="relative grid gap-2">
           <Label htmlFor="password">Contraseña</Label>
-          <Input id="password" type="password" required defaultValue="password" />
+          <Input id="password" type={showPassword ? "text" : "password"} required defaultValue="password" />
+            <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-9 text-muted-foreground"
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
         </div>
       </CardContent>
       <CardFooter className="flex flex-col gap-4">
