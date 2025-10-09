@@ -43,6 +43,10 @@ export default function RegisterPage() {
               <Label htmlFor="personal-password">Contraseña</Label>
               <Input id="personal-password" type="password" />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="personal-confirm-password">Confirmar Contraseña</Label>
+              <Input id="personal-confirm-password" type="password" />
+            </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
             <Button className="w-full">Crear Cuenta Personal</Button>
@@ -87,6 +91,10 @@ export default function RegisterPage() {
             <div className="space-y-2">
               <Label htmlFor="company-password">Contraseña</Label>
               <Input id="company-password" type="password" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="company-confirm-password">Confirmar Contraseña</Label>
+              <Input id="company-confirm-password" type="password" />
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
