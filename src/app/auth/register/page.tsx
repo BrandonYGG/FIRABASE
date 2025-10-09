@@ -52,10 +52,10 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => setShowPersonalPassword(!showPersonalPassword)}
-                className="absolute right-3 top-9 text-muted-foreground transition-transform duration-200 ease-in-out hover:scale-110"
+                className="absolute right-3 top-9 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active:scale-90"
                 aria-label={showPersonalPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
-                {showPersonalPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                {showPersonalPassword ? <EyeOff className="h-5 w-5 transition-transform duration-300 rotate-y-180" /> : <Eye className="h-5 w-5 transition-transform duration-300" />}
               </button>
             </div>
             <div className="relative space-y-2">
@@ -64,10 +64,10 @@ export default function RegisterPage() {
                <button
                 type="button"
                 onClick={() => setShowPersonalConfirmPassword(!showPersonalConfirmPassword)}
-                className="absolute right-3 top-9 text-muted-foreground transition-transform duration-200 ease-in-out hover:scale-110"
+                className="absolute right-3 top-9 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active:scale-90"
                 aria-label={showPersonalConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
-                {showPersonalConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                {showPersonalConfirmPassword ? <EyeOff className="h-5 w-5 transition-transform duration-300 rotate-y-180" /> : <Eye className="h-5 w-5 transition-transform duration-300" />}
               </button>
             </div>
           </CardContent>
@@ -117,10 +117,10 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => setShowCompanyPassword(!showCompanyPassword)}
-                className="absolute right-3 top-9 text-muted-foreground transition-transform duration-200 ease-in-out hover:scale-110"
+                className="absolute right-3 top-9 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active:scale-90"
                 aria-label={showCompanyPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
-                {showCompanyPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                {showCompanyPassword ? <EyeOff className="h-5 w-5 transition-transform duration-300 rotate-y-180" /> : <Eye className="h-5 w-5 transition-transform duration-300" />}
               </button>
             </div>
             <div className="relative space-y-2">
@@ -129,10 +129,10 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => setShowCompanyConfirmPassword(!showCompanyConfirmPassword)}
-                className="absolute right-3 top-9 text-muted-foreground transition-transform duration-200 ease-in-out hover:scale-110"
+                className="absolute right-3 top-9 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active:scale-90"
                 aria-label={showCompanyConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
-                {showCompanyConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                {showCompanyConfirmPassword ? <EyeOff className="h-5 w-5 transition-transform duration-300 rotate-y-180" /> : <Eye className="h-5 w-5 transition-transform duration-300" />}
               </button>
             </div>
           </CardContent>
