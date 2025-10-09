@@ -321,7 +321,7 @@ export function OrderForm() {
                         </PopoverContent>
                     </Popover>
                     <FormDescription>
-                        El día de inicio (verde) es la fecha más próxima, y el de fin (rojo) es la fecha límite.
+                        Elige el primer día que quieres el material (verde) y el último día que puedes esperar (rojo).
                     </FormDescription>
                     <FormMessage className="mt-2">
                         {form.formState.errors.fechaMinEntrega?.message || form.formState.errors.fechaMaxEntrega?.message}
@@ -461,4 +461,5 @@ export function OrderForm() {
   );
 }
 
+    
     
