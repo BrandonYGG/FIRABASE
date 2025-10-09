@@ -52,7 +52,7 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => setShowPersonalPassword(!showPersonalPassword)}
-                className="absolute right-3 top-9 text-muted-foreground"
+                className="absolute right-3 top-9 text-muted-foreground transition-transform duration-200 ease-in-out hover:scale-110"
                 aria-label={showPersonalPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
                 {showPersonalPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -64,7 +64,7 @@ export default function RegisterPage() {
                <button
                 type="button"
                 onClick={() => setShowPersonalConfirmPassword(!showPersonalConfirmPassword)}
-                className="absolute right-3 top-9 text-muted-foreground"
+                className="absolute right-3 top-9 text-muted-foreground transition-transform duration-200 ease-in-out hover:scale-110"
                 aria-label={showPersonalConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
                 {showPersonalConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -117,7 +117,7 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => setShowCompanyPassword(!showCompanyPassword)}
-                className="absolute right-3 top-9 text-muted-foreground"
+                className="absolute right-3 top-9 text-muted-foreground transition-transform duration-200 ease-in-out hover:scale-110"
                 aria-label={showCompanyPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
                 {showCompanyPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -129,7 +129,7 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => setShowCompanyConfirmPassword(!showCompanyConfirmPassword)}
-                className="absolute right-3 top-9 text-muted-foreground"
+                className="absolute right-3 top-9 text-muted-foreground transition-transform duration-200 ease-in-out hover:scale-110"
                 aria-label={showCompanyConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
                 {showCompanyConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -138,7 +138,7 @@ export default function RegisterPage() {
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
             <Button className="w-full">Crear Cuenta de Empresa</Button>
-             <div className="text-center text-sm">
+             <div className="text-center text.sm">
                 ¿Ya tienes una cuenta?{" "}
                 <Link href="/auth/login" className="underline">
                     Iniciar Sesión
