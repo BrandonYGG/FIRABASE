@@ -34,9 +34,9 @@ export default function SettingsPage() {
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setIsSubmitting(true);
-        
-        // Simulate a quick API call if needed, but for UI feedback, this is faster.
-        await new Promise(resolve => setTimeout(resolve, 200)); // Short delay for visual feedback
+
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 200));
 
         setIsSubmitting(false);
         toast({
