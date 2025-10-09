@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -419,7 +420,7 @@ export function OrderForm() {
                                     />
                                 </FormControl>
                                 <FormDescription>
-                                    El archivo puede ser JPG (fotografia) o PDF.
+                                    El archivo puede ser JPG (fotografía) o PDF. ¿Necesitas reducir el tamaño del PDF? <a href="https://www.ilovepdf.com/es/comprimir_pdf" target="_blank" rel="noopener noreferrer" className="underline text-primary">Da click aquí</a>.
                                 </FormDescription>
                                 <FormMessage />
                             </FormItem>
@@ -440,7 +441,7 @@ export function OrderForm() {
                                     />
                                 </FormControl>
                                 <FormDescription>
-                                    No mayor a 3 meses. El archivo puede ser JPG (fotografia) o PDF.
+                                    No mayor a 3 meses. El archivo puede ser JPG (fotografía) o PDF. ¿Necesitas reducir el tamaño del PDF? <a href="https://www.ilovepdf.com/es/comprimir_pdf" target="_blank" rel="noopener noreferrer" className="underline text-primary">Da click aquí</a>.
                                 </FormDescription>
                                 <FormMessage />
                             </FormItem>
@@ -460,8 +461,5 @@ export function OrderForm() {
     </Card>
   );
 }
-
-    
-    
 
     
