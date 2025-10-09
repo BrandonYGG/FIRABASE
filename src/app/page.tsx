@@ -1,8 +1,9 @@
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowRight, ListOrdered, Wand2, Building, Zap, Newspaper } from 'lucide-react';
+import { ArrowRight, ListOrdered, Wand2, Building, Zap, Newspaper, ScanLine } from 'lucide-react';
 import Header from '@/components/layout/header';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
@@ -50,7 +51,7 @@ export default function Home() {
             <p className="max-w-3xl mx-auto text-muted-foreground text-lg mb-12">
                 Desde la solicitud hasta la entrega, OrderFlow Construct centraliza y simplifica cada paso del proceso de adquisición de materiales.
             </p>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
                 <Card className="hover:shadow-lg transition-shadow duration-300 text-left">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -87,6 +88,19 @@ export default function Home() {
                   <CardContent>
                     <p>
                         Registra tu empresa y gestiona los pedidos de múltiples obras y solicitantes desde una única cuenta.
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card className="hover:shadow-lg transition-shadow duration-300 text-left">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <ScanLine className="text-primary" />
+                      Interfaz Intuitiva
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p>
+                        Diseñada para ser fácil de usar en cualquier dispositivo, permitiéndote gestionar tus pedidos sin complicaciones.
                     </p>
                   </CardContent>
                 </Card>
