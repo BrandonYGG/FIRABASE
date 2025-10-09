@@ -27,8 +27,11 @@ import {
   SidebarInset,
   SidebarTrigger
 } from '@/components/ui/sidebar';
-import { Construction, LayoutDashboard, ListOrdered, FilePlus2, LogOut, Settings } from 'lucide-react';
+import { Construction, LayoutDashboard, ListOrdered, FilePlus2, LogOut, Settings, CalendarIcon } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 export default function DashboardLayout({
   children,
@@ -37,6 +40,14 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const isActive = (path: string) => pathname === path;
+  const [currentDate, setCurrentDate] = useState('');
+
+  useEffect(() => {
+    const today = new Date();
+    // Format: 10/ Octubre / 2025
+    setCurrentDate(format(today, "d/ MMMM / yyyy", { locale: es }));
+  }, []);
+
 
   const sidebarMenuItems = [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -104,6 +115,16 @@ export default function DashboardLayout({
                  </div>
             </header>
             <main className="flex-1 p-4 sm:px-6 sm:py-0">{children}</main>
+             <footer className="p-4 sm:px-6">
+                <div className="flex justify-end">
+                    {currentDate && (
+                    <div className="flex items-center text-sm font-medium text-muted-foreground">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        <span>{currentDate}</span>
+                    </div>
+                    )}
+                </div>
+            </footer>
         </SidebarInset>
     </SidebarProvider>
   );
