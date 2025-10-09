@@ -68,6 +68,18 @@ export default function RegisterPage() {
               <Label htmlFor="company-name">Nombre de la Empresa</Label>
               <Input id="company-name" placeholder="Constructora S.A." />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="legal-representative">Representante Legal</Label>
+              <Input id="legal-representative" placeholder="Juan Pérez" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="company-rfc">RFC</Label>
+              <Input id="company-rfc" placeholder="XAXX010101000" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="company-phone">Número Telefónico</Label>
+              <Input id="company-phone" placeholder="55 1234 5678" type="tel" />
+            </div>
              <div className="space-y-2">
               <Label htmlFor="company-email">Correo Electrónico de la Empresa</Label>
               <Input id="company-email" placeholder="contacto@constructora.com" type="email" />
