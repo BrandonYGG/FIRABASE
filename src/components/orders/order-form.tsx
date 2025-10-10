@@ -40,10 +40,20 @@ type OrderFormValues = z.infer<typeof OrderFormSchema>;
 
 const mockMaterials = [
     { id: 'cemento-01', nombre: 'Cemento Cruz Azul 50kg', precio: 250 },
+    { id: 'cemento-02', nombre: 'Mortero 50kg', precio: 220 },
+    { id: 'cal-01', nombre: 'Calidra 25kg', precio: 80 },
     { id: 'varilla-01', nombre: 'Varilla 3/8" 12m', precio: 180 },
+    { id: 'varilla-02', nombre: 'Varilla 1/2" 12m', precio: 320 },
+    { id: 'varilla-03', nombre: 'Varilla 5/8" 12m', precio: 500 },
+    { id: 'alambron-01', nombre: 'Alambrón 1/4" (rollo)', precio: 1200 },
+    { id: 'alambre-01', nombre: 'Alambre Recocido (kg)', precio: 40 },
     { id: 'ladrillo-01', nombre: 'Ladrillo Rojo (millar)', precio: 3500 },
+    { id: 'block-01', nombre: 'Block Hueco 12x20x40cm', precio: 14 },
+    { id: 'block-02', nombre: 'Block Macizo 10x20x40cm', precio: 12 },
     { id: 'arena-01', nombre: 'Arena (m³)', precio: 400 },
     { id: 'grava-01', nombre: 'Grava (m³)', precio: 450 },
+    { id: 'pegazulejo-01', nombre: 'Pegazulejo 20kg', precio: 150 },
+    { id: 'yeso-01', nombre: 'Yeso 25kg', precio: 90 },
 ]
 
 export function OrderForm() {
@@ -533,5 +543,3 @@ export function OrderForm() {
     </Card>
   );
 }
-
-    
