@@ -23,6 +23,13 @@ export const OrderStatus = {
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_FILE_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
 
+export const MaterialItemSchema = z.object({
+  materialId: z.string().min(1, { message: "Debe seleccionar un material." }),
+  descripcion: z.string(),
+  cantidad: z.number().min(1, { message: "La cantidad debe ser al menos 1." }),
+  precioUnitario: z.number(),
+});
+
 
 export const OrderFormSchema = z.object({
   solicitante: z.string().min(3, { message: 'El nombre debe tener al menos 3 caracteres.' }),
@@ -45,7 +52,8 @@ export const OrderFormSchema = z.object({
   }),
   frecuenciaCredito: z.nativeEnum(CreditFrequency).nullable().optional(),
   metodoPago: z.string().nullable().optional(),
-  total: z.number().optional(), // Added for mock total
+  total: z.number(),
+  materiales: z.array(MaterialItemSchema).min(1, { message: "Debe agregar al menos un material." }),
   ine: z.any().optional(),
   comprobanteDomicilio: z.any().optional(),
 }).refine(data => data.fechaMaxEntrega >= data.fechaMinEntrega, {
@@ -116,6 +124,7 @@ export const OrderFormSchema = z.object({
 });
 
 export type OrderFormData = z.infer<typeof OrderFormSchema>;
+export type MaterialItem = z.infer<typeof MaterialItemSchema>;
 
 interface BaseOrder {
   id: string;
@@ -130,7 +139,8 @@ interface BaseOrder {
   frecuenciaCredito: z.infer<typeof OrderFormSchema.shape.frecuenciaCredito>;
   metodoPago: z.infer<typeof OrderFormSchema.shape.metodoPago>;
   status: keyof typeof OrderStatus;
-  total?: number;
+  total: number;
+  materiales: MaterialItem[];
 }
 
 export interface Order extends BaseOrder {
@@ -144,3 +154,5 @@ export interface OrderFirestore extends BaseOrder {
   fechaMaxEntrega: Timestamp;
   createdAt: Timestamp;
 }
+
+    

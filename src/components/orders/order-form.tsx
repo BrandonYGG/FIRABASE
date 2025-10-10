@@ -1,11 +1,11 @@
 
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { z } from 'zod';
 import { useRouter } from 'next/navigation';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -24,8 +24,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { cn } from '@/lib/utils';
-import { CalendarIcon, Loader2, Wand2 } from 'lucide-react';
+import { CalendarIcon, Loader2, Wand2, Trash2, PlusCircle } from 'lucide-react';
 import { OrderFormSchema, PaymentType, CreditFrequency } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { createOrderAction } from '@/app/actions';
@@ -33,8 +34,17 @@ import { getUrgency, UrgencyBadge } from '@/components/orders/urgency-badge';
 import type { DateRange } from 'react-day-picker';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import mxLocations from '@/lib/data/mx-locations.json';
+import { Textarea } from '../ui/textarea';
 
 type OrderFormValues = z.infer<typeof OrderFormSchema>;
+
+const mockMaterials = [
+    { id: 'cemento-01', nombre: 'Cemento Cruz Azul 50kg', precio: 250 },
+    { id: 'varilla-01', nombre: 'Varilla 3/8" 12m', precio: 180 },
+    { id: 'ladrillo-01', nombre: 'Ladrillo Rojo (millar)', precio: 3500 },
+    { id: 'arena-01', nombre: 'Arena (m³)', precio: 400 },
+    { id: 'grava-01', nombre: 'Grava (m³)', precio: 450 },
+]
 
 export function OrderForm() {
   const router = useRouter();
@@ -56,13 +66,24 @@ export function OrderForm() {
       tipoPago: undefined,
       frecuenciaCredito: undefined,
       metodoPago: '',
-      // A mock total amount for the order. In a real app, this would be calculated from products.
-      total: 1000, 
+      total: 0, 
+      materiales: [{ materialId: '', cantidad: 1, precioUnitario: 0, descripcion: '' }],
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "materiales",
   });
 
   const tipoPago = form.watch('tipoPago');
   const selectedEstado = form.watch('estado');
+  const materiales = form.watch('materiales');
+
+  useEffect(() => {
+    const total = materiales.reduce((sum, item) => sum + (item.cantidad * item.precioUnitario), 0);
+    form.setValue('total', total);
+  }, [materiales, form]);
 
   const municipios = useMemo(() => {
     if (!selectedEstado) return [];
@@ -233,6 +254,91 @@ export function OrderForm() {
                     )}
                     />
                 </div>
+            </div>
+
+            <div className="space-y-4">
+                 <Accordion type="single" collapsible defaultValue="item-1">
+                    <AccordionItem value="item-1">
+                        <AccordionTrigger>
+                            <CardTitle className="text-lg font-headline">Materiales del Pedido</CardTitle>
+                        </AccordionTrigger>
+                        <AccordionContent className="pt-4">
+                            <div className="space-y-4">
+                                {fields.map((field, index) => (
+                                    <div key={field.id} className="grid grid-cols-1 sm:grid-cols-12 gap-4 p-4 border rounded-md relative">
+                                        <FormField
+                                            control={form.control}
+                                            name={`materiales.${index}.materialId`}
+                                            render={({ field }) => (
+                                                <FormItem className="sm:col-span-4">
+                                                    <FormLabel>Material</FormLabel>
+                                                    <Select onValueChange={(value) => {
+                                                        const material = mockMaterials.find(m => m.id === value);
+                                                        field.onChange(value);
+                                                        form.setValue(`materiales.${index}.precioUnitario`, material?.precio || 0);
+                                                        form.setValue(`materiales.${index}.descripcion`, material?.nombre || '');
+                                                    }} defaultValue={field.value}>
+                                                        <FormControl>
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Seleccionar material"/>
+                                                            </SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent>
+                                                            {mockMaterials.map((material) => (
+                                                                <SelectItem key={material.id} value={material.id}>
+                                                                    {material.nombre}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name={`materiales.${index}.cantidad`}
+                                            render={({ field }) => (
+                                                <FormItem className="sm:col-span-2">
+                                                    <FormLabel>Cantidad</FormLabel>
+                                                    <FormControl>
+                                                        <Input type="number" min="1" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10))}/>
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <div className="sm:col-span-3 flex flex-col justify-center">
+                                            <FormLabel>Subtotal</FormLabel>
+                                            <p className="font-medium h-10 flex items-center">
+                                               S/ {(materiales[index].cantidad * materiales[index].precioUnitario).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                                            </p>
+                                        </div>
+                                        <div className="sm:col-span-3 flex items-end">
+                                            <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}>
+                                                <Trash2 className="h-4 w-4" />
+                                                <span className="sr-only">Eliminar material</span>
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => append({ materialId: '', cantidad: 1, precioUnitario: 0, descripcion: '' })}
+                                >
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Añadir Material
+                                </Button>
+                                <div className="flex justify-end items-center pt-4">
+                                     <h3 className="text-lg font-bold">Total del Pedido:</h3>
+                                     <p className="text-lg font-bold ml-2">S/ {form.watch('total').toLocaleString('es-MX', { minimumFractionDigits: 2 })}</p>
+                                </div>
+                            </div>
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
             </div>
 
             <div className="space-y-4">
