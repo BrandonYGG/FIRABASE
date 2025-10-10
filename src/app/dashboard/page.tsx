@@ -31,14 +31,7 @@ import { useOrders } from '@/hooks/use-orders';
 import { Skeleton } from '@/components/ui/skeleton';
 
 
-const chartData = [
-  { month: 'Mayo', orders: 18 },
-  { month: 'Junio', orders: 20 },
-  { month: 'Julio', orders: 22 },
-  { month: 'Agosto', orders: 25 },
-  { month: 'Septiembre', orders: 23 },
-  { month: 'Octubre', orders: 30 },
-];
+const chartData: { month: string, orders: number }[] = [];
 
 const chartConfig = {
   orders: {
@@ -80,7 +73,7 @@ export default function DashboardPage() {
           <CardContent>
             {loading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{totalOrders}</div>}
             <p className="text-xs text-muted-foreground">
-              +10% desde el mes pasado
+              -
             </p>
           </CardContent>
         </Card>
@@ -94,7 +87,7 @@ export default function DashboardPage() {
           <CardContent>
              {loading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">S/ {totalAmount.toLocaleString('es-MX')}</div>}
             <p className="text-xs text-muted-foreground">
-              +15% desde el mes pasado
+              -
             </p>
           </CardContent>
         </Card>
@@ -105,7 +98,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             {loading ? <Skeleton className="h-8 w-1/4" /> : <div className="text-2xl font-bold">{pendingOrders}</div>}
-             <p className="text-xs text-muted-foreground">+5 esta semana</p>
+             <p className="text-xs text-muted-foreground">-</p>
           </CardContent>
         </Card>
         <Card>
@@ -118,7 +111,7 @@ export default function DashboardPage() {
           <CardContent>
              {loading ? <Skeleton className="h-8 w-1/4" /> : <div className="text-2xl font-bold">{inProgressOrders}</div>}
             <p className="text-xs text-muted-foreground">
-              +2 completados esta semana
+              -
             </p>
           </CardContent>
         </Card>
