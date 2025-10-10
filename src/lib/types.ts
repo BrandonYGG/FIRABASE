@@ -30,8 +30,8 @@ export const OrderFormSchema = z.object({
   direccion: z.string().min(5, { message: 'La dirección debe tener al menos 5 caracteres.' }),
   codigoPostal: z.string().regex(/^\d{5}$/, { message: 'El código postal debe tener 5 dígitos.' }),
   colonia: z.string().min(3, { message: 'La colonia debe tener al menos 3 caracteres.' }),
-  ciudad: z.string().min(3, { message: 'La ciudad debe tener al menos 3 caracteres.' }),
-  estado: z.string().min(3, { message: 'El estado debe tener al menos 3 caracteres.' }),
+  ciudad: z.string().min(1, { message: 'Debe seleccionar una ciudad/municipio.' }),
+  estado: z.string().min(1, { message: 'Debe seleccionar un estado.' }),
   fechaMinEntrega: z.coerce.date({
     required_error: "La fecha mínima de entrega es obligatoria.",
     invalid_type_error: "Formato de fecha inválido.",
@@ -144,4 +144,3 @@ export interface OrderFirestore extends BaseOrder {
   fechaMaxEntrega: Timestamp;
   createdAt: Timestamp;
 }
-

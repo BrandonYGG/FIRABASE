@@ -32,6 +32,7 @@ import { createOrderAction } from '@/app/actions';
 import { getUrgency, UrgencyBadge } from '@/components/orders/urgency-badge';
 import type { DateRange } from 'react-day-picker';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import mxLocations from '@/lib/data/mx-locations.json';
 
 type OrderFormValues = z.infer<typeof OrderFormSchema>;
 
@@ -61,6 +62,13 @@ export function OrderForm() {
   });
 
   const tipoPago = form.watch('tipoPago');
+  const selectedEstado = form.watch('estado');
+
+  const municipios = useMemo(() => {
+    if (!selectedEstado) return [];
+    const estadoData = mxLocations.find(e => e.nombre === selectedEstado);
+    return estadoData ? estadoData.municipios : [];
+  }, [selectedEstado]);
   
   const urgencySuggestion = useMemo(() => {
     if (!date?.to) return null;
@@ -154,18 +162,49 @@ export function OrderForm() {
                     )}
                     />
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
+                     <FormField
+                        control={form.control}
+                        name="estado"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Estado</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Seleccione un estado" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                {mxLocations.map((estado) => (
+                                    <SelectItem key={estado.nombre} value={estado.nombre}>{estado.nombre}</SelectItem>
+                                ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
                     <FormField
-                    control={form.control}
-                    name="codigoPostal"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Código Postal</FormLabel>
-                        <FormControl>
-                            <Input placeholder="Ej. 50000" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
+                        control={form.control}
+                        name="ciudad"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Municipio / Ciudad</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value} disabled={!selectedEstado}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder={selectedEstado ? "Seleccione un municipio" : "Seleccione un estado primero"} />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                {municipios.map((municipio) => (
+                                    <SelectItem key={municipio} value={municipio}>{municipio}</SelectItem>
+                                ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
                     />
                     <FormField
                     control={form.control}
@@ -182,31 +221,18 @@ export function OrderForm() {
                     />
                      <FormField
                     control={form.control}
-                    name="ciudad"
+                    name="codigoPostal"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Ciudad</FormLabel>
+                        <FormLabel>Código Postal</FormLabel>
                         <FormControl>
-                            <Input placeholder="Ej. Toluca" {...field} />
+                            <Input placeholder="Ej. 50000" {...field} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
                     )}
                     />
                 </div>
-                 <FormField
-                    control={form.control}
-                    name="estado"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Estado</FormLabel>
-                        <FormControl>
-                            <Input placeholder="Ej. México" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
             </div>
 
             <div className="space-y-4">
@@ -250,6 +276,7 @@ export function OrderForm() {
                                 setDate(range);
                                 if(range?.from) form.setValue('fechaMinEntrega', range.from);
                                 if(range?.to) form.setValue('fechaMaxEntrega', range.to);
+                                form.trigger(['fechaMinEntrega', 'fechaMaxEntrega']);
                             }}
                             numberOfMonths={2}
                             locale={es}
