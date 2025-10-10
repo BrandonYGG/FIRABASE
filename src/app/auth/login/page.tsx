@@ -32,17 +32,19 @@ export default function LoginPage() {
           <Label htmlFor="email">Correo Electrónico</Label>
           <Input id="email" type="email" placeholder="nombre@ejemplo.com" required defaultValue="usuario@ejemplo.com" />
         </div>
-        <div className="relative grid gap-2">
+        <div className="grid gap-2">
           <Label htmlFor="password">Contraseña</Label>
-          <Input id="password" type={showPassword ? "text" : "password"} required defaultValue="password" />
+          <div className="relative">
+            <Input id="password" type={showPassword ? "text" : "password"} required defaultValue="password" className="pr-10" />
             <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-8 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active:scale-90"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active:scale-90"
                 aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
                 {showPassword ? <EyeOff className="h-5 w-5 transition-transform duration-300 rotate-y-180" /> : <Eye className="h-5 w-5 transition-transform duration-300" />}
               </button>
+          </div>
         </div>
       </CardContent>
       <CardFooter className="flex flex-col gap-4">
@@ -59,5 +61,3 @@ export default function LoginPage() {
     </Card>
   )
 }
-
-    

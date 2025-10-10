@@ -122,7 +122,7 @@ export default function RegisterPage() {
                       <FormLabel>Contraseña</FormLabel>
                        <div className="relative">
                         <FormControl>
-                            <Input type={showPersonalPassword ? "text" : "password"} {...field} />
+                            <Input type={showPersonalPassword ? "text" : "password"} {...field} className="pr-10" />
                         </FormControl>
                         <button
                             type="button"
@@ -145,7 +145,7 @@ export default function RegisterPage() {
                       <FormLabel>Confirmar Contraseña</FormLabel>
                       <div className="relative">
                         <FormControl>
-                            <Input type={showPersonalConfirmPassword ? "text" : "password"} {...field} />
+                            <Input type={showPersonalConfirmPassword ? "text" : "password"} {...field} className="pr-10" />
                         </FormControl>
                         <button
                             type="button"
@@ -262,7 +262,7 @@ export default function RegisterPage() {
                       <FormLabel>Contraseña</FormLabel>
                        <div className="relative">
                         <FormControl>
-                            <Input type={showCompanyPassword ? "text" : "password"} {...field} />
+                            <Input type={showCompanyPassword ? "text" : "password"} {...field} className="pr-10" />
                         </FormControl>
                         <button
                             type="button"
@@ -285,7 +285,7 @@ export default function RegisterPage() {
                       <FormLabel>Confirmar Contraseña</FormLabel>
                        <div className="relative">
                         <FormControl>
-                            <Input type={showCompanyConfirmPassword ? "text" : "password"} {...field} />
+                            <Input type={showCompanyConfirmPassword ? "text" : "password"} {...field} className="pr-10" />
                         </FormControl>
                         <button
                             type="button"
