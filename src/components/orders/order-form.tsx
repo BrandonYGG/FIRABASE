@@ -439,7 +439,7 @@ export function OrderForm() {
                         </PopoverContent>
                     </Popover>
                     <FormDescription>
-                        Define el rango de entrega seleccionando un día de inicio y uno de fin en el calendario.
+                        El día de inicio se marca en verde, el final en rojo y el día actual en morado.
                     </FormDescription>
                     <FormMessage className="mt-2">
                         {form.formState.errors.fechaMinEntrega?.message || form.formState.errors.fechaMaxEntrega?.message}
