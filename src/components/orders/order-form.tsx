@@ -312,7 +312,7 @@ export function OrderForm() {
                                                 <FormItem className="sm:col-span-2">
                                                     <FormLabel>Cantidad</FormLabel>
                                                     <FormControl>
-                                                        <Input type="number" min="1" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10) || 1)} className="pr-2" />
+                                                        <Input type="number" min="0" {...field} onChange={e => field.onChange(e.target.value === '' ? '' : parseInt(e.target.value, 10))} className="pr-2" />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
@@ -543,3 +543,5 @@ export function OrderForm() {
     </Card>
   );
 }
+
+    
