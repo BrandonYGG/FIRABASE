@@ -110,8 +110,14 @@ export function OrderForm() {
 
   async function onSubmit(data: OrderFormValues) {
     setIsSubmitting(true);
+
+    const formattedData = {
+        ...data,
+        calle: data.calle.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' '),
+        colonia: data.colonia.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' '),
+    };
     
-    const result = await createOrderAction(data);
+    const result = await createOrderAction(formattedData);
 
     if (result.success) {
       toast({
@@ -239,11 +245,11 @@ export function OrderForm() {
                         name="ciudad"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel>{selectedEstado === 'Ciudad de México' ? 'Alcaldía' : 'Municipio / Ciudad'}</FormLabel>
+                            <FormLabel>{selectedEstado === 'Ciudad de México' ? 'Delegación' : 'Municipio'}</FormLabel>
                             <Select onValueChange={field.onChange} value={field.value} disabled={!selectedEstado}>
                                 <FormControl>
                                 <SelectTrigger>
-                                    <SelectValue placeholder={selectedEstado ? `Seleccione un${selectedEstado === 'Ciudad de México' ? 'a alcaldía' : ' municipio'}` : "Seleccione un estado primero"} />
+                                    <SelectValue placeholder={selectedEstado ? `Seleccione un${selectedEstado === 'Ciudad de México' ? 'a delegación' : ' municipio'}` : "Seleccione un estado primero"} />
                                 </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
@@ -566,4 +572,5 @@ export function OrderForm() {
   );
 }
 
+    
     
