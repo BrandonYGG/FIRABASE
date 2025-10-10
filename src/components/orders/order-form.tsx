@@ -201,7 +201,10 @@ export function OrderForm() {
                             <FormItem>
                                 <FormLabel>Número</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Ej. 123" {...field} />
+                                    <Input placeholder="Ej. 123" {...field} onChange={(e) => {
+                                        const { value } = e.target;
+                                        field.onChange(value.replace(/\D/g, ''));
+                                    }}/>
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -236,11 +239,11 @@ export function OrderForm() {
                         name="ciudad"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel>{selectedEstado === 'Ciudad de México' ? 'Delegación' : 'Municipio / Ciudad'}</FormLabel>
+                            <FormLabel>{selectedEstado === 'Ciudad de México' ? 'Alcaldía' : 'Municipio / Ciudad'}</FormLabel>
                             <Select onValueChange={field.onChange} value={field.value} disabled={!selectedEstado}>
                                 <FormControl>
                                 <SelectTrigger>
-                                    <SelectValue placeholder={selectedEstado ? `Seleccione un${selectedEstado === 'Ciudad de México' ? 'a delegación' : ' municipio'}` : "Seleccione un estado primero"} />
+                                    <SelectValue placeholder={selectedEstado ? `Seleccione un${selectedEstado === 'Ciudad de México' ? 'a alcaldía' : ' municipio'}` : "Seleccione un estado primero"} />
                                 </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
@@ -273,7 +276,10 @@ export function OrderForm() {
                         <FormItem>
                         <FormLabel>Código Postal</FormLabel>
                         <FormControl>
-                            <Input placeholder="Ej. 50000" {...field} />
+                            <Input placeholder="Ej. 50000" {...field} onChange={(e) => {
+                                const { value } = e.target;
+                                field.onChange(value.replace(/\D/g, ''));
+                            }}/>
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -559,3 +565,5 @@ export function OrderForm() {
     </Card>
   );
 }
+
+    
