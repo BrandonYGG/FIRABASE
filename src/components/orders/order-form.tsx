@@ -189,11 +189,11 @@ export function OrderForm() {
                         name="ciudad"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel>Municipio / Ciudad</FormLabel>
+                            <FormLabel>{selectedEstado === 'Ciudad de México' ? 'Delegación' : 'Municipio / Ciudad'}</FormLabel>
                             <Select onValueChange={field.onChange} value={field.value} disabled={!selectedEstado}>
                                 <FormControl>
                                 <SelectTrigger>
-                                    <SelectValue placeholder={selectedEstado ? "Seleccione un municipio" : "Seleccione un estado primero"} />
+                                    <SelectValue placeholder={selectedEstado ? `Seleccione un${selectedEstado === 'Ciudad de México' ? 'a delegación' : ' municipio'}` : "Seleccione un estado primero"} />
                                 </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
@@ -427,3 +427,5 @@ export function OrderForm() {
     </Card>
   );
 }
+
+    
