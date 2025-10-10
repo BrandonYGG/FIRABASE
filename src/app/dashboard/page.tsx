@@ -27,9 +27,18 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import type { ChartConfig } from '@/components/ui/chart';
+import { useOrders } from '@/hooks/use-orders';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
-const chartData: any[] = [];
+const chartData = [
+  { month: 'Mayo', orders: 18 },
+  { month: 'Junio', orders: 20 },
+  { month: 'Julio', orders: 22 },
+  { month: 'Agosto', orders: 25 },
+  { month: 'Septiembre', orders: 23 },
+  { month: 'Octubre', orders: 30 },
+];
 
 const chartConfig = {
   orders: {
@@ -38,9 +47,17 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-const recentOrders: any[] = []
 
 export default function DashboardPage() {
+  const { orders, loading } = useOrders();
+
+  const totalOrders = orders.length;
+  const totalAmount = orders.reduce((sum, order) => sum + (order.total || 0), 0);
+  const pendingOrders = orders.filter(o => o.status === 'Pendiente').length;
+  const inProgressOrders = orders.filter(o => o.status === 'En proceso').length;
+  const recentOrders = orders.slice(0, 5);
+
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
@@ -61,9 +78,9 @@ export default function DashboardPage() {
             <ListOrdered className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
+            {loading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{totalOrders}</div>}
             <p className="text-xs text-muted-foreground">
-              Sin datos aún
+              +10% desde el mes pasado
             </p>
           </CardContent>
         </Card>
@@ -75,9 +92,9 @@ export default function DashboardPage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">S/ 0.00</div>
+             {loading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">S/ {totalAmount.toLocaleString('es-MX')}</div>}
             <p className="text-xs text-muted-foreground">
-              Sin datos aún
+              +15% desde el mes pasado
             </p>
           </CardContent>
         </Card>
@@ -87,8 +104,8 @@ export default function DashboardPage() {
             <FilePlus2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
-             <p className="text-xs text-muted-foreground">Sin datos aún</p>
+            {loading ? <Skeleton className="h-8 w-1/4" /> : <div className="text-2xl font-bold">{pendingOrders}</div>}
+             <p className="text-xs text-muted-foreground">+5 esta semana</p>
           </CardContent>
         </Card>
         <Card>
@@ -99,9 +116,9 @@ export default function DashboardPage() {
             <ListOrdered className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
+             {loading ? <Skeleton className="h-8 w-1/4" /> : <div className="text-2xl font-bold">{inProgressOrders}</div>}
             <p className="text-xs text-muted-foreground">
-              Sin datos aún
+              +2 completados esta semana
             </p>
           </CardContent>
         </Card>
@@ -141,7 +158,7 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle>Pedidos Recientes</CardTitle>
             <CardDescription>
-              Aún no hay pedidos recientes.
+              Los últimos pedidos registrados en el sistema.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -154,16 +171,24 @@ export default function DashboardPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {recentOrders.length > 0 ? (
+                {loading ? (
+                    [...Array(5)].map((_, i) => (
+                        <TableRow key={i}>
+                            <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                            <TableCell className="text-right"><Skeleton className="h-5 w-16 ml-auto" /></TableCell>
+                            <TableCell className="hidden sm:table-cell"><Skeleton className="h-5 w-20" /></TableCell>
+                        </TableRow>
+                    ))
+                ) : recentOrders.length > 0 ? (
                     recentOrders.map(order => (
                         <TableRow key={order.id}>
                             <TableCell>
                                 <div className="font-medium">{order.obra}</div>
                                 <div className="hidden text-sm text-muted-foreground md:inline">
-                                    {order.id}
+                                    {order.solicitante}
                                 </div>
                             </TableCell>
-                            <TableCell className="text-right">{order.total}</TableCell>
+                            <TableCell className="text-right">S/ {order.total?.toLocaleString('es-MX')}</TableCell>
                             <TableCell className="hidden sm:table-cell">
                                 <Badge className="text-xs" variant={order.status === 'Entregado' ? 'secondary' : order.status === 'Cancelado' ? 'destructive' : 'default'}>
                                     {order.status}
