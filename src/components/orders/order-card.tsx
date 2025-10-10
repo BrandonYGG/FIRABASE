@@ -12,7 +12,7 @@ type OrderCardProps = {
 
 export function OrderCard({ order }: OrderCardProps) {
   
-  const fullAddress = `${order.direccion}, ${order.colonia}, ${order.ciudad}, ${order.estado}, C.P. ${order.codigoPostal}`;
+  const fullAddress = `${order.calle} ${order.numero}, ${order.colonia}, ${order.ciudad}, ${order.estado}, C.P. ${order.codigoPostal}`;
 
   return (
     <Card className={`transition-all hover:shadow-md`}>

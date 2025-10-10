@@ -68,7 +68,8 @@ export function OrderForm() {
     defaultValues: {
       solicitante: '',
       obra: '',
-      direccion: '',
+      calle: '',
+      numero: '',
       colonia: '',
       codigoPostal: '',
       ciudad: '',
@@ -179,19 +180,34 @@ export function OrderForm() {
             
             <div className="space-y-4">
                 <CardTitle className="text-lg font-headline">Dirección de Entrega</CardTitle>
-                 <FormField
-                    control={form.control}
-                    name="direccion"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Dirección (Calle y Número)</FormLabel>
-                        <FormControl>
-                            <Input placeholder="Ej. Av. Principal 123" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
+                    <FormField
+                        control={form.control}
+                        name="calle"
+                        render={({ field }) => (
+                            <FormItem className="md:col-span-2">
+                                <FormLabel>Calle</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Ej. Av. Principal" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
                     />
+                    <FormField
+                        control={form.control}
+                        name="numero"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Número</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Ej. 123" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
                      <FormField
                         control={form.control}
@@ -312,7 +328,7 @@ export function OrderForm() {
                                                 <FormItem className="sm:col-span-2">
                                                     <FormLabel>Cantidad</FormLabel>
                                                     <FormControl>
-                                                        <Input type="number" min="0" {...field} onChange={e => field.onChange(e.target.value === '' ? '' : parseInt(e.target.value, 10))} className="pr-2" />
+                                                        <Input type="number" min="0" {...field} onChange={e => field.onChange(e.target.value === '' ? '' : parseInt(e.target.value, 10))} />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
@@ -543,5 +559,3 @@ export function OrderForm() {
     </Card>
   );
 }
-
-    

@@ -34,7 +34,8 @@ export const MaterialItemSchema = z.object({
 export const OrderFormSchema = z.object({
   solicitante: z.string().min(3, { message: 'El nombre debe tener al menos 3 caracteres.' }),
   obra: z.string().min(3, { message: 'El nombre de la obra debe tener al menos 3 caracteres.' }),
-  direccion: z.string().min(5, { message: 'La dirección debe tener al menos 5 caracteres.' }),
+  calle: z.string().min(3, { message: 'La calle debe tener al menos 3 caracteres.' }),
+  numero: z.string().min(1, { message: 'El número es obligatorio.' }),
   codigoPostal: z.string().regex(/^\d{5}$/, { message: 'El código postal debe tener 5 dígitos.' }),
   colonia: z.string().min(3, { message: 'La colonia debe tener al menos 3 caracteres.' }),
   ciudad: z.string().min(1, { message: 'Debe seleccionar una ciudad/municipio.' }),
@@ -130,7 +131,8 @@ interface BaseOrder {
   id: string;
   solicitante: string;
   obra: string;
-  direccion: string;
+  calle: string;
+  numero: string;
   colonia: string;
   codigoPostal: string;
   ciudad: string;
@@ -154,5 +156,3 @@ export interface OrderFirestore extends BaseOrder {
   fechaMaxEntrega: Timestamp;
   createdAt: Timestamp;
 }
-
-    
