@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { ArrowUpRight, DollarSign, ListOrdered, FilePlus2, PlusCircle } from 'lucide-react';
-import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,24 +20,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
-import type { ChartConfig } from '@/components/ui/chart';
 import { useOrders } from '@/hooks/use-orders';
 import { Skeleton } from '@/components/ui/skeleton';
-
-
-const chartData: { month: string, orders: number }[] = [];
-
-const chartConfig = {
-  orders: {
-    label: 'Pedidos',
-    color: 'hsl(var(--primary))',
-  },
-} satisfies ChartConfig;
 
 
 export default function DashboardPage() {
@@ -117,37 +100,7 @@ export default function DashboardPage() {
         </Card>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle>Resumen de Pedidos</CardTitle>
-            <CardDescription>Últimos 6 meses.</CardDescription>
-          </CardHeader>
-          <CardContent className="pl-2">
-             {chartData.length > 0 ? (
-                <ChartContainer config={chartConfig} className="h-[300px] w-full">
-                <BarChart accessibilityLayer data={chartData}>
-                    <CartesianGrid vertical={false} />
-                    <XAxis
-                    dataKey="month"
-                    tickLine={false}
-                    tickMargin={10}
-                    axisLine={false}
-                    />
-                    <ChartTooltip
-                    cursor={false}
-                    content={<ChartTooltipContent hideLabel />}
-                    />
-                    <Bar dataKey="orders" fill="var(--color-orders)" radius={8} />
-                </BarChart>
-                </ChartContainer>
-            ) : (
-                <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                    No hay datos suficientes para mostrar el gráfico.
-                </div>
-            )}
-          </CardContent>
-        </Card>
-        <Card className="col-span-4 lg:col-span-3">
+        <Card className="col-span-full">
           <CardHeader>
             <CardTitle>Pedidos Recientes</CardTitle>
             <CardDescription>
