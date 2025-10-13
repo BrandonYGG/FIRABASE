@@ -127,7 +127,9 @@ export function OrderForm() {
       });
       generateOrderPdf({
         ...result.order,
-        createdAt: new Date(result.order.createdAt), // Rehydrate string to Date for PDF
+        fechaMinEntrega: new Date(result.order.fechaMinEntrega),
+        fechaMaxEntrega: new Date(result.order.fechaMaxEntrega),
+        createdAt: new Date(result.order.createdAt),
       });
       router.push('/pedidos');
     } else {
@@ -212,10 +214,7 @@ export function OrderForm() {
                             <FormItem>
                                 <FormLabel>Número</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Ej. 123" {...field} onChange={(e) => {
-                                        const { value } = e.target;
-                                        field.onChange(value.replace(/\D/g, ''));
-                                    }}/>
+                                    <Input placeholder="Ej. 123" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -287,10 +286,7 @@ export function OrderForm() {
                         <FormItem>
                         <FormLabel>Código Postal</FormLabel>
                         <FormControl>
-                            <Input placeholder="Ej. 50000" {...field} onChange={(e) => {
-                                const { value } = e.target;
-                                field.onChange(value.replace(/\D/g, ''));
-                            }}/>
+                            <Input placeholder="Ej. 50000" {...field} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -444,7 +440,7 @@ export function OrderForm() {
                         </PopoverContent>
                     </Popover>
                     <FormDescription>
-                        El día de inicio se marca en verde, el final en rojo y el día actual en morado.
+                        El día actual es morado, el inicio de entrega es verde y la fecha límite es roja.
                     </FormDescription>
                     <FormMessage className="mt-2">
                         {form.formState.errors.fechaMinEntrega?.message || form.formState.errors.fechaMaxEntrega?.message}
