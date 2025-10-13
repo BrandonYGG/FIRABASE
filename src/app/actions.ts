@@ -4,11 +4,16 @@
 import { addDoc, collection, Timestamp } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/firebase/server-config';
-import { OrderFormSchema, type OrderFormData, type Order } from '@/lib/types';
+import { OrderFormSchema, type Order } from '@/lib/types';
 import 'dotenv/config';
 
 export async function createOrderAction(data: unknown) {
-  const result = OrderFormSchema.safeParse(data);
+  // Exclude file fields before parsing
+  const dataWithoutFiles = { ... (data as object) };
+  delete (dataWithoutFiles as any).ine;
+  delete (dataWithoutFiles as any).comprobanteDomicilio;
+  
+  const result = OrderFormSchema.safeParse(dataWithoutFiles);
 
   if (!result.success) {
     let formattedErrors: { path: (string | number)[]; message: string }[] = [];
@@ -21,8 +26,7 @@ export async function createOrderAction(data: unknown) {
     return { success: false, errors: formattedErrors, message: "Por favor revise los campos del formulario." };
   }
   
-  // Exclude file fields from the data to be stored in Firestore
-  const { ine, comprobanteDomicilio, ...orderData } = result.data;
+  const orderData = result.data;
 
   try {
     const docData = {

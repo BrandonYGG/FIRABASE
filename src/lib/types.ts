@@ -71,7 +71,7 @@ export const OrderFormSchema = z.object({
 })
 .refine(data => {
     if (data.tipoPago === 'Credito') {
-        return data.ine && data.ine?.length > 0;
+        return data.ine !== undefined && data.ine !== null && data.ine.length > 0;
     }
     return true;
 }, {
@@ -79,48 +79,12 @@ export const OrderFormSchema = z.object({
     path: ['ine'],
 })
 .refine(data => {
-    if (data.tipoPago === 'Credito' && data.ine && data.ine.length > 0) {
-        return data.ine[0].size <= MAX_FILE_SIZE;
-    }
-    return true;
-}, {
-    message: `El tamaño máximo del archivo del INE es de 5MB.`,
-    path: ['ine'],
-})
-.refine(data => {
-    if (data.tipoPago === 'Credito' && data.ine && data.ine.length > 0) {
-        return ACCEPTED_FILE_TYPES.includes(data.ine[0].type);
-    }
-    return true;
-}, {
-    message: "Formato no válido. Solo se aceptan archivos JPG (fotografia) o PDF.",
-    path: ['ine'],
-})
-.refine(data => {
     if (data.tipoPago === 'Credito') {
-        return data.comprobanteDomicilio && data.comprobanteDomicilio?.length > 0;
+        return data.comprobanteDomicilio !== undefined && data.comprobanteDomicilio !== null && data.comprobanteDomicilio.length > 0;
     }
     return true;
 }, {
     message: 'El comprobante de domicilio es obligatorio para el crédito.',
-    path: ['comprobanteDomicilio'],
-})
-.refine(data => {
-    if (data.tipoPago === 'Credito' && data.comprobanteDomicilio && data.comprobanteDomicilio.length > 0) {
-        return data.comprobanteDomicilio[0].size <= MAX_FILE_SIZE;
-    }
-    return true;
-}, {
-    message: `El tamaño máximo del comprobante es de 5MB.`,
-    path: ['comprobanteDomicilio'],
-})
-.refine(data => {
-    if (data.tipoPago === 'Credito' && data.comprobanteDomicilio && data.comprobanteDomicilio.length > 0) {
-        return ACCEPTED_FILE_TYPES.includes(data.comprobanteDomicilio[0].type);
-    }
-    return true;
-}, {
-    message: "Formato no válido. Solo se aceptan archivos JPG (fotografia) o PDF.",
     path: ['comprobanteDomicilio'],
 });
 
@@ -156,5 +120,3 @@ export interface OrderFirestore extends BaseOrder {
   fechaMaxEntrega: Timestamp;
   createdAt: Timestamp;
 }
-
-    
