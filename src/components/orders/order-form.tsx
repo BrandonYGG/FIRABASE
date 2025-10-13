@@ -27,7 +27,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { cn } from '@/lib/utils';
 import { CalendarIcon, Loader2, Wand2, Trash2, PlusCircle } from 'lucide-react';
-import { OrderFormSchema, PaymentType, CreditFrequency, type Order } from '@/lib/types';
+import { OrderFormSchema, PaymentType, CreditFrequency, type Order, type OrderFormData } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { createOrderAction } from '@/app/actions';
 import { getUrgency, UrgencyBadge } from '@/components/orders/urgency-badge';
@@ -112,14 +112,21 @@ export function OrderForm() {
   async function onSubmit(data: OrderFormValues) {
     setIsSubmitting(true);
     
-    const result = await createOrderAction(data);
+    // Create a serializable copy of the data, excluding file inputs
+    const dataToSend = {
+      ...data,
+    };
+    delete (dataToSend as any).ine;
+    delete (dataToSend as any).comprobanteDomicilio;
+    
+    const result = await createOrderAction(dataToSend);
 
     if (result.success && result.order) {
       toast({
         title: 'Éxito',
         description: result.message,
       });
-
+      
       const orderForPdf: Order = {
         ...result.order,
         fechaMinEntrega: new Date(result.order.fechaMinEntrega),

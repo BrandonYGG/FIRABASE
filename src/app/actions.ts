@@ -4,16 +4,11 @@
 import { addDoc, collection, Timestamp } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/firebase/server-config';
-import { OrderFormSchema, type Order } from '@/lib/types';
+import { OrderFormSchema, type Order, type OrderFormData } from '@/lib/types';
 import 'dotenv/config';
 
-export async function createOrderAction(data: unknown) {
-  // Exclude file fields before parsing
-  const dataWithoutFiles = { ... (data as object) };
-  delete (dataWithoutFiles as any).ine;
-  delete (dataWithoutFiles as any).comprobanteDomicilio;
-  
-  const result = OrderFormSchema.safeParse(dataWithoutFiles);
+export async function createOrderAction(data: OrderFormData) {
+  const result = OrderFormSchema.safeParse(data);
 
   if (!result.success) {
     let formattedErrors: { path: (string | number)[]; message: string }[] = [];
