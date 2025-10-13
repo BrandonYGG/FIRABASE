@@ -35,7 +35,7 @@ export default function Home() {
             </p>
              <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
                 <Button asChild size="lg">
-                    <Link href="/pedidos/nuevo">
+                    <Link href="/auth/login">
                         <ArrowRight className="mr-2" /> Crear Pedido
                     </Link>
                 </Button>
