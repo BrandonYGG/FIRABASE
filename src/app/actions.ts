@@ -4,7 +4,7 @@
 import { addDoc, collection, Timestamp } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/firebase/server-config';
-import { OrderFormSchema, type Order, type OrderFormData } from '@/lib/types';
+import { OrderFormSchema, type Order, type OrderFormData, type MaterialItem } from '@/lib/types';
 import 'dotenv/config';
 
 export async function createOrderAction(data: OrderFormData) {
@@ -22,28 +22,46 @@ export async function createOrderAction(data: OrderFormData) {
   }
   
   const orderData = result.data;
-  
-  // Exclude file inputs before sending to Firestore
-  const { ine, comprobanteDomicilio, ...dataToSave } = orderData;
-
 
   try {
-    const docData: Omit<OrderFormData, 'ine' | 'comprobanteDomicilio'> & { createdAt: Timestamp; status: 'Pendiente' } = {
-      ...dataToSave,
+    const docData: {
+        solicitante: string;
+        obra: string;
+        calle: string;
+        numero: string;
+        colonia: string;
+        codigoPostal: string;
+        ciudad: string;
+        estado: string;
+        tipoPago: "Efectivo" | "Credito";
+        frecuenciaCredito: "Semanal" | "Quincenal" | "Mensual" | null | undefined;
+        metodoPago: string | null | undefined;
+        total: number;
+        materiales: MaterialItem[];
+        fechaMinEntrega: Timestamp;
+        fechaMaxEntrega: Timestamp;
+        createdAt: Timestamp;
+        status: 'Pendiente';
+    } = {
+      solicitante: orderData.solicitante,
+      obra: orderData.obra,
+      calle: orderData.calle,
+      numero: orderData.numero,
+      colonia: orderData.colonia,
+      codigoPostal: orderData.codigoPostal,
+      ciudad: orderData.ciudad,
+      estado: orderData.estado,
+      tipoPago: orderData.tipoPago,
+      frecuenciaCredito: orderData.tipoPago === 'Credito' ? orderData.frecuenciaCredito : null,
+      metodoPago: orderData.tipoPago === 'Efectivo' ? orderData.metodoPago : null,
+      total: orderData.total,
+      materiales: orderData.materiales,
       fechaMinEntrega: Timestamp.fromDate(orderData.fechaMinEntrega),
       fechaMaxEntrega: Timestamp.fromDate(orderData.fechaMaxEntrega),
       createdAt: Timestamp.now(),
       status: 'Pendiente' as const,
     };
     
-    // Clear credit-specific fields if payment is not credit
-    if (docData.tipoPago === 'Credito') {
-      docData.metodoPago = null;
-    } else if (docData.tipoPago === 'Efectivo') {
-        docData.metodoPago = null;
-        docData.frecuenciaCredito = null;
-    }
-
     const docRef = await addDoc(collection(db, 'pedidos'), docData);
     
     const newOrder: Omit<Order, 'fechaMinEntrega' | 'fechaMaxEntrega' | 'createdAt'> & { fechaMinEntrega: string; fechaMaxEntrega: string; createdAt: string; } = {
@@ -77,5 +95,3 @@ export async function createOrderAction(data: OrderFormData) {
     return { success: false, message: 'No se pudo crear el pedido. Ocurrió un error desconocido.' };
   }
 }
-
-    

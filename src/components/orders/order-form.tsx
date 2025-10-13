@@ -114,9 +114,7 @@ export function OrderForm() {
     setIsSubmitting(true);
     
     // Create a serializable copy of the data, excluding file inputs
-    const dataToSend = { ...data };
-    delete (dataToSend as any).ine;
-    delete (dataToSend as any).comprobanteDomicilio;
+    const { ine, comprobanteDomicilio, ...dataToSend } = data;
     
     const result = await createOrderAction(dataToSend);
 
@@ -613,5 +611,3 @@ export function OrderForm() {
     </Card>
   );
 }
-
-    
