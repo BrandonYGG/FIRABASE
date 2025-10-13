@@ -1,10 +1,12 @@
 
 import type { Order } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarDays, User, HardHat, CreditCard, Wallet, MapPin, DollarSign } from 'lucide-react';
+import { CalendarDays, User, HardHat, CreditCard, Wallet, MapPin, DollarSign, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { UrgencyBadge } from './urgency-badge';
+import { Button } from '@/components/ui/button';
+import { generateOrderPdf } from '@/lib/pdf-generator';
 
 type OrderCardProps = {
   order: Order;
@@ -13,6 +15,10 @@ type OrderCardProps = {
 export function OrderCard({ order }: OrderCardProps) {
   
   const fullAddress = `${order.calle} ${order.numero}, ${order.colonia}, ${order.ciudad}, ${order.estado}, C.P. ${order.codigoPostal}`;
+
+  const handleDownload = () => {
+    generateOrderPdf(order);
+  }
 
   return (
     <Card className={`transition-all hover:shadow-md`}>
@@ -57,11 +63,14 @@ export function OrderCard({ order }: OrderCardProps) {
         </div>
         )}
       </CardContent>
-      <CardFooter>
+      <CardFooter className="flex justify-between items-center">
         <div className="text-xs text-muted-foreground flex items-center">
             <HardHat className="mr-2 h-4 w-4" />
             <span>Estado: {order.status}</span>
         </div>
+        <Button variant="outline" size="icon" onClick={handleDownload} aria-label="Descargar PDF del pedido">
+          <Download className="h-4 w-4" />
+        </Button>
       </CardFooter>
     </Card>
   );
