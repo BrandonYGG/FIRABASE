@@ -26,7 +26,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { cn } from '@/lib/utils';
-import { CalendarIcon, Loader2, Wand2, Trash2, PlusCircle } from 'lucide-react';
+import { CalendarIcon, Loader2, Wand2, Trash2, PlusCircle, CheckCircle, FileDown } from 'lucide-react';
 import { OrderFormSchema, PaymentType, CreditFrequency, type Order, type OrderFormData } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { createOrderAction } from '@/app/actions';
@@ -63,6 +63,7 @@ export function OrderForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [date, setDate] = useState<DateRange | undefined>();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [lastSubmittedOrder, setLastSubmittedOrder] = useState<Order | null>(null);
 
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(OrderFormSchema),
@@ -113,9 +114,7 @@ export function OrderForm() {
     setIsSubmitting(true);
     
     // Create a serializable copy of the data, excluding file inputs
-    const dataToSend = {
-      ...data,
-    };
+    const dataToSend = { ...data };
     delete (dataToSend as any).ine;
     delete (dataToSend as any).comprobanteDomicilio;
     
@@ -134,8 +133,7 @@ export function OrderForm() {
         createdAt: new Date(result.order.createdAt),
       };
 
-      generateOrderPdf(orderForPdf);
-      router.push('/pedidos');
+      setLastSubmittedOrder(orderForPdf);
     } else {
         if (result.errors) {
             result.errors.forEach(err => {
@@ -152,6 +150,45 @@ export function OrderForm() {
         });
     }
     setIsSubmitting(false);
+  }
+
+  const handleDownload = () => {
+    if (lastSubmittedOrder) {
+      generateOrderPdf(lastSubmittedOrder);
+    }
+  };
+
+  const handleCreateNew = () => {
+    setLastSubmittedOrder(null);
+    form.reset();
+  };
+
+
+  if (lastSubmittedOrder) {
+    return (
+        <Card className="max-w-4xl mx-auto text-center">
+            <CardHeader>
+                <div className="mx-auto bg-green-100 rounded-full h-20 w-20 flex items-center justify-center">
+                    <CheckCircle className="h-12 w-12 text-green-600" />
+                </div>
+                <CardTitle className="text-2xl font-headline mt-4">Pedido Registrado con Éxito</CardTitle>
+                <CardDescription>Tu pedido para la obra "{lastSubmittedOrder.obra}" ha sido creado.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col sm:flex-row justify-center gap-4">
+                <Button onClick={handleDownload}>
+                    <FileDown className="mr-2 h-4 w-4" />
+                    Descargar PDF
+                </Button>
+                <Button variant="outline" onClick={handleCreateNew}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Crear un nuevo pedido
+                </Button>
+                 <Button variant="secondary" onClick={() => router.push('/pedidos')}>
+                    Ver todos los pedidos
+                </Button>
+            </CardContent>
+        </Card>
+    )
   }
 
   return (
@@ -576,3 +613,5 @@ export function OrderForm() {
     </Card>
   );
 }
+
+    

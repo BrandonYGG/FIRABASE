@@ -22,10 +22,14 @@ export async function createOrderAction(data: OrderFormData) {
   }
   
   const orderData = result.data;
+  
+  // Exclude file inputs before sending to Firestore
+  const { ine, comprobanteDomicilio, ...dataToSave } = orderData;
+
 
   try {
-    const docData = {
-      ...orderData,
+    const docData: Omit<OrderFormData, 'ine' | 'comprobanteDomicilio'> & { createdAt: Timestamp; status: 'Pendiente' } = {
+      ...dataToSave,
       fechaMinEntrega: Timestamp.fromDate(orderData.fechaMinEntrega),
       fechaMaxEntrega: Timestamp.fromDate(orderData.fechaMaxEntrega),
       createdAt: Timestamp.now(),
@@ -42,7 +46,6 @@ export async function createOrderAction(data: OrderFormData) {
 
     const docRef = await addDoc(collection(db, 'pedidos'), docData);
     
-    // Build a serializable order object to return to the client
     const newOrder: Omit<Order, 'fechaMinEntrega' | 'fechaMaxEntrega' | 'createdAt'> & { fechaMinEntrega: string; fechaMaxEntrega: string; createdAt: string; } = {
         id: docRef.id,
         solicitante: orderData.solicitante,
@@ -74,3 +77,5 @@ export async function createOrderAction(data: OrderFormData) {
     return { success: false, message: 'No se pudo crear el pedido. Ocurrió un error desconocido.' };
   }
 }
+
+    
