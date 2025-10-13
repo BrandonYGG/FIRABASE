@@ -125,7 +125,10 @@ export function OrderForm() {
         title: 'Éxito',
         description: result.message,
       });
-      generateOrderPdf(result.order);
+      generateOrderPdf({
+        ...result.order,
+        createdAt: new Date(result.order.createdAt), // Rehydrate string to Date for PDF
+      });
       router.push('/pedidos');
     } else {
         if (result.errors) {

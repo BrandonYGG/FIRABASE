@@ -45,7 +45,7 @@ export async function createOrderAction(data: unknown) {
     const newOrder = {
         id: docRef.id,
         ...orderData,
-        createdAt: docData.createdAt.toDate(),
+        createdAt: docData.createdAt.toDate().toISOString(), // Return as ISO string
         status: docData.status,
     };
 
