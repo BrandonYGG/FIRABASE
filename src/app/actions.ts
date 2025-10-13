@@ -4,7 +4,7 @@
 import { addDoc, collection, Timestamp } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/firebase/server-config';
-import { OrderFormSchema } from '@/lib/types';
+import { OrderFormSchema, type OrderFormData, type Order } from '@/lib/types';
 import 'dotenv/config';
 
 export async function createOrderAction(data: unknown) {
@@ -21,7 +21,8 @@ export async function createOrderAction(data: unknown) {
     return { success: false, errors: formattedErrors, message: "Por favor revise los campos del formulario." };
   }
   
-  const { ...orderData } = result.data;
+  // Exclude file fields from the data to be stored in Firestore
+  const { ine, comprobanteDomicilio, ...orderData } = result.data;
 
   try {
     const docData = {
@@ -42,12 +43,25 @@ export async function createOrderAction(data: unknown) {
 
     const docRef = await addDoc(collection(db, 'pedidos'), docData);
     
-    const newOrder = {
+    // Build a serializable order object to return to the client
+    const newOrder: Omit<Order, 'fechaMinEntrega' | 'fechaMaxEntrega' | 'createdAt'> & { fechaMinEntrega: string; fechaMaxEntrega: string; createdAt: string; } = {
         id: docRef.id,
-        ...orderData,
+        solicitante: orderData.solicitante,
+        obra: orderData.obra,
+        calle: orderData.calle,
+        numero: orderData.numero,
+        colonia: orderData.colonia,
+        codigoPostal: orderData.codigoPostal,
+        ciudad: orderData.ciudad,
+        estado: orderData.estado,
+        tipoPago: orderData.tipoPago,
+        frecuenciaCredito: orderData.frecuenciaCredito,
+        metodoPago: orderData.metodoPago,
+        total: orderData.total,
+        materiales: orderData.materiales,
         fechaMinEntrega: orderData.fechaMinEntrega.toISOString(),
         fechaMaxEntrega: orderData.fechaMaxEntrega.toISOString(),
-        createdAt: docData.createdAt.toDate().toISOString(), // Return as ISO string
+        createdAt: docData.createdAt.toDate().toISOString(),
         status: docData.status,
     };
 
@@ -55,6 +69,9 @@ export async function createOrderAction(data: unknown) {
     return { success: true, message: 'Pedido creado con éxito.', order: newOrder };
   } catch (error) {
     console.error('Error creating order:', error);
-    return { success: false, message: 'No se pudo crear el pedido.' };
+    if (error instanceof Error) {
+       return { success: false, message: `No se pudo crear el pedido: ${error.message}` };
+    }
+    return { success: false, message: 'No se pudo crear el pedido. Ocurrió un error desconocido.' };
   }
 }
