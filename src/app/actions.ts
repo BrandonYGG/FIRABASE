@@ -40,10 +40,17 @@ export async function createOrderAction(data: unknown) {
         docData.frecuenciaCredito = null;
     }
 
-    await addDoc(collection(db, 'pedidos'), docData);
+    const docRef = await addDoc(collection(db, 'pedidos'), docData);
+    
+    const newOrder = {
+        id: docRef.id,
+        ...orderData,
+        createdAt: docData.createdAt.toDate(),
+        status: docData.status,
+    };
 
     revalidatePath('/pedidos');
-    return { success: true, message: 'Pedido creado con éxito.' };
+    return { success: true, message: 'Pedido creado con éxito.', order: newOrder };
   } catch (error) {
     console.error('Error creating order:', error);
     return { success: false, message: 'No se pudo crear el pedido.' };

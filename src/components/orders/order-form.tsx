@@ -35,6 +35,7 @@ import type { DateRange } from 'react-day-picker';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import mxLocations from '@/lib/data/mx-locations.json';
 import { Textarea } from '../ui/textarea';
+import { generateOrderPdf } from '@/lib/pdf-generator';
 
 type OrderFormValues = z.infer<typeof OrderFormSchema>;
 
@@ -119,11 +120,12 @@ export function OrderForm() {
     
     const result = await createOrderAction(formattedData);
 
-    if (result.success) {
+    if (result.success && result.order) {
       toast({
         title: 'Éxito',
         description: result.message,
       });
+      generateOrderPdf(result.order);
       router.push('/pedidos');
     } else {
         if (result.errors) {
