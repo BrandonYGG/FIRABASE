@@ -16,7 +16,7 @@
         },
         "projectName": {
           "type": "string",
-          "description": "Name of the construction project for which the order is placed."
+          "description": "Name of the construction project."
         },
         "location": {
           "type": "string",
@@ -24,32 +24,36 @@
         },
         "minDeliveryDate": {
           "type": "string",
-          "description": "The earliest acceptable delivery date.",
+          "description": "Earliest possible delivery date.",
           "format": "date-time"
         },
         "maxDeliveryDate": {
           "type": "string",
-          "description": "The latest acceptable delivery date.",
+          "description": "Latest possible delivery date.",
           "format": "date-time"
         },
         "paymentType": {
           "type": "string",
-          "description": "Type of payment for the order (Cash or Credit).",
+          "description": "Type of payment: Credit or Cash.",
           "format": "string"
         },
-        "creditType": {
+        "creditInstallmentType": {
           "type": "string",
-          "description": "Type of credit payment (Weekly, Bi-weekly, Monthly). Only applicable if paymentType is Credit.",
-          "format": "string"
+          "description": "If payment type is credit, the installment type: Weekly, Bi-weekly, or Monthly."
         },
         "paymentMethod": {
           "type": "string",
-          "description": "Payment card or method used for credit payments.",
-          "format": "string"
+          "description": "Payment method used for the order (e.g., card)."
+        },
+        "orderDate": {
+          "type": "string",
+          "description": "The date the order was placed.",
+          "format": "date-time"
         },
         "deliveryStatus": {
           "type": "string",
-          "description": "The status of the delivery."
+          "description": "The delivery status of the order.",
+          "format": "string"
         }
       },
       "required": [
@@ -58,7 +62,9 @@
         "projectName",
         "minDeliveryDate",
         "maxDeliveryDate",
-        "paymentType"
+        "paymentType",
+        "orderDate",
+        "deliveryStatus"
       ]
     }
   },
@@ -71,22 +77,38 @@
   "firestore": {
     "structure": [
       {
-        "path": "/pedidos/{pedidoId}",
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "user",
+          "schema": {
+            "$ref": "#/backend/entities/user"
+          },
+          "description": "Stores individual user profiles.  Access is restricted to the user themselves.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/orders/{orderId}",
         "definition": {
           "entityName": "Order",
           "schema": {
             "$ref": "#/backend/entities/Order"
           },
-          "description": "Stores material orders placed by construction companies.  Initially, all documents are stored here, regardless of the user. `pedidoId` is the unique identifier for each order.",
+          "description": "Stores material orders placed by users.  Orders are public and accessible to all users.",
           "params": [
             {
-              "name": "pedidoId",
-              "description": "Unique identifier for the order."
+              "name": "orderId",
+              "description": "The unique identifier of the order."
             }
           ]
         }
       }
     ],
-    "reasoning": "Given the requirement for a front-end only application (no backend, direct Firestore access), and the focus on order management for a construction company, the simplest and most direct approach is to store orders in a single collection.  Since the application explicitly states the intent to add authentication later, we structure the database anticipating user-specific data.  This design anticipates the addition of user authentication, even though it's not immediately implemented. This supports future scalability and security when authentication is integrated.\n\n**Authorization Independence (Future):** Currently, all data will be readable/writable in \"sandbox\" mode, but when authentication is added, the structure allows for simple role-based access control or ownership based on user ID by changing the security rules.\n\n**QAPs:**\n*   The segregation of all orders into a single `/orders` collection ensures a uniform security posture.  Initially open, future security rules can be applied to all documents within the collection.\n\nFuture improvements:\n\n*   Adding user authentication and segmenting orders by user, e.g., `/users/{userId}/orders/{orderId}`.\n*   Implementing proper security rules based on authentication and user roles.\n*   Consider using subcollections for related data like order history or delivery logs, if the complexity increases."
+    "reasoning": "Based on the provided information, the error indicates a permissions issue when trying to access the user document. This usually means the Firestore security rules are not allowing the `get` operation on the `/users/{userId}` path for the authenticated user. The recommended structure is based on the principle of Authorization Independence.  The `/users/{userId}` collection is intended for storing individual user profiles and data. For the material orders, we use a top-level `/orders` collection, ensuring that the orders are independent of the user's profile data and easier to query and manage. This design ensures all documents in a collection share similar security requirements.\n\nThis structure achieves Authorization Independence because the user's ID is part of the `/users/{userId}` path, ownership is explicitly defined, and no parent document data (`get()` calls) is needed to authorize access. This directly addresses the error reported. Since there's no role-based access control specified, the QAPs are achieved by path-based ownership for users and a flat structure for orders, simplifying listing and filtering."
   }
 }

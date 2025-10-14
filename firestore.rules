@@ -1,47 +1,65 @@
 /**
- * @file Overview
- * This ruleset is designed for an initial prototyping phase of a material order management application.
- * It prioritizes ease of development and iteration speed over fine-grained access control.
- *
- * Core Philosophy:
- * The ruleset currently operates in a "sandbox" mode with minimal restrictions, but is structured
- * to easily accommodate the introduction of user-based authentication and authorization in the future.
- *
- * Data Structure:
- * All order data is stored in a single, top-level `/pedidos` collection.
- *
- * Key Security Decisions:
- * - Currently, read access is open to all users (signed-in or anonymous).
- * - Write access is currently open but this will change after authentication is added.
- * - No user listing is allowed.
- *
- * Denormalization for Authorization:
- * Future versions will require denormalizing user IDs onto the `Order` documents to enable
- * owner-based access control. An `ownerId` field will be required for write operations.
- *
- * Structural Segregation:
- * There is no structural segregation implemented initially. All orders are stored in a single collection.
+ * @description This ruleset enforces a strict user-ownership model for user profiles and allows public read access to material orders.
+ * @dataStructure
+ *   - `/users/{userId}`: Stores individual user profiles.  Access is restricted to the user themselves.
+ *   - `/orders/{orderId}`: Stores material orders placed by users. Orders are public and accessible to all users.
+ * @keySecurityDecisions
+ *   - Users can only read and write their own profile data under `/users/{userId}`.
+ *   - Material orders in `/orders/{orderId}` are publicly readable but can't be created, updated, or deleted in this prototype.
+ * @denormalizationForAuthorization
+ *   -  No denormalization is used in this prototype.  Authorization is purely path-based, relying on `request.auth.uid` matching the `userId` path segment for user profiles.
+ * @structuralSegregation
+ *   - User profiles are stored in a private collection (`/users/{userId}`), while material orders are stored in a public collection (`/orders/{orderId}`).
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Allows read and write access to all documents in the `/pedidos` collection.
-     * @path /pedidos/{pedidoId}
-     * @allow (get, list) Any user can read any order.
-     * @allow (create, update, delete) Any user can create, update, or delete any order.
-     * @deny none
-     * @principle In the current phase, allows open access for prototyping
-     *
-     * Future: After adding authentication, writes will be restricted to owners only.
+     * @description Controls access to user profile documents.  Only the authenticated user can read or write their own profile.
+     * @path /users/{userId}
+     * @allow (get, create, update, delete) User with UID 'czuuUyxraKV8qlUWexT8FtyDLGu2' can access /users/czuuUyxraKV8qlUWexT8FtyDLGu2.
+     * @deny (get, create, update, delete) User with UID 'otherUserId' cannot access /users/czuuUyxraKV8qlUWexT8FtyDLGu2.
+     * @principle Enforces document ownership for all operations.
      */
-    match /pedidos/{pedidoId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if true; // CRITICAL:  Update this rule after auth is added
-      allow update: if true; // CRITICAL:  Update this rule after auth is added
-      allow delete: if true; // CRITICAL:  Update this rule after auth is added
+    match /users/{userId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      // Allow the user to read their own document.
+      allow get: if isOwner(userId);
+
+      // Allow the user to list their own document (not typical, but included for completeness).
+      allow list: if isOwner(userId);
+
+      // Allow the user to create their own document, but only if the userId matches their auth UID.
+      allow create: if isSignedIn() && request.resource.data.id == userId;
+
+      // Allow the user to update their own document. Enforce immutability of the user ID.
+      allow update: if isSignedIn() && isOwner(userId) && request.resource.data.id == resource.data.id;
+
+      // Allow the user to delete their own document.
+      allow delete: if isSignedIn() && isOwner(userId) && resource != null;
+    }
+
+    /**
+     * @description Controls access to material order documents.  Orders are publicly readable but writes are disabled.
+     * @path /orders/{orderId}
+     * @allow (get, list) Any user (signed in or not) can read material orders.
+     * @deny (create, update, delete) No user can create, update, or delete material orders in this prototype.
+     * @principle Public read access with restricted writes.
+     */
+    match /orders/{orderId} {
+      // Allow anyone to read orders.
+      allow get, list: if true;
+
+      // TODO: Add owner validation once the schema is updated with an ownership field.
+      allow create, update, delete: if false;
     }
   }
 }

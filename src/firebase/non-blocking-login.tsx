@@ -1,12 +1,10 @@
-
 'use client';
 import {
   Auth, // Import Auth type for type hinting
   signInAnonymously,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  User,
-  updateProfile,
+  // Assume getAuth and app are initialized elsewhere
 } from 'firebase/auth';
 
 /** Initiate anonymous sign-in (non-blocking). */
@@ -16,30 +14,16 @@ export function initiateAnonymousSignIn(authInstance: Auth): void {
   // Code continues immediately. Auth state change is handled by onAuthStateChanged listener.
 }
 
-type AuthCallbacks = {
-  onSuccess?: (user: User) => void;
-  onError?: (error: any) => void;
-}
-
 /** Initiate email/password sign-up (non-blocking). */
-export function initiateEmailSignUp(authInstance: Auth, email: string, password: string, callbacks?: AuthCallbacks): void {
-  createUserWithEmailAndPassword(authInstance, email, password)
-    .then(userCredential => {
-      callbacks?.onSuccess?.(userCredential.user);
-    })
-    .catch(error => {
-      callbacks?.onError?.(error);
-    });
+export function initiateEmailSignUp(authInstance: Auth, email: string, password: string): void {
+  // CRITICAL: Call createUserWithEmailAndPassword directly. Do NOT use 'await createUserWithEmailAndPassword(...)'.
+  createUserWithEmailAndPassword(authInstance, email, password);
+  // Code continues immediately. Auth state change is handled by onAuthStateChanged listener.
 }
-
 
 /** Initiate email/password sign-in (non-blocking). */
-export function initiateEmailSignIn(authInstance: Auth, email: string, password: string, callbacks?: AuthCallbacks): void {
-  signInWithEmailAndPassword(authInstance, email, password)
-    .then(userCredential => {
-        callbacks?.onSuccess?.(userCredential.user);
-    })
-    .catch(error => {
-        callbacks?.onError?.(error);
-    });
+export function initiateEmailSignIn(authInstance: Auth, email: string, password: string): void {
+  // CRITICAL: Call signInWithEmailAndPassword directly. Do NOT use 'await signInWithEmailAndPassword(...)'.
+  signInWithEmailAndPassword(authInstance, email, password);
+  // Code continues immediately. Auth state change is handled by onAuthStateChanged listener.
 }
