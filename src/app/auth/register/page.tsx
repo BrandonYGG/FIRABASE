@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 import { useForm } from 'react-hook-form'
@@ -28,6 +28,12 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { PersonalRegistrationSchema, CompanyRegistrationSchema } from "@/lib/schemas";
+import { useAuth, initiateEmailSignUp, setDocumentNonBlocking } from '@/firebase';
+import { doc } from "firebase/firestore";
+import { useFirestore } from "@/firebase";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
+
 
 type PersonalFormValues = z.infer<typeof PersonalRegistrationSchema>;
 type CompanyFormValues = z.infer<typeof CompanyRegistrationSchema>;
@@ -37,6 +43,13 @@ export default function RegisterPage() {
     const [showPersonalConfirmPassword, setShowPersonalConfirmPassword] = useState(false);
     const [showCompanyPassword, setShowCompanyPassword] = useState(false);
     const [showCompanyConfirmPassword, setShowCompanyConfirmPassword] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    
+    const auth = useAuth();
+    const firestore = useFirestore();
+    const { toast } = useToast();
+    const router = useRouter();
+
 
     const personalForm = useForm<PersonalFormValues>({
         resolver: zodResolver(PersonalRegistrationSchema),
@@ -61,14 +74,53 @@ export default function RegisterPage() {
         }
     });
 
-    function onPersonalSubmit(data: PersonalFormValues) {
-        console.log('Personal data:', data);
-        // TODO: Handle personal registration
+    async function onPersonalSubmit(data: PersonalFormValues) {
+        setIsSubmitting(true);
+        try {
+            const userCredential = await initiateEmailSignUp(auth, data.email, data.password);
+            const user = userCredential.user;
+            
+            const userProfileRef = doc(firestore, 'users', user.uid);
+            await setDocumentNonBlocking(userProfileRef, {
+                fullName: data.fullName,
+                email: data.email,
+                role: 'personal'
+            }, { merge: true });
+
+            toast({ title: '¡Éxito!', description: 'Tu cuenta personal ha sido creada.' });
+            router.push('/dashboard');
+
+        } catch (error: any) {
+            toast({ variant: 'destructive', title: 'Error', description: error.message });
+        } finally {
+            setIsSubmitting(false);
+        }
     }
 
-    function onCompanySubmit(data: CompanyFormValues) {
-        console.log('Company data:', data);
-        // TODO: Handle company registration
+    async function onCompanySubmit(data: CompanyFormValues) {
+        setIsSubmitting(true);
+        try {
+            const userCredential = await initiateEmailSignUp(auth, data.email, data.password);
+            const user = userCredential.user;
+            
+            const userProfileRef = doc(firestore, 'users', user.uid);
+            await setDocumentNonBlocking(userProfileRef, {
+                companyName: data.companyName,
+                legalRepresentative: data.legalRepresentative,
+                rfc: data.rfc,
+                phone: data.phone,
+                email: data.email,
+                role: 'company'
+            }, { merge: true });
+
+            toast({ title: '¡Éxito!', description: 'Tu cuenta de empresa ha sido creada.' });
+            router.push('/dashboard');
+
+        } catch (error: any) {
+            toast({ variant: 'destructive', title: 'Error', description: error.message });
+        } finally {
+            setIsSubmitting(false);
+        }
     }
 
   return (
@@ -162,7 +214,10 @@ export default function RegisterPage() {
                 />
               </CardContent>
               <CardFooter className="flex flex-col gap-4">
-                <Button className="w-full" type="submit">Crear Cuenta Personal</Button>
+                <Button className="w-full" type="submit" disabled={isSubmitting}>
+                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Crear Cuenta Personal
+                </Button>
                  <div className="text-center text-sm">
                     ¿Ya tienes una cuenta?{" "}
                     <Link href="/auth/login" className="underline">
@@ -302,8 +357,11 @@ export default function RegisterPage() {
                 />
               </CardContent>
               <CardFooter className="flex flex-col gap-4">
-                <Button className="w-full" type="submit">Crear Cuenta de Empresa</Button>
-                 <div className="text-center text.sm">
+                <Button className="w-full" type="submit" disabled={isSubmitting}>
+                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Crear Cuenta de Empresa
+                </Button>
+                 <div className="text.sm">
                     ¿Ya tienes una cuenta?{" "}
                     <Link href="/auth/login" className="underline">
                         Iniciar Sesión

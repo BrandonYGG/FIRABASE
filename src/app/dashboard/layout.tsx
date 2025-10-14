@@ -32,11 +32,12 @@ import {
   SidebarTrigger
 } from '@/components/ui/sidebar';
 import { Construction, LayoutDashboard, ListOrdered, FilePlus2, LogOut, Settings, CalendarIcon, Moon, Sun, Monitor } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useTheme } from 'next-themes';
+import { useAuth, useUser } from '@/firebase';
 
 export default function DashboardLayout({
   children,
@@ -44,9 +45,18 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const auth = useAuth();
+  const { user, isUserLoading } = useUser();
   const isActive = (path: string) => pathname === path;
   const [currentDate, setCurrentDate] = useState('');
-  const { setTheme } = useTheme()
+  const { setTheme } = useTheme();
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/auth/login');
+    }
+  }, [user, isUserLoading, router]);
 
 
   useEffect(() => {
@@ -55,6 +65,11 @@ export default function DashboardLayout({
     setCurrentDate(format(today, "d/ MMMM / yyyy", { locale: es }));
   }, []);
 
+  const handleLogout = async () => {
+    await auth.signOut();
+    router.push('/');
+  };
+
 
   const sidebarMenuItems = [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -62,6 +77,15 @@ export default function DashboardLayout({
       { href: '/pedidos/nuevo', label: 'Nuevo Pedido', icon: FilePlus2 },
       { href: '/dashboard/settings', label: 'Configuración', icon: Settings },
   ]
+  
+  if (isUserLoading || !user) {
+    return (
+        <div className="flex h-screen items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+    );
+  }
+
   return (
     <SidebarProvider>
         <Sidebar collapsible="icon" variant="floating" side="left">
@@ -121,8 +145,8 @@ export default function DashboardLayout({
                             className="overflow-hidden rounded-full"
                         >
                             <Avatar>
-                                <AvatarImage src="https://upload.wikimedia.org/wikipedia/en/3/34/Jimmy_McGill_BCS_S3.png" alt="Avatar" className="object-contain" />
-                                <AvatarFallback>JM</AvatarFallback>
+                                <AvatarImage src={user.photoURL || "https://upload.wikimedia.org/wikipedia/en/3/34/Jimmy_McGill_BCS_S3.png"} alt="Avatar" className="object-contain" />
+                                <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
                             </Avatar>
                         </Button>
                         </DropdownMenuTrigger>
@@ -134,11 +158,9 @@ export default function DashboardLayout({
                         </DropdownMenuItem>
                         <DropdownMenuItem>Soporte</DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild>
-                            <Link href="/">
-                                <LogOut className="mr-2 h-4 w-4" />
-                                Cerrar Sesión
-                            </Link>
+                        <DropdownMenuItem onClick={handleLogout}>
+                            <LogOut className="mr-2 h-4 w-4" />
+                            Cerrar Sesión
                         </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

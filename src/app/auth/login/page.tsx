@@ -11,13 +11,16 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link"
 import { useState } from "react";
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useAuth, initiateEmailSignIn } from '@/firebase';
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 const LoginSchema = z.object({
   email: z.string().email({ message: 'Por favor, ingrese un correo electrónico válido.' }),
@@ -28,6 +31,10 @@ type LoginValues = z.infer<typeof LoginSchema>;
 
 export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const auth = useAuth();
+    const router = useRouter();
+    const { toast } = useToast();
 
     const form = useForm<LoginValues>({
         resolver: zodResolver(LoginSchema),
@@ -37,11 +44,24 @@ export default function LoginPage() {
         }
     });
 
-    function onSubmit(data: LoginValues) {
-        console.log('Login data:', data);
-        // TODO: Handle login logic
-        // For now, let's just log in and redirect
-        window.location.href = '/dashboard';
+    async function onSubmit(data: LoginValues) {
+        setIsLoading(true);
+        try {
+            await initiateEmailSignIn(auth, data.email, data.password);
+            toast({
+                title: "Inicio de sesión exitoso",
+                description: "Bienvenido de nuevo.",
+            });
+            router.push('/dashboard');
+        } catch (error: any) {
+             toast({
+                variant: "destructive",
+                title: "Error al iniciar sesión",
+                description: error.message || "Ocurrió un error inesperado.",
+            });
+        } finally {
+            setIsLoading(false);
+        }
     }
 
 
@@ -94,7 +114,8 @@ export default function LoginPage() {
                 />
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
-                <Button className="w-full" type="submit">
+                <Button className="w-full" type="submit" disabled={isLoading}>
+                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                  Iniciar Sesión
                 </Button>
                 <div className="text-center text-sm">

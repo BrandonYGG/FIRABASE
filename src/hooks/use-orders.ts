@@ -1,29 +1,29 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import type { Order } from '@/lib/types';
-import { OrderStatus, PaymentType, CreditFrequency } from '@/lib/types';
-
-const mockOrders: Order[] = [
-  // Data removed as requested to show an empty state.
-];
-
+import { useMemo } from 'react';
+import { collection, query, orderBy, Timestamp } from 'firebase/firestore';
+import { useFirestore, useCollection, WithId } from '@/firebase';
+import type { Order, OrderFirestore } from '@/lib/types';
 
 export function useOrders() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const firestore = useFirestore();
 
-  useEffect(() => {
-    setLoading(true);
-    // Simulate a network request
-    const timer = setTimeout(() => {
-      setOrders(mockOrders);
-      setLoading(false);
-    }, 1000); // 1 second delay
+  const ordersQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'pedidos'), orderBy('createdAt', 'desc'));
+  }, [firestore]);
 
-    return () => clearTimeout(timer);
-  }, []);
+  const { data: rawOrders, isLoading, error } = useCollection<OrderFirestore>(ordersQuery);
 
-  return { orders, loading, error };
+  const orders = useMemo(() => {
+    if (!rawOrders) return [];
+    return rawOrders.map(order => ({
+      ...order,
+      fechaMinEntrega: (order.fechaMinEntrega as Timestamp).toDate(),
+      fechaMaxEntrega: (order.fechaMaxEntrega as Timestamp).toDate(),
+      createdAt: (order.createdAt as Timestamp).toDate(),
+    }));
+  }, [rawOrders]);
+
+  return { orders, loading: isLoading, error };
 }
