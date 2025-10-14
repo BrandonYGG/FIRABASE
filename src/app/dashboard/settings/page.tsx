@@ -7,14 +7,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/firebase";
 import { Camera, Loader2 } from "lucide-react";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SettingsPage() {
+    const { user, isUserLoading } = useUser();
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [avatarPreview, setAvatarPreview] = useState("https://upload.wikimedia.org/wikipedia/en/3/34/Jimmy_McGill_BCS_S3.png");
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+    const [displayName, setDisplayName] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (user) {
+            setDisplayName(user.displayName || user.email || '');
+            setAvatarPreview(user.photoURL || null);
+        }
+    }, [user]);
 
     const handleAvatarClick = () => {
         fileInputRef.current?.click();
@@ -35,8 +46,10 @@ export default function SettingsPage() {
         event.preventDefault();
         setIsSubmitting(true);
 
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 200));
+        // Here you would typically update the user profile in Firebase
+        // For now, we'll just simulate an API call
+        console.log("Updating profile with:", { displayName, avatarPreview });
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
         setIsSubmitting(false);
         toast({
@@ -44,6 +57,36 @@ export default function SettingsPage() {
             description: "Tu información ha sido guardada con éxito.",
         });
     };
+
+    if (isUserLoading) {
+        return (
+             <div className="max-w-2xl mx-auto">
+                <Skeleton className="h-10 w-3/5 mb-6" />
+                <Card>
+                    <CardHeader>
+                        <Skeleton className="h-6 w-1/3" />
+                        <Skeleton className="h-4 w-2/3 mt-2" />
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="flex items-center space-x-6">
+                             <Skeleton className="h-24 w-24 rounded-full" />
+                             <div className="flex-grow space-y-2">
+                                <Skeleton className="h-4 w-1/4" />
+                                <Skeleton className="h-10 w-full" />
+                             </div>
+                        </div>
+                         <div className="flex justify-end">
+                            <Skeleton className="h-10 w-32" />
+                        </div>
+                    </CardContent>
+                </Card>
+             </div>
+        )
+    }
+
+    if (!user) {
+        return null; // Or a message telling the user to log in
+    }
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -62,8 +105,8 @@ export default function SettingsPage() {
                     <div className="flex items-center space-x-6">
                         <div className="relative">
                             <Avatar className="h-24 w-24">
-                                <AvatarImage src={avatarPreview} alt="Avatar de usuario" className="object-contain" />
-                                <AvatarFallback>JM</AvatarFallback>
+                                {avatarPreview && <AvatarImage src={avatarPreview} alt="Avatar de usuario" className="object-cover" />}
+                                <AvatarFallback>{displayName.charAt(0).toUpperCase()}</AvatarFallback>
                             </Avatar>
                             <Button 
                                 type="button" 
@@ -85,7 +128,8 @@ export default function SettingsPage() {
                         </div>
                         <div className="flex-grow space-y-2">
                              <Label htmlFor="name">Nombre Completo</Label>
-                             <Input id="name" defaultValue="James Morgan McGill" />
+                             <Input id="name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+                             <p className="text-sm text-muted-foreground">Este es tu correo electrónico: {user.email}</p>
                         </div>
                     </div>
                     <div className="flex justify-end">

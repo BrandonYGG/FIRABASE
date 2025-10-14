@@ -75,8 +75,7 @@ export default function DashboardLayout({
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/pedidos', label: 'Mis Pedidos', icon: ListOrdered },
       { href: '/pedidos/nuevo', label: 'Nuevo Pedido', icon: FilePlus2 },
-      { href: '/dashboard/settings', label: 'Configuración', icon: Settings },
-  ]
+  ];
   
   if (isUserLoading || !user) {
     return (
@@ -109,6 +108,18 @@ export default function DashboardLayout({
                     ))}
                 </SidebarMenu>
             </SidebarContent>
+             <SidebarFooter>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={isActive('/dashboard/settings')} tooltip="Configuración">
+                             <Link href="/dashboard/settings">
+                                <Settings />
+                                <span>Configuración</span>
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarFooter>
         </Sidebar>
         <SidebarInset>
             <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
@@ -145,7 +156,7 @@ export default function DashboardLayout({
                             className="overflow-hidden rounded-full"
                         >
                             <Avatar>
-                                <AvatarImage src={user.photoURL || "https://upload.wikimedia.org/wikipedia/en/3/34/Jimmy_McGill_BCS_S3.png"} alt="Avatar" className="object-contain" />
+                                <AvatarImage src={user.photoURL || undefined} alt="Avatar de usuario" className="object-cover" />
                                 <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
                             </Avatar>
                         </Button>
