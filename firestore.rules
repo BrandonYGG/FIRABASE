@@ -1,69 +1,92 @@
 /**
- * @file Firestore Security Rules
- * @description This ruleset enforces a strict user-ownership model for user profiles
- * and allows public read access to material orders.
+ * @fileoverview Firestore Security Rules for the application.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model. Users can only read,
+ * create, update, and delete their own data. All write operations are
+ * authenticated and authorized against the user's ID. Data validation is
+ * minimized to allow for rapid prototyping.
  *
  * Data Structure:
- * - /users/{userId}: Stores individual user profiles, accessible only to the user themselves.
- * - /orders/{orderId}: Stores material orders, publicly readable but writable by anyone.
+ * - /users/{userId}: Stores user profiles, accessible only by the user.
+ * - /pedidos/{pedidoId}: Stores material orders, accessible only by the user who created them.
  *
  * Key Security Decisions:
- * - User listing is disallowed to protect user privacy.
- * - Orders are publicly readable to facilitate easy access and management.
+ * - User listing is disallowed to prevent unauthorized access to user data.
+ * - Public read access is not granted to any collection.
+ * - The rules explicitly deny any operation that isn't explicitly allowed.
+ *
+ * Denormalization for Authorization:
+ * - The `Order` entity includes a `userId` field to enable simple ownership checks without additional reads.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Controls access to user profile documents.
+     * @description Defines a global function to check if a user is signed in.
+     * @returns {boolean} True if the user is signed in, false otherwise.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * @description Defines a global function to check if the request is made by the owner of the resource.
+     * @param {string} userId The user ID to compare against the request's authentication UID.
+     * @returns {boolean} True if the user is the owner, false otherwise.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * @description Defines a global function to check if the request is made by the existing owner of the resource.
+     * @param {string} userId The user ID to compare against the resource data's userId field.
+     * @returns {boolean} True if the user is the owner and the resource exists, false otherwise.
+     */
+    function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * @description Security rules for user profiles.
      * @path /users/{userId}
-     * @allow (get) User 'czuuUyxraKV8qlUWexT8FtyDLGu2' can read their own profile document.
-     * @allow (create) User 'czuuUyxraKV8qlUWexT8FtyDLGu2' can create their own profile document.
-     * @allow (update) User 'czuuUyxraKV8qlUWexT8FtyDLGu2' can update their own profile document.
-     * @allow (delete) User 'czuuUyxraKV8qlUWexT8FtyDLGu2' can delete their own profile document.
-     * @deny (get) User 'anotherUser' cannot read User 'czuuUyxraKV8qlUWexT8FtyDLGu2' profile document.
-     * @deny (create) User 'anotherUser' cannot create User 'czuuUyxraKV8qlUWexT8FtyDLGu2' profile document.
-     * @deny (update) User 'anotherUser' cannot update User 'czuuUyxraKV8qlUWexT8FtyDLGu2' profile document.
-     * @deny (delete) User 'anotherUser' cannot delete User 'czuuUyxraKV8qlUWexT8FtyDLGu2' profile document.
-     * @principle Enforces document ownership for all operations.
+     * @allow (create) - Allow user to create their own profile if the userId matches their auth ID.
+     * @allow (get, update, delete) - Allow user to get, update, or delete their own profile if the userId matches their auth ID.
+     * @deny (create) - Deny a user from creating a profile with a userId that doesn't match their auth ID.
+     * @deny (get, update, delete) - Deny a user from accessing another user's profile.
+     * @principle Enforces user-ownership for profile data.
      */
     match /users/{userId} {
+      // Read rules
       allow get: if isOwner(userId);
-      allow list: if false;
+      allow list: if false; // User listing is not allowed
+
+      // Write rules
       allow create: if isOwner(userId);
       allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Controls access to material orders. Orders are public for reading.
-     * @path /orders/{orderId}
-     * @allow (get) Any user can read any order.
-     * @allow (list) Any user can list all orders.
-     * @deny (create) Any user can create any order.
-     * @deny (update) Any user can update any order.
-     * @deny (delete) Any user can delete any order.
-     * @principle Allows public read access to orders, but restricts write access.
+     * @description Security rules for material orders.
+     * @path /pedidos/{pedidoId}
+     * @allow (create) - Allow user to create an order if the userId matches their auth ID.
+     * @allow (get, update, delete) - Allow user to get, update, or delete their own order if the userId matches their auth ID.
+     * @deny (create) - Deny a user from creating an order with a userId that doesn't match their auth ID.
+     * @deny (get, update, delete) - Deny a user from accessing another user's order.
+     * @principle Enforces user-ownership for order data.
      */
-    match /orders/{orderId} {
-        allow get: if true;
-        allow list: if true;
-        allow create: if false;
-        allow update: if false;
-        allow delete: if false;
-    }
+    match /pedidos/{pedidoId} {
+      // Read rules
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
 
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
+      // Write rules
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isExistingOwner(resource.data.userId);
+      allow delete: if isExistingOwner(resource.data.userId);
     }
   }
 }
