@@ -31,7 +31,7 @@ import {
   SidebarInset,
   SidebarTrigger
 } from '@/components/ui/sidebar';
-import { Construction, LayoutDashboard, ListOrdered, FilePlus2, LogOut, Settings, CalendarIcon, Moon, Sun, Monitor } from 'lucide-react';
+import { Construction, LayoutDashboard, ListOrdered, FilePlus2, LogOut, Settings, CalendarIcon, Moon, Sun, Monitor, Loader2 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
