@@ -1,47 +1,54 @@
 /**
  * @file Overview
  * This ruleset is designed for an initial prototyping phase of a material order management application.
- * It prioritizes ease of development and iteration speed over fine-grained access control.
+ * It prioritizes ease of development and iteration with relaxed data validation while maintaining a secure authorization model.
  *
  * Core Philosophy:
- * The ruleset currently operates in a "sandbox" mode with minimal restrictions, but is structured
- * to easily accommodate the introduction of user-based authentication and authorization in the future.
+ * The initial version allows full read and write access to facilitate rapid development.
+ * However, the structure anticipates the future implementation of user-based access control.
  *
  * Data Structure:
- * All order data is stored in a single, top-level `/pedidos` collection.
+ * Orders are stored in a flat `/pedidos/{pedidoId}` collection.
  *
  * Key Security Decisions:
- * - Currently, read access is open to all users (signed-in or anonymous).
- * - Write access is currently open but this will change after authentication is added.
- * - No user listing is allowed.
+ * - Data validation is minimal to allow flexible data input during prototyping.
+ * - The rules are structured to support future authentication and access control.
+ * - No user-specific data segregation is implemented yet; all orders are in a single collection.
  *
- * Denormalization for Authorization:
- * Future versions will require denormalizing user IDs onto the `Order` documents to enable
- * owner-based access control. An `ownerId` field will be required for write operations.
- *
- * Structural Segregation:
- * There is no structural segregation implemented initially. All orders are stored in a single collection.
+ * Future Considerations:
+ * - Implement user authentication and role-based access control.
+ * - Segregate orders by user (e.g., `/users/{userId}/orders/{orderId}`).
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Allows read and write access to all documents in the `/pedidos` collection.
+     * @description Manages material orders placed by construction companies.
      * @path /pedidos/{pedidoId}
-     * @allow (get, list) Any user can read any order.
-     * @allow (create, update, delete) Any user can create, update, or delete any order.
-     * @deny none
-     * @principle In the current phase, allows open access for prototyping
-     *
-     * Future: After adding authentication, writes will be restricted to owners only.
+     * @allow (create) Authenticated user can create a new order.
+     * @deny (create) Unauthenticated user cannot create a new order.
+     * @allow (get) Authenticated user can retrieve any order.
+     * @deny (get) N/A
+     * @allow (list) Authenticated user can list all orders.
+     * @deny (list) N/A
+     * @allow (update) Authenticated user can update any order.
+     * @deny (update) Unauthenticated user cannot update an order.
+     * @allow (delete) Authenticated user can delete any order.
+     * @deny (delete) Unauthenticated user cannot delete an order.
+     * @principle Allows any authenticated user to create, read, update, and delete any order.
      */
     match /pedidos/{pedidoId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if true; // CRITICAL:  Update this rule after auth is added
-      allow update: if true; // CRITICAL:  Update this rule after auth is added
-      allow delete: if true; // CRITICAL:  Update this rule after auth is added
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
+    }
+
+    // ----- Helper Functions -----
+    function isSignedIn() {
+      return request.auth != null;
     }
   }
 }
