@@ -10,7 +10,6 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link"
 import { useState } from "react";
@@ -53,7 +52,6 @@ export default function LoginPage() {
                     description: "Bienvenido de nuevo.",
                 });
                 router.push('/dashboard');
-                setIsLoading(false);
             },
             onError: (error: any) => {
                 let description = "Ocurrió un error inesperado.";
@@ -72,67 +70,67 @@ export default function LoginPage() {
 
 
   return (
-    <Card className="w-full max-w-sm">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-            <CardHeader>
-                <CardTitle className="text-2xl font-headline">Iniciar Sesión</CardTitle>
-                <CardDescription>
-                Ingresa tu correo electrónico para acceder a tu cuenta.
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-4">
-                 <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Correo Electrónico</FormLabel>
-                            <FormControl>
-                                <Input placeholder="nombre@ejemplo.com" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Contraseña</FormLabel>
-                            <div className="relative">
+            <Card className="w-full max-w-sm">
+                <CardHeader>
+                    <CardTitle className="text-2xl font-headline">Iniciar Sesión</CardTitle>
+                    <CardDescription>
+                    Ingresa tu correo electrónico para acceder a tu cuenta.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-4">
+                    <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Correo Electrónico</FormLabel>
                                 <FormControl>
-                                    <Input type={showPassword ? "text" : "password"} {...field} />
+                                    <Input placeholder="nombre@ejemplo.com" {...field} />
                                 </FormControl>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active:scale-90"
-                                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                                >
-                                    {showPassword ? <EyeOff className="h-5 w-5 transition-transform duration-300 rotate-y-180" /> : <Eye className="h-5 w-5 transition-transform duration-300" />}
-                                </button>
-                            </div>
-                             <FormMessage />
-                        </FormItem>
-                    )}
-                />
-            </CardContent>
-            <CardFooter className="flex flex-col gap-4">
-                <Button className="w-full" type="submit" disabled={isLoading}>
-                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                 Iniciar Sesión
-                </Button>
-                <div className="text-center text-sm">
-                ¿No tienes una cuenta?{" "}
-                <Link href="/auth/register" className="underline">
-                    Regístrate
-                </Link>
-                </div>
-            </CardFooter>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                    <FormField
+                        control={form.control}
+                        name="password"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Contraseña</FormLabel>
+                                <div className="relative">
+                                    <FormControl>
+                                        <Input type={showPassword ? "text" : "password"} {...field} />
+                                    </FormControl>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active:scale-90"
+                                        aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                                    >
+                                        {showPassword ? <EyeOff className="h-5 w-5 transition-transform duration-300 rotate-y-180" /> : <Eye className="h-5 w-5 transition-transform duration-300" />}
+                                    </button>
+                                </div>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </CardContent>
+                <CardFooter className="flex flex-col gap-4">
+                    <Button className="w-full" type="submit" disabled={isLoading}>
+                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Iniciar Sesión
+                    </Button>
+                    <div className="text-center text-sm">
+                    ¿No tienes una cuenta?{" "}
+                    <Link href="/auth/register" className="underline">
+                        Regístrate
+                    </Link>
+                    </div>
+                </CardFooter>
+            </Card>
         </form>
       </Form>
-    </Card>
   )
 }
