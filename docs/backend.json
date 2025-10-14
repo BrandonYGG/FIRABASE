@@ -71,16 +71,16 @@
   "firestore": {
     "structure": [
       {
-        "path": "/orders/{orderId}",
+        "path": "/pedidos/{pedidoId}",
         "definition": {
           "entityName": "Order",
           "schema": {
             "$ref": "#/backend/entities/Order"
           },
-          "description": "Stores material orders placed by construction companies.  Initially, all documents are stored here, regardless of the user. `orderId` is the unique identifier for each order.",
+          "description": "Stores material orders placed by construction companies.  Initially, all documents are stored here, regardless of the user. `pedidoId` is the unique identifier for each order.",
           "params": [
             {
-              "name": "orderId",
+              "name": "pedidoId",
               "description": "Unique identifier for the order."
             }
           ]
