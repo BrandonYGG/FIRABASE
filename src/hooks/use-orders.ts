@@ -2,13 +2,13 @@
 
 import { useMemo } from 'react';
 import { collection, query, orderBy, Timestamp } from 'firebase/firestore';
-import { useFirestore, useCollection, WithId } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Order, OrderFirestore } from '@/lib/types';
 
 export function useOrders() {
   const firestore = useFirestore();
 
-  const ordersQuery = useMemo(() => {
+  const ordersQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'pedidos'), orderBy('createdAt', 'desc'));
   }, [firestore]);
