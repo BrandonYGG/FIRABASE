@@ -7,13 +7,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useUser } from "@/firebase";
+import { useUser, useUserProfile } from "@/firebase";
 import { Camera, Loader2 } from "lucide-react";
 import React, { useState, useRef, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SettingsPage() {
     const { user, isUserLoading } = useUser();
+    const { userProfile, loading: isProfileLoading } = useUserProfile(user?.uid);
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -21,11 +22,16 @@ export default function SettingsPage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        if (user) {
+        if (userProfile) {
+            setDisplayName(userProfile.fullName || userProfile.companyName || user?.email || '');
+        } else if (user) {
             setDisplayName(user.displayName || user.email || '');
+        }
+        
+        if(user) {
             setAvatarPreview(user.photoURL || null);
         }
-    }, [user]);
+    }, [user, userProfile]);
 
     const handleAvatarClick = () => {
         fileInputRef.current?.click();
@@ -58,7 +64,7 @@ export default function SettingsPage() {
         });
     };
 
-    if (isUserLoading) {
+    if (isUserLoading || isProfileLoading) {
         return (
              <div className="max-w-2xl mx-auto">
                 <Skeleton className="h-10 w-3/5 mb-6" />
