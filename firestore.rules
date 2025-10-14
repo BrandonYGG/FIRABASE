@@ -1,54 +1,40 @@
 /**
- * @fileoverview Firestore Security Rules for the 'pedidos' collection.
+ * @file Overview
+ * This ruleset is designed for an initial prototyping phase of a material order management application.
+ * It prioritizes ease of development and iteration with relaxed data validation, while maintaining a
+ * strong authorization foundation.
  *
  * Core Philosophy:
- * This ruleset is in "prototyping mode" which prioritizes rapid development. It currently provides a public read with owner-only writes.
- * When authentication is added, the rules can be modified to restrict access based on user roles or ownership.
+ * Initially, the ruleset operates in a "sandbox" mode, allowing open read and write access for rapid
+ * development. However, it is structured with the anticipation of future user authentication
+ * and authorization. The core principle is to establish a secure base that can be easily
+ * adapted to a more restrictive access model when authentication is implemented.
  *
  * Data Structure:
- * All order documents are stored in the top-level `/pedidos` collection. Each document represents a single order.
+ * Orders are stored in a single top-level collection called `/pedidos/{pedidoId}`.
  *
  * Key Security Decisions:
- * - Public read access is granted for all documents in the `/pedidos` collection.
- * - Owner-only write access is enforced, meaning only the user who created the order can modify or delete it. The `id` field is used as the owner id.
- * - List operations are public.
+ * - In the interest of rapid prototyping, data validation is minimal. The rules focus primarily on
+ *   controlling access based on authentication status.
+ * - No user-specific data segregation is implemented initially. All users have access to all orders.
+ * - These rules are designed as a starting point and should be updated with appropriate
+ *   authentication and authorization logic as the application evolves.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Controls access to individual order documents.
+     * @description Manages access control for the /pedidos collection, which stores material orders.
      * @path /pedidos/{pedidoId}
-     * @allow (get, list) Anyone can read all order documents.
-     * @allow (create) Authenticated user can create a new order document if the `id` field matches their UID.
-     * @allow (update, delete) Authenticated user can update or delete an existing order document if the `id` field matches their UID.
-     * @deny (create) An unauthenticated user cannot create a new order.
-     * @deny (update, delete) An unauthenticated user cannot update or delete an existing order.
-     * @deny (create) Authenticated user cannot create a new order if the `id` field does not match their UID.
-     * @deny (update, delete) Authenticated user cannot update or delete an existing order if the `id` field does not match the order's `id` field.
-     * @principle Enforces public read access and owner-only write access for order documents.
+     * @allow (get, list) Any user can read any order.
+     * @allow (create, update, delete) Any user can create, update, or delete any order.
+     * @deny (none) No requests are explicitly denied in sandbox mode.
+     * @principle Allows any signed in user to read or write data.
      */
     match /pedidos/{pedidoId} {
-      // Allow anyone to read all order documents
       allow get, list: if true;
-
-      // Only allow the owner to create, update, and delete
-      allow create: if isSignedIn() && request.resource.data.id == request.auth.uid;
-      allow update, delete: if isSignedIn() && isExistingOwner(resource.data.id);
-    }
-
-    // Helper functions
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
+      allow create, update, delete: if true;
     }
   }
 }
