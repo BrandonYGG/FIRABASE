@@ -33,7 +33,7 @@ import { doc } from "firebase/firestore";
 import { useFirestore } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { User } from "firebase/auth";
+import { User, updateProfile } from "firebase/auth";
 
 
 type PersonalFormValues = z.infer<typeof PersonalRegistrationSchema>;
@@ -79,6 +79,9 @@ export default function RegisterPage() {
         setIsSubmitting(true);
         initiateEmailSignUp(auth, data.email, data.password, {
             onSuccess: async (user: User) => {
+                // Update Firebase Auth user profile
+                await updateProfile(user, { displayName: data.fullName });
+
                 const userProfileRef = doc(firestore, 'users', user.uid);
                 await setDocumentNonBlocking(userProfileRef, {
                     fullName: data.fullName,
@@ -91,7 +94,7 @@ export default function RegisterPage() {
                 setIsSubmitting(false);
             },
             onError: (error: any) => {
-                let errorMessage = error.message;
+                let errorMessage = "Ocurrió un error inesperado durante el registro.";
                 if (error.code === 'auth/email-already-in-use') {
                     errorMessage = 'Este correo electrónico ya está en uso. Por favor, intenta con otro.';
                 }
@@ -105,6 +108,9 @@ export default function RegisterPage() {
         setIsSubmitting(true);
         initiateEmailSignUp(auth, data.email, data.password, {
             onSuccess: async (user: User) => {
+                // Update Firebase Auth user profile
+                await updateProfile(user, { displayName: data.companyName });
+
                 const userProfileRef = doc(firestore, 'users', user.uid);
                 await setDocumentNonBlocking(userProfileRef, {
                     companyName: data.companyName,
@@ -120,7 +126,7 @@ export default function RegisterPage() {
                 setIsSubmitting(false);
             },
             onError: (error: any) => {
-                let errorMessage = error.message;
+                let errorMessage = "Ocurrió un error inesperado durante el registro.";
                 if (error.code === 'auth/email-already-in-use') {
                     errorMessage = 'Este correo electrónico ya está en uso. Por favor, intenta con otro.';
                 }
@@ -368,7 +374,7 @@ export default function RegisterPage() {
                     {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Crear Cuenta de Empresa
                 </Button>
-                 <div className="text.sm">
+                 <div className="text-center text-sm">
                     ¿Ya tienes una cuenta?{" "}
                     <Link href="/auth/login" className="underline">
                         Iniciar Sesión
