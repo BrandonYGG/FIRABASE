@@ -1,48 +1,37 @@
 /**
- * @fileoverview Firestore Security Rules for the material orders application.
+ * @fileoverview Firestore Security Rules for the Construction Material Orders app.
  *
  * Core Philosophy:
- * This ruleset is in "prototyping mode" and prioritizes rapid development. It anticipates the future addition of user authentication and role-based access control.
- * Currently, all data is readable and writable, simulating an open sandbox environment.
+ * This ruleset is in prototyping mode. All reads are public. All writes are currently open. When authentication is added, the rules will be updated to enforce stricter access control.
  *
  * Data Structure:
- * All material order documents are stored in the top-level `/orders/{orderId}` collection.
+ * All order data is stored in a single top-level collection: `/pedidos/{pedidoId}`.
  *
  * Key Security Decisions:
- * - User listing is not applicable in this application.
- * - Assumes public read access for the `/orders` collection.
- * - Does not enforce data validation in "prototyping mode", except for ownership on write operations.
- *
- * Denormalization for Authorization:
- * The current ruleset does not require denormalization as it operates in an open sandbox. However, the data structure anticipates future denormalization of user-specific information within order documents to enforce ownership or role-based access control.
- *
- * Structural Segregation:
- * Not applicable at this stage.
+ * - User listing is not supported.
+ * - No schema validation is enforced during this prototype phase.
+ * - The rules are structured to easily accommodate user authentication and role-based access control in the future.
+ * - In the future, to secure write operations, consider adding a `creatorId` field to each order and use that for ownership checks.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Grants read access to all users and restricts write access to only authenticated users for documents in the 'orders' collection.
-     * @path /orders/{orderId}
-     * @allow (get, list) All users can read all orders.
-     * @allow (create) Authenticated users can create orders.
-     * @allow (update, delete) No one can update or delete orders (currently disabled for prototyping).
-     * @deny (create) Unauthenticated users cannot create orders.
-     * @principle Allows anyone to read orders, but restricts modification to authenticated users.
+     * @description Grants public read access to all orders and, for now, allows anyone to create, update, and delete orders.
+     * @path /pedidos/{pedidoId}
+     * @allow (get, list): if true
+     * @allow (create): if true // In the future, this will be restricted to authenticated users with appropriate permissions.
+     * @allow (update): if true // In the future, this will be restricted to the order owner or admin.
+     * @allow (delete): if true // In the future, this will be restricted to the order owner or admin.
+     * @principle Allows public read access for prototyping. Write access will be secured with authentication in the next phase.
      */
-    match /orders/{orderId} {
+    match /pedidos/{pedidoId} {
       allow get: if true;
       allow list: if true;
-      allow create: if isSignedIn();
-      allow update: if false;
-      allow delete: if false;
-    }
-
-    // Define helper functions
-    function isSignedIn() {
-      return request.auth != null;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if true;
     }
   }
 }
