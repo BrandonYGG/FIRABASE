@@ -46,22 +46,28 @@ export default function LoginPage() {
 
     async function onSubmit(data: LoginValues) {
         setIsLoading(true);
-        try {
-            await initiateEmailSignIn(auth, data.email, data.password);
-            toast({
-                title: "Inicio de sesión exitoso",
-                description: "Bienvenido de nuevo.",
-            });
-            router.push('/dashboard');
-        } catch (error: any) {
-             toast({
-                variant: "destructive",
-                title: "Error al iniciar sesión",
-                description: error.message || "Ocurrió un error inesperado.",
-            });
-        } finally {
-            setIsLoading(false);
-        }
+        initiateEmailSignIn(auth, data.email, data.password, {
+            onSuccess: () => {
+                toast({
+                    title: "Inicio de sesión exitoso",
+                    description: "Bienvenido de nuevo.",
+                });
+                router.push('/dashboard');
+                setIsLoading(false);
+            },
+            onError: (error: any) => {
+                let description = "Ocurrió un error inesperado.";
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                    description = "Credenciales inválidas. Por favor, verifica tu correo y contraseña.";
+                }
+                toast({
+                    variant: "destructive",
+                    title: "Error al iniciar sesión",
+                    description,
+                });
+                setIsLoading(false);
+            }
+        });
     }
 
 

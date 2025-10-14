@@ -33,6 +33,7 @@ import { doc } from "firebase/firestore";
 import { useFirestore } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { User } from "firebase/auth";
 
 
 type PersonalFormValues = z.infer<typeof PersonalRegistrationSchema>;
@@ -76,51 +77,57 @@ export default function RegisterPage() {
 
     async function onPersonalSubmit(data: PersonalFormValues) {
         setIsSubmitting(true);
-        try {
-            const userCredential = await initiateEmailSignUp(auth, data.email, data.password);
-            const user = userCredential.user;
-            
-            const userProfileRef = doc(firestore, 'users', user.uid);
-            await setDocumentNonBlocking(userProfileRef, {
-                fullName: data.fullName,
-                email: data.email,
-                role: 'personal'
-            }, { merge: true });
+        initiateEmailSignUp(auth, data.email, data.password, {
+            onSuccess: async (user: User) => {
+                const userProfileRef = doc(firestore, 'users', user.uid);
+                await setDocumentNonBlocking(userProfileRef, {
+                    fullName: data.fullName,
+                    email: data.email,
+                    role: 'personal'
+                }, { merge: true });
 
-            toast({ title: '¡Éxito!', description: 'Tu cuenta personal ha sido creada.' });
-            router.push('/dashboard');
-
-        } catch (error: any) {
-            toast({ variant: 'destructive', title: 'Error', description: error.message });
-        } finally {
-            setIsSubmitting(false);
-        }
+                toast({ title: '¡Éxito!', description: 'Tu cuenta personal ha sido creada.' });
+                router.push('/dashboard');
+                setIsSubmitting(false);
+            },
+            onError: (error: any) => {
+                let errorMessage = error.message;
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = 'Este correo electrónico ya está en uso. Por favor, intenta con otro.';
+                }
+                toast({ variant: 'destructive', title: 'Error de Registro', description: errorMessage });
+                setIsSubmitting(false);
+            }
+        });
     }
 
     async function onCompanySubmit(data: CompanyFormValues) {
         setIsSubmitting(true);
-        try {
-            const userCredential = await initiateEmailSignUp(auth, data.email, data.password);
-            const user = userCredential.user;
-            
-            const userProfileRef = doc(firestore, 'users', user.uid);
-            await setDocumentNonBlocking(userProfileRef, {
-                companyName: data.companyName,
-                legalRepresentative: data.legalRepresentative,
-                rfc: data.rfc,
-                phone: data.phone,
-                email: data.email,
-                role: 'company'
-            }, { merge: true });
+        initiateEmailSignUp(auth, data.email, data.password, {
+            onSuccess: async (user: User) => {
+                const userProfileRef = doc(firestore, 'users', user.uid);
+                await setDocumentNonBlocking(userProfileRef, {
+                    companyName: data.companyName,
+                    legalRepresentative: data.legalRepresentative,
+                    rfc: data.rfc,
+                    phone: data.phone,
+                    email: data.email,
+                    role: 'company'
+                }, { merge: true });
 
-            toast({ title: '¡Éxito!', description: 'Tu cuenta de empresa ha sido creada.' });
-            router.push('/dashboard');
-
-        } catch (error: any) {
-            toast({ variant: 'destructive', title: 'Error', description: error.message });
-        } finally {
-            setIsSubmitting(false);
-        }
+                toast({ title: '¡Éxito!', description: 'Tu cuenta de empresa ha sido creada.' });
+                router.push('/dashboard');
+                setIsSubmitting(false);
+            },
+            onError: (error: any) => {
+                let errorMessage = error.message;
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = 'Este correo electrónico ya está en uso. Por favor, intenta con otro.';
+                }
+                toast({ variant: 'destructive', title: 'Error de Registro', description: errorMessage });
+                setIsSubmitting(false);
+            }
+        });
     }
 
   return (
