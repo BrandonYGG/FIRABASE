@@ -93,6 +93,7 @@ export type MaterialItem = z.infer<typeof MaterialItemSchema>;
 
 interface BaseOrder {
   id: string;
+  userId: string;
   solicitante: string;
   obra: string;
   calle: string;
@@ -102,8 +103,8 @@ interface BaseOrder {
   ciudad: string;
   estado: string;
   tipoPago: z.infer<typeof OrderFormSchema.shape.tipoPago>;
-  frecuenciaCredito: z.infer<typeof OrderFormSchema.shape.frecuenciaCredito>;
-  metodoPago: z.infer<typeof OrderFormSchema.shape.metodoPago>;
+  frecuenciaCredito?: z.infer<typeof OrderFormSchema.shape.frecuenciaCredito> | null;
+  metodoPago?: z.infer<typeof OrderFormSchema.shape.metodoPago> | null;
   status: keyof typeof OrderStatus;
   total: number;
   materiales: MaterialItem[];

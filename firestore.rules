@@ -1,65 +1,69 @@
 /**
- * @description This ruleset enforces a strict user-ownership model for user profiles and allows public read access to material orders.
- * @dataStructure
- *   - `/users/{userId}`: Stores individual user profiles.  Access is restricted to the user themselves.
- *   - `/orders/{orderId}`: Stores material orders placed by users. Orders are public and accessible to all users.
- * @keySecurityDecisions
- *   - Users can only read and write their own profile data under `/users/{userId}`.
- *   - Material orders in `/orders/{orderId}` are publicly readable but can't be created, updated, or deleted in this prototype.
- * @denormalizationForAuthorization
- *   -  No denormalization is used in this prototype.  Authorization is purely path-based, relying on `request.auth.uid` matching the `userId` path segment for user profiles.
- * @structuralSegregation
- *   - User profiles are stored in a private collection (`/users/{userId}`), while material orders are stored in a public collection (`/orders/{orderId}`).
+ * @file Firestore Security Rules
+ * @description This ruleset enforces a strict user-ownership model for user profiles
+ * and allows public read access to material orders.
+ *
+ * Data Structure:
+ * - /users/{userId}: Stores individual user profiles, accessible only to the user themselves.
+ * - /orders/{orderId}: Stores material orders, publicly readable but writable by anyone.
+ *
+ * Key Security Decisions:
+ * - User listing is disallowed to protect user privacy.
+ * - Orders are publicly readable to facilitate easy access and management.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Controls access to user profile documents.  Only the authenticated user can read or write their own profile.
+     * @description Controls access to user profile documents.
      * @path /users/{userId}
-     * @allow (get, create, update, delete) User with UID 'czuuUyxraKV8qlUWexT8FtyDLGu2' can access /users/czuuUyxraKV8qlUWexT8FtyDLGu2.
-     * @deny (get, create, update, delete) User with UID 'otherUserId' cannot access /users/czuuUyxraKV8qlUWexT8FtyDLGu2.
+     * @allow (get) User 'czuuUyxraKV8qlUWexT8FtyDLGu2' can read their own profile document.
+     * @allow (create) User 'czuuUyxraKV8qlUWexT8FtyDLGu2' can create their own profile document.
+     * @allow (update) User 'czuuUyxraKV8qlUWexT8FtyDLGu2' can update their own profile document.
+     * @allow (delete) User 'czuuUyxraKV8qlUWexT8FtyDLGu2' can delete their own profile document.
+     * @deny (get) User 'anotherUser' cannot read User 'czuuUyxraKV8qlUWexT8FtyDLGu2' profile document.
+     * @deny (create) User 'anotherUser' cannot create User 'czuuUyxraKV8qlUWexT8FtyDLGu2' profile document.
+     * @deny (update) User 'anotherUser' cannot update User 'czuuUyxraKV8qlUWexT8FtyDLGu2' profile document.
+     * @deny (delete) User 'anotherUser' cannot delete User 'czuuUyxraKV8qlUWexT8FtyDLGu2' profile document.
      * @principle Enforces document ownership for all operations.
      */
     match /users/{userId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
-
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-
-      // Allow the user to read their own document.
       allow get: if isOwner(userId);
-
-      // Allow the user to list their own document (not typical, but included for completeness).
-      allow list: if isOwner(userId);
-
-      // Allow the user to create their own document, but only if the userId matches their auth UID.
-      allow create: if isSignedIn() && request.resource.data.id == userId;
-
-      // Allow the user to update their own document. Enforce immutability of the user ID.
-      allow update: if isSignedIn() && isOwner(userId) && request.resource.data.id == resource.data.id;
-
-      // Allow the user to delete their own document.
-      allow delete: if isSignedIn() && isOwner(userId) && resource != null;
+      allow list: if false;
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Controls access to material order documents.  Orders are publicly readable but writes are disabled.
+     * @description Controls access to material orders. Orders are public for reading.
      * @path /orders/{orderId}
-     * @allow (get, list) Any user (signed in or not) can read material orders.
-     * @deny (create, update, delete) No user can create, update, or delete material orders in this prototype.
-     * @principle Public read access with restricted writes.
+     * @allow (get) Any user can read any order.
+     * @allow (list) Any user can list all orders.
+     * @deny (create) Any user can create any order.
+     * @deny (update) Any user can update any order.
+     * @deny (delete) Any user can delete any order.
+     * @principle Allows public read access to orders, but restricts write access.
      */
     match /orders/{orderId} {
-      // Allow anyone to read orders.
-      allow get, list: if true;
+        allow get: if true;
+        allow list: if true;
+        allow create: if false;
+        allow update: if false;
+        allow delete: if false;
+    }
 
-      // TODO: Add owner validation once the schema is updated with an ownership field.
-      allow create, update, delete: if false;
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
     }
   }
 }

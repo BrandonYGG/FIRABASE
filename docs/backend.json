@@ -54,6 +54,10 @@
           "type": "string",
           "description": "The delivery status of the order.",
           "format": "string"
+        },
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who placed the order."
         }
       },
       "required": [
@@ -64,8 +68,34 @@
         "maxDeliveryDate",
         "paymentType",
         "orderDate",
-        "deliveryStatus"
+        "deliveryStatus",
+        "userId"
       ]
+    },
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Represents a user's profile information.",
+      "type": "object",
+      "properties": {
+        "fullName": {
+          "type": "string",
+          "description": "The user's full name."
+        },
+        "companyName": {
+            "type": "string",
+            "description": "The user's company name."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["personal", "company"]
+        }
+      },
+      "required": ["email", "role"]
     }
   },
   "auth": {
@@ -79,36 +109,23 @@
       {
         "path": "/users/{userId}",
         "definition": {
-          "entityName": "user",
+          "entityName": "UserProfile",
           "schema": {
-            "$ref": "#/backend/entities/user"
+            "$ref": "#/entities/UserProfile"
           },
-          "description": "Stores individual user profiles.  Access is restricted to the user themselves.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user."
-            }
-          ]
+          "description": "Stores individual user profiles. Access is restricted to the user themselves."
         }
       },
       {
-        "path": "/orders/{orderId}",
+        "path": "/pedidos/{pedidoId}",
         "definition": {
           "entityName": "Order",
           "schema": {
-            "$ref": "#/backend/entities/Order"
+            "$ref": "#/entities/Order"
           },
-          "description": "Stores material orders placed by users.  Orders are public and accessible to all users.",
-          "params": [
-            {
-              "name": "orderId",
-              "description": "The unique identifier of the order."
-            }
-          ]
+          "description": "Stores material orders placed by users. Users can only access their own orders."
         }
       }
-    ],
-    "reasoning": "Based on the provided information, the error indicates a permissions issue when trying to access the user document. This usually means the Firestore security rules are not allowing the `get` operation on the `/users/{userId}` path for the authenticated user. The recommended structure is based on the principle of Authorization Independence.  The `/users/{userId}` collection is intended for storing individual user profiles and data. For the material orders, we use a top-level `/orders` collection, ensuring that the orders are independent of the user's profile data and easier to query and manage. This design ensures all documents in a collection share similar security requirements.\n\nThis structure achieves Authorization Independence because the user's ID is part of the `/users/{userId}` path, ownership is explicitly defined, and no parent document data (`get()` calls) is needed to authorize access. This directly addresses the error reported. Since there's no role-based access control specified, the QAPs are achieved by path-based ownership for users and a flat structure for orders, simplifying listing and filtering."
+    ]
   }
 }

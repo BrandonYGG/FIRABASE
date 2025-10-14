@@ -17,9 +17,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useAuth, initiateEmailSignIn } from '@/firebase';
+import { useAuth } from '@/firebase';
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 const LoginSchema = z.object({
   email: z.string().email({ message: 'Por favor, ingrese un correo electrónico válido.' }),
@@ -45,27 +46,26 @@ export default function LoginPage() {
 
     async function onSubmit(data: LoginValues) {
         setIsLoading(true);
-        initiateEmailSignIn(auth, data.email, data.password, {
-            onSuccess: () => {
-                toast({
-                    title: "Inicio de sesión exitoso",
-                    description: "Bienvenido de nuevo.",
-                });
-                router.push('/dashboard');
-            },
-            onError: (error: any) => {
-                let description = "Ocurrió un error inesperado.";
-                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-                    description = "Credenciales inválidas. Por favor, verifica tu correo y contraseña.";
-                }
-                toast({
-                    variant: "destructive",
-                    title: "Error al iniciar sesión",
-                    description,
-                });
-                setIsLoading(false);
+        try {
+            await signInWithEmailAndPassword(auth, data.email, data.password);
+            toast({
+                title: "Inicio de sesión exitoso",
+                description: "Bienvenido de nuevo.",
+            });
+            router.push('/dashboard');
+        } catch (error: any) {
+             let description = "Ocurrió un error inesperado.";
+            if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                description = "Credenciales inválidas. Por favor, verifica tu correo y contraseña.";
             }
-        });
+            toast({
+                variant: "destructive",
+                title: "Error al iniciar sesión",
+                description,
+            });
+        } finally {
+            setIsLoading(false);
+        }
     }
 
 

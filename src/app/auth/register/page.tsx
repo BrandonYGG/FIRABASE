@@ -11,7 +11,6 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
 import Link from "next/link"
@@ -28,12 +27,11 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { PersonalRegistrationSchema, CompanyRegistrationSchema } from "@/lib/schemas";
-import { useAuth, initiateEmailSignUp, setDocumentNonBlocking } from '@/firebase';
-import { doc } from "firebase/firestore";
-import { useFirestore } from "@/firebase";
+import { useAuth, useFirestore } from '@/firebase';
+import { doc, setDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { User, updateProfile } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 
 
 type PersonalFormValues = z.infer<typeof PersonalRegistrationSchema>;
@@ -75,65 +73,60 @@ export default function RegisterPage() {
         }
     });
 
-    async function onPersonalSubmit(data: PersonalFormValues) {
+    const handleRegistration = async (data: PersonalFormValues | CompanyFormValues, isCompany: boolean) => {
         setIsSubmitting(true);
-        initiateEmailSignUp(auth, data.email, data.password, {
-            onSuccess: async (user: User) => {
-                // Update Firebase Auth user profile
-                await updateProfile(user, { displayName: data.fullName });
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+            const user = userCredential.user;
 
-                const userProfileRef = doc(firestore, 'users', user.uid);
-                await setDocumentNonBlocking(userProfileRef, {
-                    fullName: data.fullName,
-                    email: data.email,
+            const displayName = isCompany ? (data as CompanyFormValues).companyName : (data as PersonalFormValues).fullName;
+            await updateProfile(user, { displayName });
+
+            const userProfileRef = doc(firestore, 'users', user.uid);
+            
+            let userProfileData: any;
+            if (isCompany) {
+                const companyData = data as CompanyFormValues;
+                userProfileData = {
+                    companyName: companyData.companyName,
+                    legalRepresentative: companyData.legalRepresentative,
+                    rfc: companyData.rfc,
+                    phone: companyData.phone,
+                    email: companyData.email,
+                    role: 'company'
+                };
+            } else {
+                const personalData = data as PersonalFormValues;
+                userProfileData = {
+                    fullName: personalData.fullName,
+                    email: personalData.email,
                     role: 'personal'
-                }, { merge: true });
-
-                toast({ title: '¡Éxito!', description: 'Tu cuenta personal ha sido creada.' });
-                router.push('/dashboard');
-                setIsSubmitting(false);
-            },
-            onError: (error: any) => {
-                let errorMessage = "Ocurrió un error inesperado durante el registro.";
-                if (error.code === 'auth/email-already-in-use') {
-                    errorMessage = 'Este correo electrónico ya está en uso. Por favor, intenta con otro.';
-                }
-                toast({ variant: 'destructive', title: 'Error de Registro', description: errorMessage });
-                setIsSubmitting(false);
+                };
             }
-        });
+
+            await setDoc(userProfileRef, userProfileData, { merge: true });
+
+            toast({ title: '¡Éxito!', description: `Tu cuenta de ${isCompany ? 'empresa' : 'personal'} ha sido creada.` });
+            router.push('/dashboard');
+
+        } catch (error: any) {
+            let errorMessage = "Ocurrió un error inesperado durante el registro.";
+            if (error.code === 'auth/email-already-in-use') {
+                errorMessage = 'Este correo electrónico ya está en uso. Por favor, intenta con otro.';
+            }
+            toast({ variant: 'destructive', title: 'Error de Registro', description: errorMessage });
+        } finally {
+            setIsSubmitting(false);
+        }
+    }
+
+
+    async function onPersonalSubmit(data: PersonalFormValues) {
+        await handleRegistration(data, false);
     }
 
     async function onCompanySubmit(data: CompanyFormValues) {
-        setIsSubmitting(true);
-        initiateEmailSignUp(auth, data.email, data.password, {
-            onSuccess: async (user: User) => {
-                // Update Firebase Auth user profile
-                await updateProfile(user, { displayName: data.companyName });
-
-                const userProfileRef = doc(firestore, 'users', user.uid);
-                await setDocumentNonBlocking(userProfileRef, {
-                    companyName: data.companyName,
-                    legalRepresentative: data.legalRepresentative,
-                    rfc: data.rfc,
-                    phone: data.phone,
-                    email: data.email,
-                    role: 'company'
-                }, { merge: true });
-
-                toast({ title: '¡Éxito!', description: 'Tu cuenta de empresa ha sido creada.' });
-                router.push('/dashboard');
-                setIsSubmitting(false);
-            },
-            onError: (error: any) => {
-                let errorMessage = "Ocurrió un error inesperado durante el registro.";
-                if (error.code === 'auth/email-already-in-use') {
-                    errorMessage = 'Este correo electrónico ya está en uso. Por favor, intenta con otro.';
-                }
-                toast({ variant: 'destructive', title: 'Error de Registro', description: errorMessage });
-                setIsSubmitting(false);
-            }
-        });
+        await handleRegistration(data, true);
     }
 
   return (

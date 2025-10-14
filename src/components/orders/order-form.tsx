@@ -36,6 +36,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import mxLocations from '@/lib/data/mx-locations.json';
 import { Textarea } from '../ui/textarea';
 import { generateOrderPdf } from '@/lib/pdf-generator';
+import { useUser } from '@/firebase';
 
 type OrderFormValues = z.infer<typeof OrderFormSchema>;
 
@@ -60,6 +61,7 @@ const mockMaterials = [
 export function OrderForm() {
   const router = useRouter();
   const { toast } = useToast();
+  const { user } = useUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [date, setDate] = useState<DateRange | undefined>();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -111,12 +113,20 @@ export function OrderForm() {
 
 
   async function onSubmit(data: OrderFormValues) {
+    if (!user) {
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Debe iniciar sesión para crear un pedido.',
+        });
+        return;
+    }
     setIsSubmitting(true);
     
     // Create a serializable copy of the data, excluding file inputs
     const { ine, comprobanteDomicilio, ...dataToSend } = data;
     
-    const result = await createOrderAction(dataToSend);
+    const result = await createOrderAction(dataToSend, user.uid);
 
     if (result.success && result.order) {
       toast({

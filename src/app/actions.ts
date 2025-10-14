@@ -6,8 +6,11 @@ import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/firebase/server-config';
 import { OrderFormSchema, type Order, type OrderFormData, type MaterialItem } from '@/lib/types';
 import 'dotenv/config';
+import { getAuth } from 'firebase/auth/node';
+import { getApp } from 'firebase/app';
 
-export async function createOrderAction(data: OrderFormData) {
+
+export async function createOrderAction(data: OrderFormData, userId: string) {
   const result = OrderFormSchema.safeParse(data);
 
   if (!result.success) {
@@ -29,6 +32,7 @@ export async function createOrderAction(data: OrderFormData) {
   try {
     const docData = {
         ...serializableData,
+        userId: userId, // Add the user ID to the order
         fechaMinEntrega: Timestamp.fromDate(serializableData.fechaMinEntrega),
         fechaMaxEntrega: Timestamp.fromDate(serializableData.fechaMaxEntrega),
         createdAt: Timestamp.now(),
@@ -39,6 +43,7 @@ export async function createOrderAction(data: OrderFormData) {
     
     const newOrder: Omit<Order, 'fechaMinEntrega' | 'fechaMaxEntrega' | 'createdAt'> & { fechaMinEntrega: string; fechaMaxEntrega: string; createdAt: string; } = {
         id: docRef.id,
+        userId: userId,
         solicitante: serializableData.solicitante,
         obra: serializableData.obra,
         calle: serializableData.calle,
