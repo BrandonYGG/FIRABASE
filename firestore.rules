@@ -1,37 +1,54 @@
 /**
- * @fileoverview Firestore Security Rules for the Construction Material Orders app.
+ * @fileoverview Firestore Security Rules for the 'pedidos' collection.
  *
  * Core Philosophy:
- * This ruleset is in prototyping mode. All reads are public. All writes are currently open. When authentication is added, the rules will be updated to enforce stricter access control.
+ * This ruleset is in "prototyping mode" which prioritizes rapid development. It currently provides a public read with owner-only writes.
+ * When authentication is added, the rules can be modified to restrict access based on user roles or ownership.
  *
  * Data Structure:
- * All order data is stored in a single top-level collection: `/pedidos/{pedidoId}`.
+ * All order documents are stored in the top-level `/pedidos` collection. Each document represents a single order.
  *
  * Key Security Decisions:
- * - User listing is not supported.
- * - No schema validation is enforced during this prototype phase.
- * - The rules are structured to easily accommodate user authentication and role-based access control in the future.
- * - In the future, to secure write operations, consider adding a `creatorId` field to each order and use that for ownership checks.
+ * - Public read access is granted for all documents in the `/pedidos` collection.
+ * - Owner-only write access is enforced, meaning only the user who created the order can modify or delete it. The `id` field is used as the owner id.
+ * - List operations are public.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Grants public read access to all orders and, for now, allows anyone to create, update, and delete orders.
+     * @description Controls access to individual order documents.
      * @path /pedidos/{pedidoId}
-     * @allow (get, list): if true
-     * @allow (create): if true // In the future, this will be restricted to authenticated users with appropriate permissions.
-     * @allow (update): if true // In the future, this will be restricted to the order owner or admin.
-     * @allow (delete): if true // In the future, this will be restricted to the order owner or admin.
-     * @principle Allows public read access for prototyping. Write access will be secured with authentication in the next phase.
+     * @allow (get, list) Anyone can read all order documents.
+     * @allow (create) Authenticated user can create a new order document if the `id` field matches their UID.
+     * @allow (update, delete) Authenticated user can update or delete an existing order document if the `id` field matches their UID.
+     * @deny (create) An unauthenticated user cannot create a new order.
+     * @deny (update, delete) An unauthenticated user cannot update or delete an existing order.
+     * @deny (create) Authenticated user cannot create a new order if the `id` field does not match their UID.
+     * @deny (update, delete) Authenticated user cannot update or delete an existing order if the `id` field does not match the order's `id` field.
+     * @principle Enforces public read access and owner-only write access for order documents.
      */
     match /pedidos/{pedidoId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if true;
-      allow update: if true;
-      allow delete: if true;
+      // Allow anyone to read all order documents
+      allow get, list: if true;
+
+      // Only allow the owner to create, update, and delete
+      allow create: if isSignedIn() && request.resource.data.id == request.auth.uid;
+      allow update, delete: if isSignedIn() && isExistingOwner(resource.data.id);
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
     }
   }
 }
