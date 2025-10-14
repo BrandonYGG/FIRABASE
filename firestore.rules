@@ -1,0 +1,54 @@
+/**
+ * @fileoverview Firestore Security Rules for Conectalo App (Prototyping Mode).
+ *
+ * Core Philosophy:
+ * This ruleset is in prototyping mode. It prioritizes rapid iteration by enforcing minimal schema validation
+ * while strictly controlling access. All reads are public, and all writes are currently allowed to any authenticated user
+ * but will be locked down to specific ownership/authorization logic in a later phase.
+ *
+ * Data Structure:
+ * All orders are stored in the top-level `/orders/{orderId}` collection.  Future iterations may involve
+ * nesting orders under user-specific paths (e.g., `/users/{userId}/orders/{orderId}`).
+ *
+ * Key Security Decisions:
+ * - The current ruleset allows public read access (`get`, `list`) to the entire `/orders` collection to facilitate
+ *   initial development and data exploration. This will need to be restricted in production.
+ * - Write operations are currently open to any signed-in user, but this will be replaced with owner-based or role-based
+ *   authorization in the future.
+ * - Schema validation is minimal to allow for rapid iteration but should be expanded upon in later phases.
+ *
+ * Denormalization for Authorization:
+ * No denormalization is currently needed, as the authorization checks are basic. However, as the security model evolves,
+ * data denormalization may be necessary to avoid costly `get()` calls in the rules.
+ *
+ * Structural Segregation:
+ * No structural segregation is currently implemented. All orders are stored in a single collection. Future iterations
+ * may involve separating public and private order data into different collections.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Manages read and write access to individual order documents.
+     * @path /orders/{orderId}
+     * @allow (get, list): Any user can read any order.
+     * @allow (create, update, delete): Only signed-in user can create, update, or delete an order.
+     * @deny (create, update, delete): An unauthenticated user cannot create, update, or delete an order.
+     * @principle Currently enforces signed-in access for writes and public read for prototyping.
+     */
+    match /orders/{orderId} {
+      allow get: if true;
+      allow list: if true;
+
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && resource != null;
+      allow delete: if isSignedIn() && resource != null;
+    }
+
+    // Define helper functions.
+    function isSignedIn() {
+      return request.auth != null;
+    }
+  }
+}
