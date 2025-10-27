@@ -1,109 +1,78 @@
 /**
- * @fileoverview Firestore Security Rules for Prototyping.
+ * @fileOverview Firestore Security Rules for the application.
  *
  * Core Philosophy:
- * This ruleset enforces a user-ownership model where users can only access their own data.
- * It prioritizes security by default, restricting access unless explicitly granted.
+ * This ruleset enforces a user-ownership model for both user profiles and material orders (pedidos). Users can only create, read, update, and delete their own data.  Listing all orders is disallowed.
  *
  * Data Structure:
- * - User profiles are stored under `/users/{userId}`.
- * - Orders are stored under `/pedidos/{pedidoId}` and must have a `userId` field matching the authenticated user's UID.
+ * - /users/{userId}: Stores user profile information.
+ * - /pedidos/{pedidoId}: Stores material orders.
  *
  * Key Security Decisions:
- * - Users can only read and write their own profile data.
- * - Users can only create, read, update, and delete orders associated with their user ID.
- * - Listing of orders is allowed only for the owner of the order.
+ * - User profiles are private and accessible only to the owning user.
+ * - Material orders are accessible only to the user who created them.
+ * - Listing all orders is explicitly disallowed due to the potential for data exposure.
  *
  * Denormalization for Authorization:
- * - Orders include a `userId` field, enabling direct authorization checks without additional reads.
+ * - Each order document contains a `userId` field that is used to enforce ownership. This avoids the need for complex queries or joins to determine authorization.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Defines whether the user is signed in.
-     * @path N/A
-     * @allow N/A
-     * @deny N/A
-     * @principle N/A
+     * @description Checks if the user is signed in.
      */
     function isSignedIn() {
       return request.auth != null;
     }
 
     /**
-     * @description Checks if the authenticated user is the owner of the resource.
-     * @path N/A
-     * @allow N/A
-     * @deny N/A
-     * @principle N/A
+     * @description Checks if the authenticated user ID matches the provided user ID.
      */
     function isOwner(userId) {
       return request.auth.uid == userId;
     }
 
     /**
-     * @description Checks if the authenticated user is the owner of the existing resource.
-     * @path N/A
-     * @allow N/A
-     * @deny N/A
-     * @principle N/A
+     * @description Checks if the authenticated user is the owner of the existing document.
      */
     function isExistingOwner(userId) {
-        return (isOwner(userId) && resource != null);
+      return isOwner(userId) && resource != null;
     }
 
     /**
-     * @description Rules for user profiles.
+     * @description Rule for user profiles.
      * @path /users/{userId}
-     * @allow (get) User with ID 'user123' can read their own profile.
-     * @allow (create) User with ID 'user123' can create their own profile.
-     * @allow (update) User with ID 'user123' can update their own profile.
-     * @allow (delete) User with ID 'user123' can delete their own profile.
-     * @deny (get) User with ID 'user456' cannot read the profile of user with ID 'user123'.
-     * @deny (create) User with ID 'user456' cannot create a profile for user with ID 'user123'.
-     * @deny (update) User with ID 'user456' cannot update the profile of user with ID 'user123'.
-     * @deny (delete) User with ID 'user456' cannot delete the profile of user with ID 'user123'.
-     * @principle Enforces document ownership for user profiles.
+     * @allow (create) - A user can create their own profile if the userId matches their auth.uid.
+     * @allow (get, update, delete) - A user can only access/modify their own profile.
+     * @deny (create) - A user cannot create a profile for another user.
+     * @deny (get, update, delete) - A user cannot access/modify another user's profile.
+     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
      */
     match /users/{userId} {
-      // Allow anyone to read their own profile.
-      allow get: if isOwner(userId);
-      // Allow the user to create their own profile, enforcing userId in the document.
-      allow create: if isOwner(userId) && request.resource.data.email is string && request.resource.data.role is string && request.resource.data.id == userId;
-      // Allow the user to update their own profile, preventing userId from being changed.
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      // Allow the user to delete their own profile.
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.email == request.auth.token.email;
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if false;
+      allow update: if isExistingOwner(userId) && request.resource.data.email == resource.data.email;
       allow delete: if isExistingOwner(userId);
-      // Allow the user to list their own profile
-      allow list: if isOwner(userId);
     }
 
     /**
-     * @description Rules for orders.
+     * @description Rule for material orders.
      * @path /pedidos/{pedidoId}
-     * @allow (get) User with ID 'user123' can read their own order.
-     * @allow (create) User with ID 'user123' can create an order with their ID.
-     * @allow (update) User with ID 'user123' can update their own order.
-     * @allow (delete) User with ID 'user123' can delete their own order.
-     * @deny (get) User with ID 'user456' cannot read an order belonging to user with ID 'user123'.
-     * @deny (create) User with ID 'user456' cannot create an order for user with ID 'user123'.
-     * @deny (update) User with ID 'user456' cannot update an order belonging to user with ID 'user123'.
-     * @deny (delete) User with ID 'user456' cannot delete an order belonging to user with ID 'user123'.
-     * @principle Enforces document ownership for orders.
+     * @allow (create) - A user can create an order if the userId in the order matches their auth.uid.
+     * @allow (get, update, delete) - A user can only access/modify their own orders.
+     * @deny (create) - A user cannot create an order for another user.
+     * @deny (get, update, delete) - A user cannot access/modify another user's order.
+     * @principle Enforces document ownership for writes and restricts access to a user's own data.
      */
     match /pedidos/{pedidoId} {
-      // Allow anyone to read if is the owner of the order.
-      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
-      // Allow the user to create an order with their user ID.
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      // Allow the user to update their own order if they are signed in and own the order.
-      allow update: if isSignedIn() && isExistingOwner(resource.data.userId);
-      // Allow the user to delete their own order if they are signed in and own the order.
-      allow delete: if isSignedIn() && isExistingOwner(resource.data.userId);
-      // Allow the owner to list their orders.
-      allow list: if isSignedIn() && request.auth.uid == resource.data.userId;
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow list: if false;
+      allow update: if isExistingOwner(resource.data.userId);
+      allow delete: if isExistingOwner(resource.data.userId);
     }
   }
 }
