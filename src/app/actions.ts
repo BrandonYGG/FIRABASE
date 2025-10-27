@@ -1,13 +1,30 @@
 
 'use server';
 
-import { addDoc, collection, Timestamp } from 'firebase/firestore';
+import { Timestamp, FieldValue } from 'firebase-admin/firestore';
 import { revalidatePath } from 'next/cache';
-import { db } from '@/lib/firebase/server-config';
-import { OrderFormSchema, type Order, type OrderFormData, type MaterialItem } from '@/lib/types';
+import { getFirestore } from 'firebase-admin/firestore';
+import { initializeApp, getApps, App, cert } from 'firebase-admin/app';
+import { OrderFormSchema, type Order, type OrderFormData } from '@/lib/types';
 import 'dotenv/config';
-import { getAuth } from 'firebase/auth/node';
-import { getApp } from 'firebase/app';
+
+// Initialize Firebase Admin SDK
+let app: App;
+if (!getApps().length) {
+  if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+    app = initializeApp({
+      credential: cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY))
+    });
+  } else {
+    // Fallback for local development if needed, though service account key is preferred
+    console.warn("FIREBASE_SERVICE_ACCOUNT_KEY not set. Some server-side Firebase operations might fail.");
+    app = initializeApp();
+  }
+} else {
+  app = getApps()[0];
+}
+
+const db = getFirestore(app);
 
 
 export async function createOrderAction(data: OrderFormData, userId: string) {
@@ -35,36 +52,26 @@ export async function createOrderAction(data: OrderFormData, userId: string) {
         userId: userId, // Add the user ID to the order
         fechaMinEntrega: Timestamp.fromDate(serializableData.fechaMinEntrega),
         fechaMaxEntrega: Timestamp.fromDate(serializableData.fechaMaxEntrega),
-        createdAt: Timestamp.now(),
+        createdAt: FieldValue.serverTimestamp(),
         status: 'Pendiente' as const,
     };
     
-    const docRef = await addDoc(collection(db, 'pedidos'), docData);
+    const docRef = await db.collection('pedidos').add(docData);
     
-    const newOrder: Omit<Order, 'fechaMinEntrega' | 'fechaMaxEntrega' | 'createdAt'> & { fechaMinEntrega: string; fechaMaxEntrega: string; createdAt: string; } = {
+    // For the response, we can't send back a server-side Timestamp object directly
+    // We will use ISO strings as a serializable format.
+    const newOrderForClient = {
         id: docRef.id,
+        ...serializableData,
         userId: userId,
-        solicitante: serializableData.solicitante,
-        obra: serializableData.obra,
-        calle: serializableData.calle,
-        numero: serializableData.numero,
-        colonia: serializableData.colonia,
-        codigoPostal: serializableData.codigoPostal,
-        ciudad: serializableData.ciudad,
-        estado: serializableData.estado,
-        tipoPago: serializableData.tipoPago,
-        frecuenciaCredito: serializableData.frecuenciaCredito,
-        metodoPago: serializableData.metodoPago,
-        total: serializableData.total,
-        materiales: serializableData.materiales,
         fechaMinEntrega: serializableData.fechaMinEntrega.toISOString(),
         fechaMaxEntrega: serializableData.fechaMaxEntrega.toISOString(),
-        createdAt: docData.createdAt.toDate().toISOString(),
+        createdAt: new Date().toISOString(), // Approximate, client will get actual from Firestore listener
         status: docData.status,
     };
 
     revalidatePath('/pedidos');
-    return { success: true, message: 'Pedido creado con éxito.', order: newOrder };
+    return { success: true, message: 'Pedido creado con éxito.', order: newOrderForClient };
   } catch (error) {
     console.error('Error creating order:', error);
     if (error instanceof Error) {
