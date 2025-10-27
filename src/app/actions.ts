@@ -1,7 +1,7 @@
 
 'use server';
 
-import { Timestamp, FieldValue } from 'firebase-admin/firestore';
+import { Timestamp } from 'firebase-admin/firestore';
 import { revalidatePath } from 'next/cache';
 import { getFirestore } from 'firebase-admin/firestore';
 import { initializeApp, getApps, App, cert } from 'firebase-admin/app';
@@ -12,12 +12,19 @@ import 'dotenv/config';
 let app: App;
 if (!getApps().length) {
   if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
-    app = initializeApp({
-      credential: cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY))
-    });
+    try {
+        const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+         app = initializeApp({
+            credential: cert(serviceAccount)
+        });
+    } catch(e) {
+        console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY. Ensure it's a valid JSON string.", e);
+        // Fallback for local development if parsing fails, but this indicates a config issue.
+        app = initializeApp();
+    }
   } else {
-    // Fallback for local development if needed, though service account key is preferred
-    console.warn("FIREBASE_SERVICE_ACCOUNT_KEY not set. Some server-side Firebase operations might fail.");
+    // Fallback for local development if the env var is not set.
+    console.warn("FIREBASE_SERVICE_ACCOUNT_KEY not set. Using default App initialization. This may fail in some environments.");
     app = initializeApp();
   }
 } else {
@@ -43,30 +50,27 @@ export async function createOrderAction(data: OrderFormData, userId: string) {
   
   const orderData = result.data;
   
-  // Exclude file inputs before sending to server action
   const { ine, comprobanteDomicilio, ...serializableData } = orderData;
 
   try {
     const docData = {
         ...serializableData,
-        userId: userId, // Add the user ID to the order
+        userId: userId, 
         fechaMinEntrega: Timestamp.fromDate(serializableData.fechaMinEntrega),
         fechaMaxEntrega: Timestamp.fromDate(serializableData.fechaMaxEntrega),
-        createdAt: FieldValue.serverTimestamp(),
+        createdAt: Timestamp.now(),
         status: 'Pendiente' as const,
     };
     
     const docRef = await db.collection('pedidos').add(docData);
     
-    // For the response, we can't send back a server-side Timestamp object directly
-    // We will use ISO strings as a serializable format.
     const newOrderForClient = {
         id: docRef.id,
         ...serializableData,
         userId: userId,
         fechaMinEntrega: serializableData.fechaMinEntrega.toISOString(),
         fechaMaxEntrega: serializableData.fechaMaxEntrega.toISOString(),
-        createdAt: new Date().toISOString(), // Approximate, client will get actual from Firestore listener
+        createdAt: docData.createdAt.toDate().toISOString(), 
         status: docData.status,
     };
 
