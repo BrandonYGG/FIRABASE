@@ -22,7 +22,6 @@ import { useAuth, useFirestore } from '@/firebase';
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, User } from "firebase/auth";
-import { Separator } from "@/components/ui/separator";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 
 const LoginSchema = z.object({
@@ -55,7 +54,6 @@ export default function LoginPage() {
         const userDoc = await getDoc(userRef);
 
         if (!userDoc.exists()) {
-            // User is new, create a profile
             const userProfile = {
                 email: user.email,
                 fullName: user.displayName,

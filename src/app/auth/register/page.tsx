@@ -32,7 +32,6 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, type User } from "firebase/auth";
-import { Separator } from "@/components/ui/separator";
 
 type PersonalFormValues = z.infer<typeof PersonalRegistrationSchema>;
 type CompanyFormValues = z.infer<typeof CompanyRegistrationSchema>;
@@ -113,8 +112,6 @@ export default function RegisterPage() {
 
             const displayName = role === 'company' ? (data as CompanyFormValues).companyName : (data as PersonalFormValues).fullName;
             await updateProfile(user, { displayName });
-
-            const userProfileRef = doc(firestore, 'users', user.uid);
             
             let userProfileData: any;
             if (role === 'company') {
@@ -136,6 +133,7 @@ export default function RegisterPage() {
                 };
             }
             
+            const userProfileRef = doc(firestore, 'users', user.uid);
             await setDoc(userProfileRef, userProfileData);
 
             router.push('/dashboard');
@@ -145,8 +143,6 @@ export default function RegisterPage() {
             let errorMessage = "Ocurrió un error inesperado durante el registro.";
             if (error.code === 'auth/email-already-in-use') {
                 errorMessage = 'Este correo electrónico ya está en uso. Por favor, intenta con otro.';
-            } else if (error.code === 'permission-denied') {
-                errorMessage = 'No tienes permiso para realizar esta acción. Revisa las reglas de seguridad.';
             }
             toast({ variant: 'destructive', title: 'Error de Registro', description: errorMessage });
         } finally {
