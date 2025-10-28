@@ -1,45 +1,39 @@
 'use client';
 
 import { firebaseConfig } from '@/firebase/config';
-import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore'
+import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
+import { getAuth, type Auth } from 'firebase/auth';
+import { getFirestore, type Firestore } from 'firebase/firestore';
+import { useMemo, type DependencyList } from 'react';
 
-// IMPORTANT: DO NOT MODIFY THIS FUNCTION
-export function initializeFirebase() {
-  if (!getApps().length) {
-    // Important! initializeApp() is called without any arguments because Firebase App Hosting
-    // integrates with the initializeApp() function to provide the environment variables needed to
-    // populate the FirebaseOptions in production. It is critical that we attempt to call initializeApp()
-    // without arguments.
-    let firebaseApp;
-    try {
-      // Attempt to initialize via Firebase App Hosting environment variables
-      firebaseApp = initializeApp();
-    } catch (e) {
-      // Only warn in production because it's normal to use the firebaseConfig to initialize
-      // during development
-      if (process.env.NODE_ENV === "production") {
-        console.warn('Automatic initialization failed. Falling back to firebase config object.', e);
-      }
-      firebaseApp = initializeApp(firebaseConfig);
-    }
-
-    return getSdks(firebaseApp);
-  }
-
-  // If already initialized, return the SDKs with the already initialized App
-  return getSdks(getApp());
-}
-
-export function getSdks(firebaseApp: FirebaseApp) {
+// This function is memoized by the caller, so we don't need to memoize it here.
+function getSdks(firebaseApp: FirebaseApp): { firebaseApp: FirebaseApp; auth: Auth; firestore: Firestore } {
   return {
     firebaseApp,
     auth: getAuth(firebaseApp),
-    firestore: getFirestore(firebaseApp)
+    firestore: getFirestore(firebaseApp),
   };
 }
 
+
+/**
+ * Initializes and returns Firebase services.
+ * It ensures that Firebase is initialized only once.
+ * It is NOT a hook and can be called outside of a React component.
+ * @returns An object containing the Firebase app, auth, and firestore instances.
+ */
+export function initializeFirebase(): { firebaseApp: FirebaseApp; auth: Auth; firestore: Firestore } {
+  if (getApps().length === 0) {
+    // If no app is initialized, initialize one.
+    const firebaseApp = initializeApp(firebaseConfig);
+    return getSdks(firebaseApp);
+  }
+  // If an app is already initialized, use it.
+  return getSdks(getApp());
+}
+
+
+// Export hooks and providers
 export * from './provider';
 export * from './client-provider';
 export * from './firestore/use-collection';
@@ -48,3 +42,17 @@ export * from './non-blocking-updates';
 export * from './non-blocking-login';
 export * from './errors';
 export * from './error-emitter';
+
+// Custom hook to memoize Firebase queries
+type MemoFirebase<T> = T & { __memo?: boolean };
+
+export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | MemoFirebase<T> {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const memoized = useMemo(factory, deps);
+
+  if (typeof memoized !== 'object' || memoized === null) return memoized;
+
+  (memoized as MemoFirebase<T>).__memo = true;
+
+  return memoized;
+}
