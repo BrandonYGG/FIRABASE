@@ -68,7 +68,9 @@ export default function SettingsPage() {
             }
 
             // 2. Update Auth profile
-            await updateProfile(user, updates);
+            if(user) {
+              await updateProfile(user, updates);
+            }
 
             // 3. Update Firestore profile
             const userRef = doc(firestore, 'users', user.uid);

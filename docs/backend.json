@@ -66,37 +66,48 @@
         "userId"
       ]
     },
-    "User": {
+    "UserProfile": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "User",
+      "title": "User Profile",
       "type": "object",
-      "description": "Represents a user of the application.",
+      "description": "Represents a user's profile in the application.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the user."
-        },
-        "name": {
-          "type": "string",
-          "description": "Full name of the user."
-        },
         "email": {
           "type": "string",
-          "description": "Email address of the user.",
-          "format": "email"
+          "format": "email",
+          "description": "User's email address."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User's display name."
+        },
+        "photoURL": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL of the user's profile picture."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["personal", "company"],
+          "description": "The role of the user within the application."
+        },
+        "rfc": {
+          "type": "string",
+          "description": "RFC for company users."
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone number for company users."
         }
       },
-      "required": [
-        "id",
-        "name",
-        "email"
-      ]
+      "required": ["email", "role"]
     }
   },
   "auth": {
     "providers": [
       "password",
-      "anonymous"
+      "anonymous",
+      "google.com"
     ]
   },
   "firestore": {
@@ -104,11 +115,11 @@
       {
         "path": "/users/{userId}",
         "definition": {
-          "entityName": "User",
+          "entityName": "UserProfile",
           "schema": {
-            "$ref": "#/backend/entities/User"
+            "$ref": "#/backend/entities/UserProfile"
           },
-          "description": "Collection to store user profiles.  Individual user documents are only accessible by the user themselves.",
+          "description": "Collection to store user profiles. Individual user documents are only accessible by the user themselves.",
           "params": [
             {
               "name": "userId",
@@ -139,5 +150,10 @@
       }
     ],
     "reasoning": "The Firestore data structure is designed to address the \"Missing or insufficient permissions\" error by ensuring authorization independence and secure data access based on the user's authentication status. The structure is based on path-based ownership. This approach ensures that users can only access their own orders, addressing the error reported by NextJS.\n\n*   **Authorization Independence**: Achieved by storing orders under the `/users/{userId}/pedidos/{orderId}` path. This structure inherently links each order to a specific user, eliminating the need for `get()` calls to verify ownership.\n*   **QAPs (Rules are not Filters)**: The structure enables secure `list` operations by ensuring that users can only list orders associated with their own `userId`. The security rules can then enforce that only the authenticated user (`request.auth.uid`) can access the `/users/{userId}/pedidos` collection. This structure also helps to avoid unintended data exposure.\n\nThe `userId` field within each order document is redundant but strongly encouraged as a best practice for data integrity checks (e.g. to ensure the path `userId` and the document `userId` are the same value).\n"
+  },
+  "storage": {
+    "rules": "rules_version = '2';\nservice firebase.storage {\n  match /b/{bucket}/o {\n    match /profile-pictures/{userId}/{fileName} {\n      allow read;\n      allow write: if request.auth != null && request.auth.uid == userId;\n    }\n  }\n}"
   }
 }
+
+    
