@@ -104,7 +104,7 @@ export default function RegisterPage() {
                 };
             }
 
-            await setDoc(userProfileRef, { ...userProfileData, role }, { merge: true });
+            await setDoc(userProfileRef, userProfileData);
 
             toast({ title: '¡Éxito!', description: `Tu cuenta de ${role === 'company' ? 'empresa' : 'personal'} ha sido creada.` });
             router.push('/dashboard');
