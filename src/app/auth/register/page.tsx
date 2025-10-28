@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/form';
 import { PersonalRegistrationSchema, CompanyRegistrationSchema } from "@/lib/schemas";
 import { useAuth, useFirestore } from '@/firebase';
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, type User } from "firebase/auth";
@@ -72,27 +72,6 @@ export default function RegisterPage() {
         }
     });
 
-    const handleUserSession = async (user: User, role: 'personal' | 'company' = 'personal', displayName: string) => {
-        if (!firestore) return;
-        const userRef = doc(firestore, 'users', user.uid);
-        const userDoc = await getDoc(userRef);
-
-        if (!userDoc.exists()) {
-            const userProfile: UserProfile = {
-                email: user.email!,
-                displayName: displayName,
-                role: role,
-            };
-            if(role === 'company') {
-                const companyData = companyForm.getValues();
-                userProfile.rfc = companyData.rfc;
-                userProfile.phone = companyData.phone;
-            }
-            await setDoc(userRef, userProfile);
-        }
-        router.push('/dashboard');
-    }
-
     const handleRegistration = async (data: PersonalFormValues | CompanyFormValues, role: 'personal' | 'company') => {
         setIsLoading(true);
         if (!auth || !firestore) {
@@ -102,16 +81,36 @@ export default function RegisterPage() {
         }
 
         try {
+            // 1. Create user in Firebase Auth
             const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
             const user = userCredential.user;
 
+            // 2. Determine display name and profile data
             const displayName = role === 'company' ? (data as CompanyFormValues).companyName : (data as PersonalFormValues).fullName;
-            await updateProfile(user, { displayName });
             
-            await handleUserSession(user, role, displayName);
+            const userProfile: UserProfile = {
+                email: user.email!,
+                displayName: displayName,
+                role: role,
+            };
+
+            if (role === 'company') {
+                const companyData = data as CompanyFormValues;
+                userProfile.rfc = companyData.rfc;
+                userProfile.phone = companyData.phone;
+            }
+            
+            // 3. Update profile in Firebase Auth
+            await updateProfile(user, { displayName });
+
+            // 4. Create user document in Firestore
+            const userRef = doc(firestore, 'users', user.uid);
+            await setDoc(userRef, userProfile);
+
+            // 5. Redirect to dashboard
+            router.push('/dashboard');
 
         } catch (error: any) {
-            console.error("Registration Error:", error);
             let errorMessage = "Ocurrió un error inesperado durante el registro.";
             if (error.code === 'auth/email-already-in-use') {
                 errorMessage = 'Este correo electrónico ya está en uso. Por favor, intenta con otro.';
@@ -133,7 +132,7 @@ export default function RegisterPage() {
 
     const handleGoogleSignIn = async () => {
         setIsLoading(true);
-        if (!auth) {
+        if (!auth || !firestore) {
             toast({ variant: 'destructive', title: 'Error de configuración', description: 'El servicio de autenticación no está disponible.' });
             setIsLoading(false);
             return;
@@ -141,7 +140,22 @@ export default function RegisterPage() {
         const provider = new GoogleAuthProvider();
         try {
             const result = await signInWithPopup(auth, provider);
-            await handleUserSession(result.user, 'personal', result.user.displayName || result.user.email!);
+            const user = result.user;
+            
+            // Check if user already exists in Firestore
+            const userRef = doc(firestore, 'users', user.uid);
+            const userDoc = await getDoc(userRef);
+
+            if (!userDoc.exists()) {
+                 const userProfile: UserProfile = {
+                    email: user.email!,
+                    displayName: user.displayName || user.email!,
+                    role: 'personal',
+                };
+                await setDoc(userRef, userProfile);
+            }
+            router.push('/dashboard');
+
         } catch (error: any) {
              toast({
                 variant: "destructive",
