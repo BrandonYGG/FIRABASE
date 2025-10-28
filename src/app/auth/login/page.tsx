@@ -56,7 +56,7 @@ export default function LoginPage() {
         if (!userDoc.exists()) {
             const userProfile: UserProfile = {
                 email: user.email!,
-                displayName: user.displayName || user.email, 
+                displayName: user.displayName || user.email!, 
                 role: 'personal',
             };
             await setDoc(userRef, userProfile, { merge: true });

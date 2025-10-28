@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/form';
 import { PersonalRegistrationSchema, CompanyRegistrationSchema } from "@/lib/schemas";
 import { useAuth, useFirestore } from '@/firebase';
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, type User } from "firebase/auth";
