@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { addDoc, collection, Timestamp } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -29,14 +30,13 @@ import { cn } from '@/lib/utils';
 import { CalendarIcon, Loader2, Wand2, Trash2, PlusCircle, CheckCircle, FileDown } from 'lucide-react';
 import { OrderFormSchema, PaymentType, CreditFrequency, type Order, type OrderFormData } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { createOrderAction } from '@/app/actions';
 import { getUrgency, UrgencyBadge } from '@/components/orders/urgency-badge';
 import type { DateRange } from 'react-day-picker';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import mxLocations from '@/lib/data/mx-locations.json';
 import { Textarea } from '../ui/textarea';
 import { generateOrderPdf } from '@/lib/pdf-generator';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore, addDocumentNonBlocking } from '@/firebase';
 
 type OrderFormValues = z.infer<typeof OrderFormSchema>;
 
@@ -62,6 +62,7 @@ export function OrderForm() {
   const router = useRouter();
   const { toast } = useToast();
   const { user } = useUser();
+  const firestore = useFirestore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [date, setDate] = useState<DateRange | undefined>();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -116,48 +117,64 @@ export function OrderForm() {
     if (!user) {
         toast({
             variant: 'destructive',
-            title: 'Error',
+            title: 'Error de autenticación',
             description: 'Debe iniciar sesión para crear un pedido.',
+        });
+        return;
+    }
+    if (!firestore) {
+        toast({
+            variant: 'destructive',
+            title: 'Error de base de datos',
+            description: 'No se pudo conectar a la base de datos.',
         });
         return;
     }
     setIsSubmitting(true);
     
     // Create a serializable copy of the data, excluding file inputs
-    const { ine, comprobanteDomicilio, ...dataToSend } = data;
-    
-    const result = await createOrderAction(dataToSend, user.uid);
+    const { ine, comprobanteDomicilio, ...serializableData } = data;
 
-    if (result.success && result.order) {
-      toast({
-        title: 'Éxito',
-        description: result.message,
-      });
-      
-      const orderForPdf: Order = {
-        ...result.order,
-        fechaMinEntrega: new Date(result.order.fechaMinEntrega),
-        fechaMaxEntrega: new Date(result.order.fechaMaxEntrega),
-        createdAt: new Date(result.order.createdAt),
-      };
+    try {
+        const docData = {
+            ...serializableData,
+            userId: user.uid, 
+            fechaMinEntrega: Timestamp.fromDate(serializableData.fechaMinEntrega),
+            fechaMaxEntrega: Timestamp.fromDate(serializableData.fechaMaxEntrega),
+            createdAt: Timestamp.now(),
+            status: 'Pendiente' as const,
+        };
 
-      setLastSubmittedOrder(orderForPdf);
-    } else {
-        if (result.errors) {
-            result.errors.forEach(err => {
-                form.setError(err.path.join('.') as keyof OrderFormValues, {
-                    type: 'manual',
-                    message: err.message,
-                });
-            });
-        }
+        const pedidosCollection = collection(firestore, 'pedidos');
+        const docRef = await addDoc(pedidosCollection, docData);
+
+        const newOrderForClient: Order = {
+            id: docRef.id,
+            ...serializableData,
+            userId: user.uid,
+            fechaMinEntrega: serializableData.fechaMinEntrega,
+            fechaMaxEntrega: serializableData.fechaMaxEntrega,
+            createdAt: docData.createdAt.toDate(),
+            status: docData.status,
+        };
+
+        toast({
+            title: 'Éxito',
+            description: 'Pedido creado con éxito.',
+        });
+        
+        setLastSubmittedOrder(newOrderForClient);
+
+    } catch (error) {
+        console.error('Error creating order:', error);
         toast({
             variant: 'destructive',
-            title: 'Error',
-            description: result.message || 'Por favor revise los campos del formulario.',
+            title: 'Error al crear el pedido',
+            description: 'No se pudo crear el pedido. Por favor, revise la consola para más detalles.',
         });
+    } finally {
+        setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   }
 
   const handleDownload = () => {
@@ -621,3 +638,5 @@ export function OrderForm() {
     </Card>
   );
 }
+
+    
