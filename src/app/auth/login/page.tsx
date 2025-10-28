@@ -48,10 +48,8 @@ export default function LoginPage() {
         setIsLoading(true);
         try {
             await signInWithEmailAndPassword(auth, data.email, data.password);
-            toast({
-                title: "Inicio de sesión exitoso",
-                description: "Bienvenido de nuevo.",
-            });
+            // The redirection will be handled by the layout component,
+            // so we can just push to the dashboard.
             router.push('/dashboard');
         } catch (error: any) {
              let description = "Ocurrió un error inesperado.";

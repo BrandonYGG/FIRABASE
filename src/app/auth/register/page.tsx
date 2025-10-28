@@ -73,19 +73,19 @@ export default function RegisterPage() {
         }
     });
 
-    const handleRegistration = async (data: PersonalFormValues | CompanyFormValues, isCompany: boolean) => {
+    const handleRegistration = async (data: PersonalFormValues | CompanyFormValues, role: 'personal' | 'company') => {
         setIsSubmitting(true);
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
             const user = userCredential.user;
 
-            const displayName = isCompany ? (data as CompanyFormValues).companyName : (data as PersonalFormValues).fullName;
+            const displayName = role === 'company' ? (data as CompanyFormValues).companyName : (data as PersonalFormValues).fullName;
             await updateProfile(user, { displayName });
 
             const userProfileRef = doc(firestore, 'users', user.uid);
             
             let userProfileData: any;
-            if (isCompany) {
+            if (role === 'company') {
                 const companyData = data as CompanyFormValues;
                 userProfileData = {
                     companyName: companyData.companyName,
@@ -104,9 +104,9 @@ export default function RegisterPage() {
                 };
             }
 
-            await setDoc(userProfileRef, userProfileData, { merge: true });
+            await setDoc(userProfileRef, { ...userProfileData, role }, { merge: true });
 
-            toast({ title: '¡Éxito!', description: `Tu cuenta de ${isCompany ? 'empresa' : 'personal'} ha sido creada.` });
+            toast({ title: '¡Éxito!', description: `Tu cuenta de ${role === 'company' ? 'empresa' : 'personal'} ha sido creada.` });
             router.push('/dashboard');
 
         } catch (error: any) {
@@ -122,11 +122,11 @@ export default function RegisterPage() {
 
 
     async function onPersonalSubmit(data: PersonalFormValues) {
-        await handleRegistration(data, false);
+        await handleRegistration(data, 'personal');
     }
 
     async function onCompanySubmit(data: CompanyFormValues) {
-        await handleRegistration(data, true);
+        await handleRegistration(data, 'company');
     }
 
   return (
