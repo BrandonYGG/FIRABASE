@@ -28,7 +28,7 @@ export default function SettingsPage() {
 
     useEffect(() => {
         if (user) {
-            setDisplayName(user.displayName || user.email || '');
+            setDisplayName(user.displayName || '');
             setAvatarPreview(user.photoURL || null);
         }
     }, [user]);
@@ -52,67 +52,70 @@ export default function SettingsPage() {
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        if (!user || !firestore || !storage) return;
+        if (!user || !firestore || !storage) {
+            toast({ title: "Error", description: "Servicios de Firebase no disponibles.", variant: 'destructive' });
+            return;
+        }
 
         setIsSubmitting(true);
 
+        const nameChanged = displayName !== (user.displayName || '');
+        const avatarChanged = avatarFile !== null;
+
+        if (!nameChanged && !avatarChanged) {
+            toast({ title: "Sin cambios", description: "No has modificado tu nombre ni tu foto." });
+            setIsSubmitting(false);
+            return;
+        }
+
         try {
-            const authUpdates: { displayName?: string; photoURL?: string } = {};
-            const firestoreUpdates: { displayName?: string; photoURL?: string } = {};
+            let photoURL: string | undefined = undefined;
 
-            // 1. Handle displayName update
-            if (displayName && displayName !== (user.displayName || '')) {
-                authUpdates.displayName = displayName;
-                firestoreUpdates.displayName = displayName;
-            }
-
-            // 2. Handle avatar upload and update
+            // 1. Upload avatar if it changed
             if (avatarFile) {
                 const storageRef = ref(storage, `profile-pictures/${user.uid}/${avatarFile.name}`);
                 const uploadResult = await uploadBytes(storageRef, avatarFile);
-                const downloadURL = await getDownloadURL(uploadResult.ref);
-                authUpdates.photoURL = downloadURL;
-                firestoreUpdates.photoURL = downloadURL;
+                photoURL = await getDownloadURL(uploadResult.ref);
             }
 
-            // 3. Check if there's anything to update
-            if (Object.keys(authUpdates).length === 0) {
-                toast({
-                    title: "Sin cambios",
-                    description: "No has modificado tu nombre ni tu foto de perfil.",
-                });
-                return;
+            const authUpdates: { displayName?: string; photoURL?: string } = {};
+            const firestoreUpdates: { displayName?: string; photoURL?: string } = {};
+
+            if (nameChanged) {
+                authUpdates.displayName = displayName;
+                firestoreUpdates.displayName = displayName;
+            }
+            if (photoURL) {
+                authUpdates.photoURL = photoURL;
+                firestoreUpdates.photoURL = photoURL;
             }
 
-            // 4. Update Auth and Firestore only if there are changes
+            // 2. Update Auth Profile
             if (Object.keys(authUpdates).length > 0) {
                 await updateProfile(user, authUpdates);
             }
+            
+            // 3. Update Firestore Document
             if (Object.keys(firestoreUpdates).length > 0) {
                 const userRef = doc(firestore, 'users', user.uid);
                 await updateDoc(userRef, firestoreUpdates);
             }
             
-
             toast({
                 title: "Perfil Actualizado",
                 description: "Tu información ha sido guardada con éxito.",
             });
 
-            if (authUpdates.photoURL) {
-                setAvatarPreview(authUpdates.photoURL);
-            }
-            setAvatarFile(null);
-
         } catch (error: any) {
             console.error("Error updating profile: ", error);
             toast({
                 title: "Error al actualizar",
-                description: error.message || "No se pudo actualizar el perfil. Revisa la consola para más detalles.",
+                description: error.message || "No se pudo actualizar el perfil.",
                 variant: 'destructive'
             });
         } finally {
             setIsSubmitting(false);
+            setAvatarFile(null);
         }
     };
 
@@ -166,7 +169,7 @@ export default function SettingsPage() {
                         <div className="relative">
                             <Avatar className="h-24 w-24">
                                 {avatarPreview && <AvatarImage src={avatarPreview} alt="Avatar de usuario" className="object-cover" />}
-                                <AvatarFallback>{displayName?.charAt(0).toUpperCase()}</AvatarFallback>
+                                <AvatarFallback>{displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}</AvatarFallback>
                             </Avatar>
                             <Button 
                                 type="button" 
