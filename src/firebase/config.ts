@@ -1,8 +1,12 @@
+// This file is intentionally left blank. 
+// The configuration will be handled by environment variables in a production setup 
+// and by the emulator config in development.
+// For Firebase Hosting, initialization is automatic.
 export const firebaseConfig = {
-  "projectId": "prueba-de-supabase-84794-5c14c",
-  "appId": "1:788088563839:web:e743a08c27927d1925774a",
-  "apiKey": "AIzaSyDKI8pv8McmuEVpF9znT3RB7Vt83WITzdo",
-  "authDomain": "prueba-de-supabase-84794-5c14c.firebaseapp.com",
-  "messagingSenderId": "788088563839",
-  "storageBucket": "prueba-de-supabase-84794-5c14c.appspot.com"
+  "apiKey": "mock-api-key",
+  "authDomain": "mock-auth-domain",
+  "projectId": "mock-project-id",
+  "storageBucket": "mock-storage-bucket",
+  "messagingSenderId": "mock-messaging-sender-id",
+  "appId": "mock-app-id"
 };

@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useOrders } from '@/hooks/use-orders';
+import { useOrders } from '@/firebase/hooks/use-orders';
 import { Skeleton } from '@/components/ui/skeleton';
 
 

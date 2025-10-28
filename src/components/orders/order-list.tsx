@@ -1,8 +1,7 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useOrders } from '@/hooks/use-orders';
+import { useOrders } from '@/firebase/hooks/use-orders';
 import { OrderCard } from './order-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { OrderFilters } from './order-filters';
@@ -61,7 +60,7 @@ export function OrderList() {
             <Frown className="mx-auto h-12 w-12 text-muted-foreground" />
             <h3 className="mt-4 text-lg font-semibold font-headline">No se encontraron pedidos</h3>
             <p className="mt-2 text-sm text-muted-foreground">
-                No hay pedidos que coincidan con los filtros actuales.
+                Aún no has creado ningún pedido. ¡Crea uno para empezar!
             </p>
         </div>
       )}
