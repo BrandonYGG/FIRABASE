@@ -38,7 +38,6 @@ const nextConfig: NextConfig = {
     ],
   },
   devIndicators: {
-    buildActivity: false,
     allowedDevOrigins: [
         "https://6000-firebase-prueba-de-supabase-1760379827208.cluster-r7kbxfo3fnev2vskbkhhphetq6.cloudworkstations.dev"
     ]
