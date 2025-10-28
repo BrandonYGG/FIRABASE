@@ -27,10 +27,17 @@ import {
 } from '@/components/ui/form';
 import { PersonalRegistrationSchema, CompanyRegistrationSchema } from "@/lib/schemas";
 import { useAuth, useFirestore } from '@/firebase';
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, type User } from "firebase/auth";
+import { Separator } from "@/components/ui/separator";
+
+const GoogleIcon = () => (
+    <svg className="mr-2 h-4 w-4" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+        <path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512S0 403.3 0 261.8C0 120.3 106.5 8 244 8s244 112.3 244 253.8zM88 261.8c0 110.6 73.4 201.3 166 201.3s166-90.7 166-201.3S369.4 60.5 254 60.5 88 151.2 88 261.8zM244 452.5c-32.3 0-62.2-7.5-88.6-20.4l3.2-16.3c15.2-7.8 32.4-12.8 51-14.9-2.3.7-4.7 1.3-7.2 1.8-19.4 4.2-39.8-5.3-48-24.3-7-16.3-.7-35.6 15.2-42.6 16.3-7 35.6-.7 42.6 15.2 2.9 6.7 3.5 13.9 1.9 20.8 14.3-3 29.5-4.6 45.4-4.6 15.9 0 31.1 1.6 45.4 4.6-1.6-6.9-1-14.1 1.9-20.8 7-16 26.3-22.2 42.6-15.2 16 7 22.2 26.3 15.2 42.6-8.1 19-28.6 28.5-48 24.3-2.5-.5-4.9-1.1-7.2-1.8 18.5 2.1 35.8 7.1 51 14.9l3.2 16.3C306.2 445 276.3 452.5 244 452.5zM362.5 186.3c-28.2 0-51-22.8-51-51s22.8-51 51-51 51 22.8 51 51-22.8 51-51 51zm-237 0c-28.2 0-51-22.8-51-51s22.8-51 51-51 51 22.8 51 51-22.8 51-51 51z"></path>
+    </svg>
+);
 
 
 type PersonalFormValues = z.infer<typeof PersonalRegistrationSchema>;
@@ -42,6 +49,7 @@ export default function RegisterPage() {
     const [showCompanyPassword, setShowCompanyPassword] = useState(false);
     const [showCompanyConfirmPassword, setShowCompanyConfirmPassword] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isGoogleLoading, setIsGoogleLoading] = useState(false);
     
     const auth = useAuth();
     const firestore = useFirestore();
@@ -71,6 +79,31 @@ export default function RegisterPage() {
             confirmPassword: '',
         }
     });
+
+     const handleUserCreation = async (user: User, role: 'personal' | 'company' = 'personal', extraData: Record<string, any> = {}) => {
+        if (!firestore) return;
+        const userRef = doc(firestore, 'users', user.uid);
+        const userDoc = await getDoc(userRef);
+
+        if (!userDoc.exists()) {
+            let profileData: any;
+            if (role === 'company') {
+                profileData = {
+                    email: user.email,
+                    role: 'company',
+                    ...extraData
+                };
+            } else {
+                 profileData = {
+                    email: user.email,
+                    fullName: user.displayName || extraData.fullName,
+                    role: 'personal',
+                };
+            }
+            await setDoc(userRef, profileData);
+        }
+        router.push('/dashboard');
+    }
 
     const handleRegistration = async (data: PersonalFormValues | CompanyFormValues, role: 'personal' | 'company') => {
         setIsSubmitting(true);
@@ -109,7 +142,7 @@ export default function RegisterPage() {
                 };
             }
             
-            await setDoc(userProfileRef, userProfileData, { merge: true });
+            await setDoc(userProfileRef, userProfileData);
 
             router.push('/dashboard');
 
@@ -136,6 +169,29 @@ export default function RegisterPage() {
         await handleRegistration(data, 'company');
     }
 
+    const handleGoogleSignIn = async () => {
+        setIsGoogleLoading(true);
+        if (!auth) {
+            toast({ variant: 'destructive', title: 'Error de configuración', description: 'El servicio de autenticación no está disponible.' });
+            setIsGoogleLoading(false);
+            return;
+        }
+        const provider = new GoogleAuthProvider();
+        try {
+            const result = await signInWithPopup(auth, provider);
+            await handleUserCreation(result.user);
+        } catch (error: any) {
+             toast({
+                variant: "destructive",
+                title: "Error con Google",
+                description: "No se pudo registrar con Google. Inténtalo de nuevo.",
+            });
+        } finally {
+            setIsGoogleLoading(false);
+        }
+    }
+
+
   return (
     <Tabs defaultValue="personal" className="w-full max-w-lg">
       <TabsList className="grid w-full grid-cols-2">
@@ -153,6 +209,20 @@ export default function RegisterPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                 <Button variant="outline" className="w-full" type="button" onClick={handleGoogleSignIn} disabled={isGoogleLoading || isSubmitting}>
+                    {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon />}
+                    Continuar con Google
+                </Button>
+                <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-background px-2 text-muted-foreground">
+                            O regístrate con tu correo
+                        </span>
+                    </div>
+                </div>
                 <FormField
                   control={personalForm.control}
                   name="fullName"
@@ -227,7 +297,7 @@ export default function RegisterPage() {
                 />
               </CardContent>
               <CardFooter className="flex flex-col gap-4">
-                <Button className="w-full" type="submit" disabled={isSubmitting}>
+                <Button className="w-full" type="submit" disabled={isSubmitting || isGoogleLoading}>
                     {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Crear Cuenta Personal
                 </Button>
