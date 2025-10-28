@@ -1,9 +1,9 @@
 'use client';
 
 import { useMemo } from 'react';
-import { collection, query, orderBy, Timestamp, where } from 'firebase/firestore';
-import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import type { Order, OrderFirestore } from '@/lib/types';
+import { collection, query, where } from 'firebase/firestore';
+import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
+import { OrderFirestore } from '@/lib/types';
 
 export function useOrders() {
   const firestore = useFirestore();
@@ -11,24 +11,21 @@ export function useOrders() {
 
   const ordersQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
-    return query(
-        collection(firestore, 'pedidos'),
-        where('userId', '==', user.uid),
-        orderBy('createdAt', 'desc')
-    );
+    return query(collection(firestore, 'pedidos'), where('userId', '==', user.uid));
   }, [firestore, user]);
 
-  const { data: rawOrders, isLoading, error } = useCollection<OrderFirestore>(ordersQuery);
-  
-  const orders = useMemo(() => {
-    if (!rawOrders) return [];
-    return rawOrders.map(order => ({
-      ...order,
-      fechaMinEntrega: order.fechaMinEntrega instanceof Timestamp ? order.fechaMinEntrega.toDate() : new Date(order.fechaMinEntrega),
-      fechaMaxEntrega: order.fechaMaxEntrega instanceof Timestamp ? order.fechaMaxEntrega.toDate() : new Date(order.fechaMaxEntrega),
-      createdAt: order.createdAt instanceof Timestamp ? order.createdAt.toDate() : new Date(order.createdAt),
-    } as Order));
-  }, [rawOrders]);
+  const { data: orders, isLoading: loading, error } = useCollection<OrderFirestore>(ordersQuery);
 
-  return { orders, loading: isLoading, error };
+  const mappedOrders = useMemo(() => {
+    if (!orders) return [];
+    return orders.map(order => ({
+      ...order,
+      // Convert Firestore Timestamps to JS Date objects
+      fechaMinEntrega: order.fechaMinEntrega.toDate(),
+      fechaMaxEntrega: order.fechaMaxEntrega.toDate(),
+      createdAt: order.createdAt.toDate(),
+    }));
+  }, [orders]);
+
+  return { orders: mappedOrders, loading, error };
 }

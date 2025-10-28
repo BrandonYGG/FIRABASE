@@ -34,7 +34,6 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useTheme } from 'next-themes';
 import { useAuth, useUser } from '@/firebase';
-import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardLayout({
   children,
@@ -165,7 +164,7 @@ export default function DashboardLayout({
                         >
                             <Avatar>
                                 <AvatarImage src={user.photoURL || undefined} alt="Avatar de usuario" className="object-cover" />
-                                <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                                <AvatarFallback>{user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}</AvatarFallback>
                             </Avatar>
                         </Button>
                         </DropdownMenuTrigger>

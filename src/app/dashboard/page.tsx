@@ -22,16 +22,17 @@ import {
 } from '@/components/ui/table';
 import { useOrders } from '@/firebase/hooks/use-orders';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Order } from '@/lib/types';
 
 
 export default function DashboardPage() {
   const { orders, loading } = useOrders();
 
-  const totalOrders = orders.length;
-  const totalAmount = orders.reduce((sum, order) => sum + (order.total || 0), 0);
-  const pendingOrders = orders.filter(o => o.status === 'Pendiente').length;
-  const inProgressOrders = orders.filter(o => o.status === 'En proceso').length;
-  const recentOrders = orders.slice(0, 5);
+  const totalOrders = orders?.length ?? 0;
+  const totalAmount = orders?.reduce((sum, order: any) => sum + (order.total || 0), 0) ?? 0;
+  const pendingOrders = orders?.filter((o: any) => o.status === 'Pendiente').length ?? 0;
+  const inProgressOrders = orders?.filter((o: any) => o.status === 'En proceso').length ?? 0;
+  const recentOrders = orders?.slice(0, 5) ?? [];
 
 
   return (
@@ -126,7 +127,7 @@ export default function DashboardPage() {
                         </TableRow>
                     ))
                 ) : recentOrders.length > 0 ? (
-                    recentOrders.map(order => (
+                    recentOrders.map((order: any) => (
                         <TableRow key={order.id}>
                             <TableCell>
                                 <div className="font-medium">{order.obra}</div>

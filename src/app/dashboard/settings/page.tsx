@@ -7,14 +7,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useUser, useUserProfile } from "@/firebase";
+import { useUser, useFirestore } from "@/firebase";
+import { doc, updateDoc } from 'firebase/firestore';
 import { Camera, Loader2 } from "lucide-react";
 import React, { useState, useRef, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { updateProfile } from "firebase/auth";
 
 export default function SettingsPage() {
     const { user, isUserLoading } = useUser();
-    const { userProfile, loading: isProfileLoading } = useUserProfile(user?.uid);
+    const firestore = useFirestore();
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -22,16 +24,11 @@ export default function SettingsPage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        if (userProfile) {
-            setDisplayName(userProfile.fullName || userProfile.companyName || user?.email || '');
-        } else if (user) {
+        if (user) {
             setDisplayName(user.displayName || user.email || '');
-        }
-        
-        if(user) {
             setAvatarPreview(user.photoURL || null);
         }
-    }, [user, userProfile]);
+    }, [user]);
 
     const handleAvatarClick = () => {
         fileInputRef.current?.click();
@@ -50,24 +47,42 @@ export default function SettingsPage() {
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        if (!user || !firestore) return;
+        
         setIsSubmitting(true);
 
-        // Here you would typically update the user profile in Firebase
-        // For now, we'll just simulate an API call
-        console.log("Updating profile with:", { displayName, avatarPreview });
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        try {
+            // Update Auth profile
+            await updateProfile(user, { displayName });
 
-        setIsSubmitting(false);
-        toast({
-            title: "Perfil Actualizado",
-            description: "Tu información ha sido guardada con éxito.",
-        });
+            // Update Firestore profile
+            const userRef = doc(firestore, 'users', user.uid);
+            await updateDoc(userRef, { displayName });
+            
+            // NOTE: Avatar update is not implemented as it requires file upload to Firebase Storage.
+            // This is a placeholder for the UI.
+
+            toast({
+                title: "Perfil Actualizado",
+                description: "Tu información ha sido guardada con éxito.",
+            });
+        } catch (error) {
+             toast({
+                title: "Error",
+                description: "No se pudo actualizar el perfil.",
+                variant: 'destructive'
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
-    if (isUserLoading || isProfileLoading) {
+    if (isUserLoading) {
         return (
              <div className="max-w-2xl mx-auto">
-                <Skeleton className="h-10 w-3/5 mb-6" />
+                <h1 className="text-3xl font-bold mb-6 font-headline tracking-tight">
+                    Configuración de Perfil
+                </h1>
                 <Card>
                     <CardHeader>
                         <Skeleton className="h-6 w-1/3" />
@@ -112,7 +127,7 @@ export default function SettingsPage() {
                         <div className="relative">
                             <Avatar className="h-24 w-24">
                                 {avatarPreview && <AvatarImage src={avatarPreview} alt="Avatar de usuario" className="object-cover" />}
-                                <AvatarFallback>{displayName.charAt(0).toUpperCase()}</AvatarFallback>
+                                <AvatarFallback>{displayName?.charAt(0).toUpperCase()}</AvatarFallback>
                             </Avatar>
                             <Button 
                                 type="button" 
@@ -133,7 +148,7 @@ export default function SettingsPage() {
                             />
                         </div>
                         <div className="flex-grow space-y-2">
-                             <Label htmlFor="name">Nombre Completo</Label>
+                             <Label htmlFor="name">Nombre Completo o de Empresa</Label>
                              <Input id="name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
                              <p className="text-sm text-muted-foreground">Este es tu correo electrónico: {user.email}</p>
                         </div>
