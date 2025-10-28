@@ -1,21 +1,37 @@
 /**
- * @description This ruleset enforces a public-read, owner-write model for the 'orders' collection.
- * All users can read order details, but only authenticated users can create, update, or delete orders.
- * @dataStructure All order documents are stored in a single top-level `/orders` collection.
- * @keySecurityDecisions Read access is public to enable order display. Write access is restricted to authenticated users, but write access does not check authorization as the schema is missing an owner field.
- * @denormalizationForAuthorization Not applicable in the current public read setup.
- * @structuralSegregation All orders are stored in a single, public collection.
+ * @fileoverview Firestore Security Rules for the material order management system.
+ *
+ * Core Philosophy:
+ * This ruleset is in "Prototyping Mode," prioritizing rapid development. It focuses on establishing a basic, permissive security posture while preparing for future authentication and access controls.  Currently, it allows public read access to all data, with a placeholder for owner-based write restrictions once authentication is implemented.
+ *
+ * Data Structure:
+ * The data is organized into a single top-level collection: `/orders/{orderId}`.  Each document in this collection represents a material order.
+ *
+ * Key Security Decisions:
+ * - Public Read Access:  `get` and `list` operations are currently open to all users. This is acceptable for prototyping and initial data display, but MUST be restricted in a production environment.
+ * - Placeholder for Owner-Only Writes: Write operations are currently denied but prepared for future enforcement of owner-only access based on an `ownerId` field (which is not yet validated).
+ * - No User Listing: There are no rules governing user listing, as user documents are not part of the current data model.
+ *
+ * Denormalization for Authorization:
+ * The rules are designed to minimize `get()` calls by assuming that any necessary authorization data will be directly present in the document being secured.
+ * For example, the `orders` collection is expected to eventually have an `ownerId` field for implementing owner-only writes.
+ *
+ * Structural Segregation:
+ * The single `orders` collection assumes that all documents share the same security posture. Future versions may need to segregate data into separate collections based on access control requirements (e.g., a private subcollection under `/users/{userId}` for draft orders).
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Allows anyone to read order details, but restricts create, update, and delete operations to authenticated users.
+     * @description Allows public read access and owner-only write access to order documents.
      * @path /orders/{orderId}
-     * @allow (get, list) Any user can read orders.
-     * @deny (create, update, delete) Only authenticated users can create, update, or delete orders, however, no authorization check is performed.
-     * @principle Public read, authenticated write.
+     * @allow (get, list) Public read access is allowed to view all orders.
+     * @allow (create, update, delete) Denied. Write permissions will later be restricted to the owner once authentication is implemented.
+     * @deny (create) if false;
+     * @deny (update) if false;
+     * @deny (delete) if false;
+     * @principle Placeholder for future enforcement of owner-only writes.
      */
     match /orders/{orderId} {
       allow get, list: if true;
