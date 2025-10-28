@@ -32,6 +32,7 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, type User } from "firebase/auth";
+import type { UserProfile } from "@/lib/types";
 
 type PersonalFormValues = z.infer<typeof PersonalRegistrationSchema>;
 type CompanyFormValues = z.infer<typeof CompanyRegistrationSchema>;
@@ -41,8 +42,7 @@ export default function RegisterPage() {
     const [showPersonalConfirmPassword, setShowPersonalConfirmPassword] = useState(false);
     const [showCompanyPassword, setShowCompanyPassword] = useState(false);
     const [showCompanyConfirmPassword, setShowCompanyConfirmPassword] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     
     const auth = useAuth();
     const firestore = useFirestore();
@@ -73,22 +73,25 @@ export default function RegisterPage() {
         }
     });
 
-     const handleUserCreation = async (user: User, role: 'personal' | 'company' = 'personal', extraData: Record<string, any> = {}) => {
+     const createUserProfile = async (user: User, role: 'personal' | 'company' = 'personal', extraData: Record<string, any> = {}) => {
         if (!firestore) return;
         const userRef = doc(firestore, 'users', user.uid);
         const userDoc = await getDoc(userRef);
 
         if (!userDoc.exists()) {
-            let profileData: any;
-            if (role === 'company') {
+            let profileData: UserProfile;
+             if (role === 'company') {
                 profileData = {
-                    email: user.email,
+                    email: user.email!,
                     role: 'company',
-                    ...extraData
+                    companyName: extraData.companyName,
+                    legalRepresentative: extraData.legalRepresentative,
+                    rfc: extraData.rfc,
+                    phone: extraData.phone,
                 };
             } else {
                  profileData = {
-                    email: user.email,
+                    email: user.email!,
                     fullName: user.displayName || extraData.fullName,
                     role: 'personal',
                 };
@@ -99,10 +102,10 @@ export default function RegisterPage() {
     }
 
     const handleRegistration = async (data: PersonalFormValues | CompanyFormValues, role: 'personal' | 'company') => {
-        setIsSubmitting(true);
+        setIsLoading(true);
         if (!auth || !firestore) {
             toast({ variant: 'destructive', title: 'Error de configuración', description: 'Los servicios de Firebase no están disponibles.' });
-            setIsSubmitting(false);
+            setIsLoading(false);
             return;
         }
 
@@ -112,31 +115,23 @@ export default function RegisterPage() {
 
             const displayName = role === 'company' ? (data as CompanyFormValues).companyName : (data as PersonalFormValues).fullName;
             await updateProfile(user, { displayName });
-            
-            let userProfileData: any;
-            if (role === 'company') {
+
+            let profileData: Partial<UserProfile> = {};
+            if(role === 'company') {
                 const companyData = data as CompanyFormValues;
-                userProfileData = {
+                profileData = {
                     companyName: companyData.companyName,
                     legalRepresentative: companyData.legalRepresentative,
                     rfc: companyData.rfc,
                     phone: companyData.phone,
-                    email: companyData.email,
-                    role: 'company'
-                };
+                }
             } else {
-                const personalData = data as PersonalFormValues;
-                userProfileData = {
-                    fullName: personalData.fullName,
-                    email: personalData.email,
-                    role: 'personal'
-                };
+                profileData = {
+                    fullName: (data as PersonalFormValues).fullName,
+                }
             }
             
-            const userProfileRef = doc(firestore, 'users', user.uid);
-            await setDoc(userProfileRef, userProfileData);
-
-            router.push('/dashboard');
+            await createUserProfile(user, role, profileData);
 
         } catch (error: any) {
             console.error("Registration Error:", error);
@@ -145,8 +140,7 @@ export default function RegisterPage() {
                 errorMessage = 'Este correo electrónico ya está en uso. Por favor, intenta con otro.';
             }
             toast({ variant: 'destructive', title: 'Error de Registro', description: errorMessage });
-        } finally {
-            setIsSubmitting(false);
+            setIsLoading(false);
         }
     }
 
@@ -160,24 +154,23 @@ export default function RegisterPage() {
     }
 
     const handleGoogleSignIn = async () => {
-        setIsGoogleLoading(true);
+        setIsLoading(true);
         if (!auth) {
             toast({ variant: 'destructive', title: 'Error de configuración', description: 'El servicio de autenticación no está disponible.' });
-            setIsGoogleLoading(false);
+            setIsLoading(false);
             return;
         }
         const provider = new GoogleAuthProvider();
         try {
             const result = await signInWithPopup(auth, provider);
-            await handleUserCreation(result.user);
+            await createUserProfile(result.user, 'personal');
         } catch (error: any) {
              toast({
                 variant: "destructive",
                 title: "Error con Google",
                 description: "No se pudo registrar con Google. Inténtalo de nuevo.",
             });
-        } finally {
-            setIsGoogleLoading(false);
+             setIsLoading(false);
         }
     }
 
@@ -199,8 +192,8 @@ export default function RegisterPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                 <Button variant="outline" className="w-full" type="button" onClick={handleGoogleSignIn} disabled={isGoogleLoading || isSubmitting}>
-                    {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Image src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png" alt="Google" width={16} height={16} className="mr-2" />}
+                 <Button variant="outline" className="w-full" type="button" onClick={handleGoogleSignIn} disabled={isLoading}>
+                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Image src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png" alt="Google" width={16} height={16} className="mr-2" />}
                     Continuar con Google
                 </Button>
                 <div className="relative">
@@ -287,8 +280,8 @@ export default function RegisterPage() {
                 />
               </CardContent>
               <CardFooter className="flex flex-col gap-4">
-                <Button className="w-full" type="submit" disabled={isSubmitting || isGoogleLoading}>
-                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Button className="w-full" type="submit" disabled={isLoading}>
+                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Crear Cuenta Personal
                 </Button>
                  <div className="text-center text-sm">
@@ -410,8 +403,7 @@ export default function RegisterPage() {
                   name="confirmPassword"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Confirmar Contraseña</FormLabel>
-                       <div className="relative">
+                      <FormLabel>Confirmar Contraseña</FormLabel>                       <div className="relative">
                         <FormControl>
                             <Input type={showCompanyConfirmPassword ? "text" : "password"} {...field} className="pr-10" />
                         </FormControl>
@@ -430,8 +422,8 @@ export default function RegisterPage() {
                 />
               </CardContent>
               <CardFooter className="flex flex-col gap-4">
-                <Button className="w-full" type="submit" disabled={isSubmitting}>
-                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Button className="w-full" type="submit" disabled={isLoading}>
+                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Crear Cuenta de Empresa
                 </Button>
                  <div className="text-center text-sm">

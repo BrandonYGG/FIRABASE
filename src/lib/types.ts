@@ -121,3 +121,13 @@ export interface OrderFirestore extends BaseOrder {
   fechaMaxEntrega: Timestamp;
   createdAt: Timestamp;
 }
+
+export interface UserProfile {
+    email: string;
+    role: 'personal' | 'company';
+    fullName?: string;
+    companyName?: string;
+    legalRepresentative?: string;
+    rfc?: string;
+    phone?: string;
+}
