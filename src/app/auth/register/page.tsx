@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 import { useState } from "react"
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -32,16 +33,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, type User } from "firebase/auth";
 import { Separator } from "@/components/ui/separator";
-
-const GoogleIcon = () => (
-    <svg className="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-        <path fill="#4285F4" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path>
-        <path fill="#34A853" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l5.657,5.657C43.35,35.619,44,30.013,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path>
-        <path fill="#FBBC05" d="M16.039,28.845C17.961,30.846,20.842,32,24,32l-5.657,5.657C12.35,35.619,8.862,30.013,8.862,24c0-1.341,0.138-2.65,0.389-3.917l5.488,5.488C14.039,26.155,14.039,27.845,16.039,28.845z"></path>
-        <path fill="#EA4335" d="M24,16c-3.059,0-5.842,1.154-7.961,3.039l-5.657-5.657C14.046,6.053,18.828,4,24,4l5.657,5.657C28.08,8.154,26.039,8.155,24,8z"></path>
-    </svg>
-);
-
 
 type PersonalFormValues = z.infer<typeof PersonalRegistrationSchema>;
 type CompanyFormValues = z.infer<typeof CompanyRegistrationSchema>;
@@ -213,7 +204,7 @@ export default function RegisterPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                  <Button variant="outline" className="w-full" type="button" onClick={handleGoogleSignIn} disabled={isGoogleLoading || isSubmitting}>
-                    {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon />}
+                    {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Image src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png" alt="Google" width={16} height={16} className="mr-2" />}
                     Continuar con Google
                 </Button>
                 <div className="relative">
