@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -127,7 +128,7 @@
         "schema": {
           "$ref": "#/entities/Order"
         },
-        "description": "Stores orders for a specific user."
+        "description": "Stores orders for a specific user. Each user has their own 'pedidos' subcollection."
       }
     ]
   }

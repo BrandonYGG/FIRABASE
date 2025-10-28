@@ -1,41 +1,78 @@
 /**
- * @fileoverview Firestore Security Rules for the Construction Material Order App.
+ * @fileoverview Firestore Security Rules for the application.
  *
  * Core Philosophy:
- * This ruleset is designed for a front-end only application with temporary persistence, but prepares for future authentication and authorization.
- * Currently, all read access to the 'orders' collection is public, but write access is denied to prevent unauthorized modifications.
- * As authentication and user roles are implemented, the rules will evolve to enforce role-based access control.
+ * This ruleset enforces a strict user-ownership model.  Users can only read and write their own profile data and orders.
  *
  * Data Structure:
- * The application stores all order documents in a single top-level collection: `/orders/{orderId}`.
- * Each document represents a material order with fields like applicantName, projectName, and delivery dates.
+ * - `/users/{userId}`: Stores user profile information.  The `userId` in the path must match the authenticated user's UID.
+ * - `/users/{userId}/pedidos/{pedidoId}`: Stores orders for a specific user. The `userId` in the path must match the authenticated user's UID.
  *
  * Key Security Decisions:
- * - Public read access to the `orders` collection is allowed to enable a user-friendly order management system.
- * - Write access to the `orders` collection is currently denied.
- * - Future authentication and authorization will restrict write access based on user roles.
- * - This setup simplifies the initial data model and facilitates temporary data persistence.
+ * - Users can only list their own orders.
+ *
+ * Denormalization for Authorization:
+ * To simplify and optimize security rules, the rules assume that any data needed for authorization (e.g., user IDs, roles) is denormalized directly into the documents being secured. This avoids the need for costly and complex `get()` calls within the rules.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Allows public read access to the 'orders' collection while denying all write access.
-     *              As authentication is implemented, these rules can be modified to restrict write access
-     *              based on user roles and permissions.
-     * @path /orders/{orderId}
-     * @allow (get, list) All users can read order documents.
-     * @allow (create, update, delete) No one can create, update, or delete order documents.
-     * @deny (create) Attempts to create a new order document will be rejected.
-     * @principle Public read access with no write access for a simplified data model.
+     * @description Allows users to manage their own profile data.
+     * @path /users/{userId}
+     * @allow (create) - Authenticated user can create their profile if the userId matches their auth.uid.
+     * @allow (get, update, delete) - Authenticated user can read, update, or delete their profile if the userId matches their auth.uid.
+     * @deny (create) - An unauthenticated user cannot create a profile.
+     * @deny (update) - A different authenticated user cannot update this profile.
+     * @principle Enforces document ownership for all operations.
      */
-    match /orders/{orderId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+    match /users/{userId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource.data != null;
+      }
+
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if false;
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && isOwner(userId);
+      allow delete: if isSignedIn() && isOwner(userId);
+    }
+
+    /**
+     * @description Allows users to manage their own orders.
+     * @path /users/{userId}/pedidos/{pedidoId}
+     * @allow (create) - Authenticated user can create an order under their userId.
+     * @allow (get, list, update, delete) - Authenticated user can read, list, update, or delete their own orders.
+     * @deny (create) - An unauthenticated user cannot create an order.
+     * @deny (update, delete) - A different authenticated user cannot update or delete this order.
+     * @principle Enforces document ownership for all operations.
+     */
+    match /users/{userId}/pedidos/{pedidoId} {
+       function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource.data != null;
+      }
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && isOwner(userId);
+      allow delete: if isSignedIn() && isOwner(userId);
     }
   }
 }
