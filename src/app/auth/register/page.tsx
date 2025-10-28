@@ -64,7 +64,6 @@ export default function RegisterPage() {
         resolver: zodResolver(CompanyRegistrationSchema),
         defaultValues: {
             companyName: '',
-            legalRepresentative: '',
             rfc: '',
             phone: '',
             email: '',
@@ -73,30 +72,23 @@ export default function RegisterPage() {
         }
     });
 
-     const handleUserSession = async (user: User, role: 'personal' | 'company' = 'personal', extraData: Record<string, any> = {}) => {
+    const handleUserSession = async (user: User, role: 'personal' | 'company' = 'personal', displayName: string) => {
         if (!firestore) return;
         const userRef = doc(firestore, 'users', user.uid);
         const userDoc = await getDoc(userRef);
 
         if (!userDoc.exists()) {
-            let profileData: UserProfile;
-             if (role === 'company') {
-                profileData = {
-                    email: user.email!,
-                    role: 'company',
-                    companyName: extraData.companyName,
-                    legalRepresentative: extraData.legalRepresentative,
-                    rfc: extraData.rfc,
-                    phone: extraData.phone,
-                };
-            } else {
-                 profileData = {
-                    email: user.email!,
-                    fullName: user.displayName || extraData.fullName,
-                    role: 'personal',
-                };
+            const userProfile: UserProfile = {
+                email: user.email!,
+                displayName: displayName,
+                role: role,
+            };
+            if(role === 'company') {
+                const companyData = companyForm.getValues();
+                userProfile.rfc = companyData.rfc;
+                userProfile.phone = companyData.phone;
             }
-            await setDoc(userRef, profileData);
+            await setDoc(userRef, userProfile);
         }
         router.push('/dashboard');
     }
@@ -115,23 +107,8 @@ export default function RegisterPage() {
 
             const displayName = role === 'company' ? (data as CompanyFormValues).companyName : (data as PersonalFormValues).fullName;
             await updateProfile(user, { displayName });
-
-            let profileData: Partial<UserProfile> = {};
-            if(role === 'company') {
-                const companyData = data as CompanyFormValues;
-                profileData = {
-                    companyName: companyData.companyName,
-                    legalRepresentative: companyData.legalRepresentative,
-                    rfc: companyData.rfc,
-                    phone: companyData.phone,
-                }
-            } else {
-                profileData = {
-                    fullName: (data as PersonalFormValues).fullName,
-                }
-            }
             
-            await handleUserSession(user, role, profileData);
+            await handleUserSession(user, role, displayName);
 
         } catch (error: any) {
             console.error("Registration Error:", error);
@@ -164,7 +141,7 @@ export default function RegisterPage() {
         const provider = new GoogleAuthProvider();
         try {
             const result = await signInWithPopup(auth, provider);
-            await handleUserSession(result.user, 'personal');
+            await handleUserSession(result.user, 'personal', result.user.displayName || result.user.email!);
         } catch (error: any) {
              toast({
                 variant: "destructive",
@@ -324,21 +301,6 @@ export default function RegisterPage() {
                     />
                     <FormField
                       control={companyForm.control}
-                      name="legalRepresentative"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Representante Legal</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Juan Pérez" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={companyForm.control}
                       name="rfc"
                       render={({ field }) => (
                         <FormItem>
@@ -350,20 +312,20 @@ export default function RegisterPage() {
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={companyForm.control}
-                      name="phone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Número Telefónico</FormLabel>
-                          <FormControl>
-                            <Input placeholder="55 1234 5678" type="tel" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
                 </div>
+                <FormField
+                  control={companyForm.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Número Telefónico</FormLabel>
+                      <FormControl>
+                        <Input placeholder="55 1234 5678" type="tel" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                  <FormField
                   control={companyForm.control}
                   name="email"

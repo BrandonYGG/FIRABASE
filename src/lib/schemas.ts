@@ -15,7 +15,6 @@ export const PersonalRegistrationSchema = z.object({
 // Schema for Company Registration
 export const CompanyRegistrationSchema = z.object({
     companyName: z.string().min(3, { message: 'El nombre de la empresa debe tener al menos 3 caracteres.' }),
-    legalRepresentative: z.string().min(3, { message: 'El nombre del representante debe tener al menos 3 caracteres.' }),
     rfc: z.string().regex(/^[A-Z&Ñ]{3,4}\d{6}[A-V1-9][A-Z\d]{2}$/, { message: 'RFC inválido.' }),
     phone: z.string().regex(/^\d{10}$/, { message: 'El teléfono debe tener 10 dígitos.' }),
     email: z.string().email({ message: 'Correo electrónico inválido.' }),

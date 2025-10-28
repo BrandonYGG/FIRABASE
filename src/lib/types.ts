@@ -125,9 +125,7 @@ export interface OrderFirestore extends BaseOrder {
 export interface UserProfile {
     email: string;
     role: 'personal' | 'company';
-    fullName?: string;
-    companyName?: string;
-    legalRepresentative?: string;
+    displayName?: string;
     rfc?: string;
     phone?: string;
 }

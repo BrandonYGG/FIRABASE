@@ -23,6 +23,7 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, User } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
+import { UserProfile } from "@/lib/types";
 
 const LoginSchema = z.object({
   email: z.string().email({ message: 'Por favor, ingrese un correo electrónico válido.' }),
@@ -53,12 +54,10 @@ export default function LoginPage() {
         const userDoc = await getDoc(userRef);
 
         if (!userDoc.exists()) {
-            // This case is for Google Sign-In where a user might exist in Auth but not in Firestore
-            const userProfile = {
-                email: user.email,
-                fullName: user.displayName,
-                role: 'personal',
-                companyName: null,
+            const userProfile: UserProfile = {
+                email: user.email!,
+                displayName: user.displayName || user.email, // Fallback to email if displayName is null
+                role: 'personal', // Default role for Google Sign-In
             };
             await setDoc(userRef, userProfile);
         }
@@ -77,8 +76,7 @@ export default function LoginPage() {
             return;
         }
         try {
-            const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
-            // Let the auth state listener in the layout handle the redirect
+            await signInWithEmailAndPassword(auth, data.email, data.password);
             router.push('/dashboard');
         } catch (error: any) {
              let description = "Ocurrió un error inesperado.";

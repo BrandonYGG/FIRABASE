@@ -82,32 +82,24 @@
           "format": "email",
           "description": "The user's email address."
         },
+        "displayName": {
+            "type": "string",
+            "description": "The user's display name (can be full name or company name)."
+        },
         "role": {
           "type": "string",
           "enum": ["personal", "company"]
         },
-        "fullName": {
-          "type": "string",
-          "description": "The user's full name (for personal accounts)."
-        },
-        "companyName": {
-            "type": "string",
-            "description": "The user's company name (for company accounts)."
-        },
-        "legalRepresentative": {
-          "type": "string",
-          "description": "The legal representative of the company."
-        },
         "rfc": {
           "type": "string",
-          "description": "The company's RFC."
+          "description": "The company's RFC (for company accounts)."
         },
         "phone": {
           "type": "string",
-          "description": "The company's phone number."
+          "description": "The company's phone number (for company accounts)."
         }
       },
-      "required": ["email", "role"]
+      "required": ["email", "displayName", "role"]
     }
   },
   "auth": {
@@ -142,4 +134,3 @@
     ]
   }
 }
-
