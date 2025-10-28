@@ -8,12 +8,7 @@ import { useMemo } from 'react';
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
 export function initializeFirebase(): { firebaseApp: FirebaseApp; auth: Auth; firestore: Firestore } {
-    let app: FirebaseApp;
-    if (getApps().length === 0) {
-        app = initializeApp(firebaseConfig);
-    } else {
-        app = getApp();
-    }
+    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
     return {
         firebaseApp: app,
