@@ -26,8 +26,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { PersonalRegistrationSchema, CompanyRegistrationSchema } from "@/lib/schemas";
-import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
-import { doc } from "firebase/firestore";
+import { useAuth, useFirestore } from '@/firebase';
+import { doc, setDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
@@ -108,16 +108,18 @@ export default function RegisterPage() {
                     role: 'personal'
                 };
             }
-
-            // Using non-blocking update to avoid awaiting here and let security rules handle it
-            setDocumentNonBlocking(userProfileRef, userProfileData, { merge: true });
+            
+            await setDoc(userProfileRef, userProfileData, { merge: true });
 
             router.push('/dashboard');
 
         } catch (error: any) {
+            console.error("Registration Error:", error);
             let errorMessage = "Ocurrió un error inesperado durante el registro.";
             if (error.code === 'auth/email-already-in-use') {
                 errorMessage = 'Este correo electrónico ya está en uso. Por favor, intenta con otro.';
+            } else if (error.code === 'permission-denied') {
+                errorMessage = 'No tienes permiso para realizar esta acción. Revisa las reglas de seguridad.';
             }
             toast({ variant: 'destructive', title: 'Error de Registro', description: errorMessage });
         } finally {
