@@ -61,7 +61,7 @@ export default function SettingsPage() {
             const firestoreUpdates: { displayName?: string; photoURL?: string } = {};
 
             // 1. Handle displayName update
-            if (displayName && displayName !== user.displayName) {
+            if (displayName && displayName !== (user.displayName || '')) {
                 authUpdates.displayName = displayName;
                 firestoreUpdates.displayName = displayName;
             }
@@ -85,9 +85,14 @@ export default function SettingsPage() {
             }
 
             // 4. Update Auth and Firestore only if there are changes
-            await updateProfile(user, authUpdates);
-            const userRef = doc(firestore, 'users', user.uid);
-            await updateDoc(userRef, firestoreUpdates);
+            if (Object.keys(authUpdates).length > 0) {
+                await updateProfile(user, authUpdates);
+            }
+            if (Object.keys(firestoreUpdates).length > 0) {
+                const userRef = doc(firestore, 'users', user.uid);
+                await updateDoc(userRef, firestoreUpdates);
+            }
+            
 
             toast({
                 title: "Perfil Actualizado",
