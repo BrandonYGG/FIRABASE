@@ -1,41 +1,45 @@
 /**
- * @fileoverview Firestore Security Rules for the material order management system.
+ * @fileoverview Firestore Security Rules for the material order application.
  *
  * Core Philosophy:
- * This ruleset is in "Prototyping Mode," prioritizing rapid development. It focuses on establishing a basic, permissive security posture while preparing for future authentication and access controls.  Currently, it allows public read access to all data, with a placeholder for owner-based write restrictions once authentication is implemented.
+ * This ruleset is in prototyping mode. It assumes a simple data model with a single 'orders' collection.
+ * It does not enforce strict schema validation to allow for rapid iteration. It implements authentication checks and assumes eventual role-based access control.
  *
  * Data Structure:
- * The data is organized into a single top-level collection: `/orders/{orderId}`.  Each document in this collection represents a material order.
+ * All order data is stored in the top-level `/orders/{orderId}` collection.
  *
  * Key Security Decisions:
- * - Public Read Access:  `get` and `list` operations are currently open to all users. This is acceptable for prototyping and initial data display, but MUST be restricted in a production environment.
- * - Placeholder for Owner-Only Writes: Write operations are currently denied but prepared for future enforcement of owner-only access based on an `ownerId` field (which is not yet validated).
- * - No User Listing: There are no rules governing user listing, as user documents are not part of the current data model.
+ * - **No Public Listing:** The `orders` collection does not allow public listing (`list` operation).
+ * - **Authentication Required for Write:** Authentication is required to create, update or delete.
  *
  * Denormalization for Authorization:
- * The rules are designed to minimize `get()` calls by assuming that any necessary authorization data will be directly present in the document being secured.
- * For example, the `orders` collection is expected to eventually have an `ownerId` field for implementing owner-only writes.
- *
- * Structural Segregation:
- * The single `orders` collection assumes that all documents share the same security posture. Future versions may need to segregate data into separate collections based on access control requirements (e.g., a private subcollection under `/users/{userId}` for draft orders).
+ * - In the future, when authentication is implemented, user roles can be stored in a separate collection (`roles_admin`) and checked in the rules using `exists()` to determine authorization.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Allows public read access and owner-only write access to order documents.
+     * @description Manages access to the /orders/{orderId} collection.
      * @path /orders/{orderId}
-     * @allow (get, list) Public read access is allowed to view all orders.
-     * @allow (create, update, delete) Denied. Write permissions will later be restricted to the owner once authentication is implemented.
-     * @deny (create) if false;
-     * @deny (update) if false;
-     * @deny (delete) if false;
-     * @principle Placeholder for future enforcement of owner-only writes.
+     * @allow (get) Anyone can retrieve a specific order.
+     * @allow (create) Only signed in users can create.
+     * @allow (update) Only signed in users can update.
+     * @allow (delete) Only signed in users can delete.
+     * @deny (list) No one can list orders.
+     * @principle Disallows listing. Allows getting, creating, updating, and deleting of orders only for autheticated users.
      */
     match /orders/{orderId} {
-      allow get, list: if true;
-      allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+      allow get: if true;
+      allow list: if false;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
+    }
+
+    // Helper function to check if the user is signed in
+    function isSignedIn() {
+      return request.auth != null;
     }
   }
 }
