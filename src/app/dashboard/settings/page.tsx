@@ -31,7 +31,7 @@ export default function SettingsPage() {
             setDisplayName(user.displayName || '');
             setAvatarPreview(user.photoURL || null);
         }
-    }, [user]);
+    }, [user?.displayName, user?.photoURL]);
 
     const handleAvatarClick = () => {
         fileInputRef.current?.click();
@@ -69,7 +69,7 @@ export default function SettingsPage() {
         }
 
         try {
-            let photoURL: string | undefined = undefined;
+            let photoURL: string | undefined = avatarPreview || user.photoURL || undefined;
 
             // 1. Upload avatar if it changed
             if (avatarFile) {
@@ -85,7 +85,7 @@ export default function SettingsPage() {
                 authUpdates.displayName = displayName;
                 firestoreUpdates.displayName = displayName;
             }
-            if (photoURL) {
+            if (photoURL && photoURL !== user.photoURL) {
                 authUpdates.photoURL = photoURL;
                 firestoreUpdates.photoURL = photoURL;
             }
