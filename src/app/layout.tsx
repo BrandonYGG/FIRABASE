@@ -3,6 +3,21 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from '@/components/theme-provider';
 import { FirebaseClientProvider } from '@/firebase';
+import { Poppins, PT_Sans } from 'next/font/google';
+import { cn } from '@/lib/utils';
+
+const fontSans = PT_Sans({
+  subsets: ['latin'],
+  variable: '--font-sans',
+  weight: ['400', '700'],
+});
+
+const fontHeading = Poppins({
+  subsets: ['latin'],
+  variable: '--font-heading',
+  weight: ['400', '600', '700'],
+});
+
 
 export const metadata: Metadata = {
   title: 'OrderFlow Construct',
@@ -16,12 +31,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet" />
-      </head>
-      <body className="font-body antialiased">
+      <body className={cn(
+          "min-h-screen bg-background font-body antialiased",
+          fontSans.variable,
+          fontHeading.variable
+      )}>
         <FirebaseClientProvider>
             <ThemeProvider
                 attribute="class"
