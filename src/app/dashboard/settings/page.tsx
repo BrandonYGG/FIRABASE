@@ -53,43 +53,57 @@ export default function SettingsPage() {
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (!user || !firestore || !storage) return;
-        
+
         setIsSubmitting(true);
 
         try {
-            const updates: { displayName: string, photoURL?: string } = { displayName };
-            
-            // 1. Upload new avatar if one was selected
+            const authUpdates: { displayName?: string; photoURL?: string } = {};
+            const firestoreUpdates: { displayName?: string; photoURL?: string } = {};
+
+            // 1. Handle displayName update
+            if (displayName && displayName !== user.displayName) {
+                authUpdates.displayName = displayName;
+                firestoreUpdates.displayName = displayName;
+            }
+
+            // 2. Handle avatar upload and update
             if (avatarFile) {
                 const storageRef = ref(storage, `profile-pictures/${user.uid}/${avatarFile.name}`);
                 const uploadResult = await uploadBytes(storageRef, avatarFile);
                 const downloadURL = await getDownloadURL(uploadResult.ref);
-                updates.photoURL = downloadURL;
+                authUpdates.photoURL = downloadURL;
+                firestoreUpdates.photoURL = downloadURL;
             }
 
-            // 2. Update Auth profile
-            if(user) {
-              await updateProfile(user, updates);
+            // 3. Check if there's anything to update
+            if (Object.keys(authUpdates).length === 0) {
+                toast({
+                    title: "Sin cambios",
+                    description: "No has modificado tu nombre ni tu foto de perfil.",
+                });
+                return;
             }
 
-            // 3. Update Firestore profile
+            // 4. Update Auth and Firestore only if there are changes
+            await updateProfile(user, authUpdates);
             const userRef = doc(firestore, 'users', user.uid);
-            await updateDoc(userRef, updates);
-            
+            await updateDoc(userRef, firestoreUpdates);
+
             toast({
                 title: "Perfil Actualizado",
                 description: "Tu información ha sido guardada con éxito.",
             });
-             if (updates.photoURL) {
-                setAvatarPreview(updates.photoURL);
+
+            if (authUpdates.photoURL) {
+                setAvatarPreview(authUpdates.photoURL);
             }
             setAvatarFile(null);
 
-        } catch (error) {
-             console.error("Error updating profile: ", error);
-             toast({
-                title: "Error",
-                description: "No se pudo actualizar el perfil. Revisa la consola para más detalles.",
+        } catch (error: any) {
+            console.error("Error updating profile: ", error);
+            toast({
+                title: "Error al actualizar",
+                description: error.message || "No se pudo actualizar el perfil. Revisa la consola para más detalles.",
                 variant: 'destructive'
             });
         } finally {
