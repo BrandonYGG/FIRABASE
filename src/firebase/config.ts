@@ -1,12 +1,8 @@
-// This file is intentionally left blank. 
-// The configuration will be handled by environment variables in a production setup 
-// and by the emulator config in development.
-// For Firebase Hosting, initialization is automatic.
 export const firebaseConfig = {
-  "apiKey": "mock-api-key-from-studio",
-  "authDomain": "orderflow-construct.firebaseapp.com",
-  "projectId": "orderflow-construct",
-  "storageBucket": "orderflow-construct.appspot.com",
-  "messagingSenderId": "1234567890",
-  "appId": "1:1234567890:web:1234567890abcdef"
+  "projectId": "prueba-de-supabase-84794-5c14c",
+  "appId": "1:788088563839:web:e743a08c27927d1925774a",
+  "apiKey": "AIzaSyDKI8pv8McmuEVpF9znT3RB7Vt83WITzdo",
+  "authDomain": "prueba-de-supabase-84794-5c14c.firebaseapp.com",
+  "measurementId": "",
+  "messagingSenderId": "788088563839"
 };

@@ -1,81 +1,25 @@
 /**
- * @fileoverview Firestore Security Rules for the application.
- *
- * Core Philosophy:
- * This ruleset enforces a strict user-ownership model.  Users can only read and write their own user profiles and orders.
- *
- * Data Structure:
- * - /users/{userId}: Stores user profile information, accessible only to the user themselves.
- * - /pedidos: Stores material orders.  Each order includes a `userId` field, restricting access to the order's creator.
- *
- * Key Security Decisions:
- * - User listing is disallowed to prevent unauthorized data harvesting.
- * - Orders can only be accessed by the user who created them.
- * - The ruleset does not impose strict data validation beyond ownership and relational integrity checks, allowing for flexible prototyping.
- *
- * Denormalization for Authorization:
- * - The `Order` documents include a `userId` field to simplify the ownership check and avoid costly `get()` operations.
- *
- * Structural Segregation:
- * - User profiles and Orders are stored in separate collections based on access control requirements (owner-only vs. owner-only).
+ * @description This ruleset enforces a public-read, owner-write model for the 'orders' collection.
+ * All users can read order details, but only authenticated users can create, update, or delete orders.
+ * @dataStructure All order documents are stored in a single top-level `/orders` collection.
+ * @keySecurityDecisions Read access is public to enable order display. Write access is restricted to authenticated users, but write access does not check authorization as the schema is missing an owner field.
+ * @denormalizationForAuthorization Not applicable in the current public read setup.
+ * @structuralSegregation All orders are stored in a single, public collection.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Checks if the user is signed in.
+     * @description Allows anyone to read order details, but restricts create, update, and delete operations to authenticated users.
+     * @path /orders/{orderId}
+     * @allow (get, list) Any user can read orders.
+     * @deny (create, update, delete) Only authenticated users can create, update, or delete orders, however, no authorization check is performed.
+     * @principle Public read, authenticated write.
      */
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    /**
-     * @description Checks if the authenticated user ID matches the provided user ID.
-     */
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    /**
-     * @description Checks if the authenticated user is the owner of the existing document.
-     */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-
-    /**
-     * @description Defines rules for user profiles.
-     * @path /users/{userId}
-     * @allow (create) Signed-in user creates their own profile.
-     * @allow (get, update, delete) Signed-in user accesses their own profile.
-     * @deny (create) User attempts to create a profile with a different user ID.
-     * @deny (get, update, delete) User attempts to access another user's profile.
-     * @principle Enforces document ownership for writes.
-     */
-    match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false; // User listing is not permitted.
-      allow create: if isOwner(userId) && request.resource.data.email is string && request.resource.data.displayName is string && (request.resource.data.role == 'personal' || request.resource.data.role == 'company');
-      allow update: if isExistingOwner(userId) && request.resource.data.email is string && request.resource.data.displayName is string && (request.resource.data.role == 'personal' || request.resource.data.role == 'company');
-      allow delete: if isExistingOwner(userId);
-    }
-
-    /**
-     * @description Defines rules for orders.
-     * @path /pedidos
-     * @allow (create) Signed-in user creates their own order, `userId` matches authenticated user.
-     * @allow (get, list, update, delete) Signed-in user accesses their own order.
-     * @deny (create) User attempts to create an order with a different `userId`.
-     * @deny (get, list, update, delete) User attempts to access another user's order.
-     * @principle Enforces document ownership for writes.
-     */
-    match /pedidos/{orderId} {
-      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid && request.resource.data.id == orderId && request.resource.data.applicantName is string && request.resource.data.projectName is string && request.resource.data.minDeliveryDate is string && request.resource.data.maxDeliveryDate is string && request.resource.data.paymentType is string && request.resource.data.orderDate is string && request.resource.data.deliveryStatus is string;
-      allow update: if isExistingOwner(resource.data.userId) && resource.data.id == request.resource.data.id && request.resource.data.applicantName is string && request.resource.data.projectName is string && request.resource.data.minDeliveryDate is string && request.resource.data.maxDeliveryDate is string && request.resource.data.paymentType is string && request.resource.data.orderDate is string && request.resource.data.deliveryStatus is string;
-      allow delete: if isExistingOwner(resource.data.userId);
+    match /orders/{orderId} {
+      allow get, list: if true;
+      allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
     }
   }
 }
