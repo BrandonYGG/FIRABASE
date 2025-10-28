@@ -36,7 +36,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import mxLocations from '@/lib/data/mx-locations.json';
 import { Textarea } from '../ui/textarea';
 import { generateOrderPdf } from '@/lib/pdf-generator';
-import { useUser, useFirestore, addDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
 
 type OrderFormValues = z.infer<typeof OrderFormSchema>;
 
