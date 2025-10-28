@@ -117,7 +117,7 @@
         }
       },
       {
-        "path": "/pedidos/{pedidoId}",
+        "path": "/pedidos",
         "definition": {
           "entityName": "Order",
           "schema": {
