@@ -1,45 +1,41 @@
 /**
- * @fileoverview Firestore Security Rules for the material order application.
+ * @fileoverview Firestore Security Rules for the Construction Material Order App.
  *
  * Core Philosophy:
- * This ruleset is in prototyping mode. It assumes a simple data model with a single 'orders' collection.
- * It does not enforce strict schema validation to allow for rapid iteration. It implements authentication checks and assumes eventual role-based access control.
+ * This ruleset is designed for a front-end only application with temporary persistence, but prepares for future authentication and authorization.
+ * Currently, all read access to the 'orders' collection is public, but write access is denied to prevent unauthorized modifications.
+ * As authentication and user roles are implemented, the rules will evolve to enforce role-based access control.
  *
  * Data Structure:
- * All order data is stored in the top-level `/orders/{orderId}` collection.
+ * The application stores all order documents in a single top-level collection: `/orders/{orderId}`.
+ * Each document represents a material order with fields like applicantName, projectName, and delivery dates.
  *
  * Key Security Decisions:
- * - **No Public Listing:** The `orders` collection does not allow public listing (`list` operation).
- * - **Authentication Required for Write:** Authentication is required to create, update or delete.
- *
- * Denormalization for Authorization:
- * - In the future, when authentication is implemented, user roles can be stored in a separate collection (`roles_admin`) and checked in the rules using `exists()` to determine authorization.
+ * - Public read access to the `orders` collection is allowed to enable a user-friendly order management system.
+ * - Write access to the `orders` collection is currently denied.
+ * - Future authentication and authorization will restrict write access based on user roles.
+ * - This setup simplifies the initial data model and facilitates temporary data persistence.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Manages access to the /orders/{orderId} collection.
+     * @description Allows public read access to the 'orders' collection while denying all write access.
+     *              As authentication is implemented, these rules can be modified to restrict write access
+     *              based on user roles and permissions.
      * @path /orders/{orderId}
-     * @allow (get) Anyone can retrieve a specific order.
-     * @allow (create) Only signed in users can create.
-     * @allow (update) Only signed in users can update.
-     * @allow (delete) Only signed in users can delete.
-     * @deny (list) No one can list orders.
-     * @principle Disallows listing. Allows getting, creating, updating, and deleting of orders only for autheticated users.
+     * @allow (get, list) All users can read order documents.
+     * @allow (create, update, delete) No one can create, update, or delete order documents.
+     * @deny (create) Attempts to create a new order document will be rejected.
+     * @principle Public read access with no write access for a simplified data model.
      */
     match /orders/{orderId} {
       allow get: if true;
-      allow list: if false;
-      allow create: if isSignedIn();
-      allow update: if isSignedIn();
-      allow delete: if isSignedIn();
-    }
-
-    // Helper function to check if the user is signed in
-    function isSignedIn() {
-      return request.auth != null;
+      allow list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
     }
   }
 }
