@@ -1,45 +1,42 @@
 /**
- * @fileoverview Firestore Security Rules for the 'orders' collection.
+ * @fileoverview Firestore Security Rules for the "orders" collection.
  *
  * Core Philosophy:
- * This ruleset provides public read access to the 'orders' collection,
- * enabling the display of all orders in the application. Write access
- * is currently open, but this is intended for prototyping only and MUST
- * be secured when user authentication is implemented.
+ * This ruleset provides basic read and write access to the `/orders/{orderId}` collection
+ * without user authentication. This is intended for the initial prototyping phase
+ * where the application operates purely on the frontend and data is stored temporarily.
+ * In future iterations, this will be expanded to incorporate user-based access controls.
  *
  * Data Structure:
- * All order documents are stored in the top-level '/orders/{orderId}' collection.
+ * All order data is stored in a flat `/orders` collection, with each document identified by its `orderId`.
  *
  * Key Security Decisions:
- * - Public read access is granted to allow displaying orders.
- * - Write access is currently open for prototyping and MUST be restricted
- *   in future versions with authentication.
- * - No user listing is allowed as there are no users in this prototype.
+ * - No user authentication is required in this initial phase.
+ * - All users can read (get and list) all orders.
+ * - All users can create, update, and delete any order. This will be restricted in future versions.
+ * - The ruleset does NOT validate the data schema in this prototype phase.
  *
  * Denormalization for Authorization:
- * - No denormalization is currently used because authentication is not yet implemented.
- *   Future versions will need to denormalize user roles or permissions into the order
- *   documents to control write access.
+ * Not applicable in this initial phase, as there is no user authentication.
  *
  * Structural Segregation:
- * - All orders are placed in a single collection, simplifying the initial security rules setup.
+ * All orders are stored in a single collection.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Allows public read access (get, list) to the 'orders' collection. Write access (create, update, delete) is currently open for prototyping but MUST be secured later.
+     * @description Allows read access (get and list) to all documents in the `/orders` collection. Allows any user to create, update, and delete documents in the `/orders` collection.
      * @path /orders/{orderId}
-     * @allow (get, list) Allows any user to read any order.
-     * @deny (create, update, delete) Write operations are open for prototyping and MUST be secured.
-     * @principle Allows public read access for prototyping. Write access MUST be secured later.
+     * @allow (get, list): Any user can read any order.
+     * @allow (create, update, delete): Any user can create, update, or delete any order.
+     * @deny None - All requests are allowed in the initial prototyping phase.
+     * @principle No authentication required. Open access for initial prototyping.
      */
     match /orders/{orderId} {
       allow get, list: if true;
-      allow create: if true; // TODO: Secure create access when authentication is implemented.
-      allow update: if true; // TODO: Secure update access when authentication is implemented.
-      allow delete: if true; // TODO: Secure delete access when authentication is implemented.
+      allow create, update, delete: if true; // CRITICAL: Remove this and implement ownership checks in future versions.
     }
   }
 }

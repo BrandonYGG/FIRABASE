@@ -7,8 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useUser, useFirestore } from "@/firebase";
+import { useUser, useFirestore, useStorage } from "@/firebase";
 import { doc, updateDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Camera, Loader2 } from "lucide-react";
 import React, { useState, useRef, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,8 +18,10 @@ import { updateProfile } from "firebase/auth";
 export default function SettingsPage() {
     const { user, isUserLoading } = useUser();
     const firestore = useFirestore();
+    const storage = useStorage();
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const [displayName, setDisplayName] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -34,9 +37,11 @@ export default function SettingsPage() {
         fileInputRef.current?.click();
     };
 
+
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
+            setAvatarFile(file);
             const reader = new FileReader();
             reader.onloadend = () => {
                 setAvatarPreview(reader.result as string);
@@ -47,29 +52,42 @@ export default function SettingsPage() {
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        if (!user || !firestore) return;
+        if (!user || !firestore || !storage) return;
         
         setIsSubmitting(true);
 
         try {
-            // Update Auth profile
-            await updateProfile(user, { displayName });
-
-            // Update Firestore profile
-            const userRef = doc(firestore, 'users', user.uid);
-            await updateDoc(userRef, { displayName });
+            const updates: { displayName: string, photoURL?: string } = { displayName };
             
-            // NOTE: Avatar update is not implemented as it requires file upload to Firebase Storage.
-            // This is a placeholder for the UI.
+            // 1. Upload new avatar if one was selected
+            if (avatarFile) {
+                const storageRef = ref(storage, `profile-pictures/${user.uid}/${avatarFile.name}`);
+                const uploadResult = await uploadBytes(storageRef, avatarFile);
+                const downloadURL = await getDownloadURL(uploadResult.ref);
+                updates.photoURL = downloadURL;
+            }
 
+            // 2. Update Auth profile
+            await updateProfile(user, updates);
+
+            // 3. Update Firestore profile
+            const userRef = doc(firestore, 'users', user.uid);
+            await updateDoc(userRef, updates);
+            
             toast({
                 title: "Perfil Actualizado",
                 description: "Tu información ha sido guardada con éxito.",
             });
+             if (updates.photoURL) {
+                setAvatarPreview(updates.photoURL);
+            }
+            setAvatarFile(null);
+
         } catch (error) {
+             console.error("Error updating profile: ", error);
              toast({
                 title: "Error",
-                description: "No se pudo actualizar el perfil.",
+                description: "No se pudo actualizar el perfil. Revisa la consola para más detalles.",
                 variant: 'destructive'
             });
         } finally {

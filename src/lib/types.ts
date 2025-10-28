@@ -126,6 +126,7 @@ export interface UserProfile {
     email: string;
     role: 'personal' | 'company';
     displayName?: string;
+    photoURL?: string;
     rfc?: string;
     phone?: string;
 }
