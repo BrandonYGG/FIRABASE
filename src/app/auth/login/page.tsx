@@ -46,10 +46,17 @@ export default function LoginPage() {
 
     async function onSubmit(data: LoginValues) {
         setIsLoading(true);
+        if (!auth) {
+            toast({
+                variant: "destructive",
+                title: "Error de configuración",
+                description: "El servicio de autenticación no está disponible.",
+            });
+            setIsLoading(false);
+            return;
+        }
         try {
             await signInWithEmailAndPassword(auth, data.email, data.password);
-            // The redirection will be handled by the layout component,
-            // so we can just push to the dashboard.
             router.push('/dashboard');
         } catch (error: any) {
              let description = "Ocurrió un error inesperado.";

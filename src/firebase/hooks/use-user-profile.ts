@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { doc } from 'firebase/firestore';
-import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
 
 interface UserProfile {
     fullName?: string;
@@ -13,11 +13,14 @@ interface UserProfile {
 
 export function useUserProfile(userId: string | undefined) {
   const firestore = useFirestore();
+  const { user } = useUser();
+  
+  const uid = userId || user?.uid;
 
   const userProfileRef = useMemoFirebase(() => {
-    if (!firestore || !userId) return null;
-    return doc(firestore, 'users', userId);
-  }, [firestore, userId]);
+    if (!firestore || !uid) return null;
+    return doc(firestore, 'users', uid);
+  }, [firestore, uid]);
 
   const { data: userProfile, isLoading, error } = useDoc<UserProfile>(userProfileRef);
 

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from "@/components/ui/button"
@@ -27,8 +26,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { PersonalRegistrationSchema, CompanyRegistrationSchema } from "@/lib/schemas";
-import { useAuth, useFirestore } from '@/firebase';
-import { doc, setDoc } from "firebase/firestore";
+import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
+import { doc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
@@ -75,6 +74,12 @@ export default function RegisterPage() {
 
     const handleRegistration = async (data: PersonalFormValues | CompanyFormValues, role: 'personal' | 'company') => {
         setIsSubmitting(true);
+        if (!auth || !firestore) {
+            toast({ variant: 'destructive', title: 'Error de configuración', description: 'Los servicios de Firebase no están disponibles.' });
+            setIsSubmitting(false);
+            return;
+        }
+
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
             const user = userCredential.user;
@@ -104,9 +109,9 @@ export default function RegisterPage() {
                 };
             }
 
-            await setDoc(userProfileRef, userProfileData);
+            // Using non-blocking update to avoid awaiting here and let security rules handle it
+            setDocumentNonBlocking(userProfileRef, userProfileData, { merge: true });
 
-            toast({ title: '¡Éxito!', description: `Tu cuenta de ${role === 'company' ? 'empresa' : 'personal'} ha sido creada.` });
             router.push('/dashboard');
 
         } catch (error: any) {

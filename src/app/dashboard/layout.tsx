@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -15,10 +14,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuPortal,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuSubContent
 } from '@/components/ui/dropdown-menu';
 import {
   Sidebar,
@@ -32,7 +27,7 @@ import {
   SidebarTrigger,
   SidebarFooter
 } from '@/components/ui/sidebar';
-import { Construction, LayoutDashboard, ListOrdered, FilePlus2, LogOut, Settings, CalendarIcon, Moon, Sun, Monitor, Loader2 } from 'lucide-react';
+import { Construction, LayoutDashboard, ListOrdered, FilePlus2, LogOut, Settings, CalendarIcon, Moon, Sun, Loader2 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
@@ -54,7 +49,11 @@ export default function DashboardLayout({
   const { setTheme } = useTheme();
 
   useEffect(() => {
-    if (!isUserLoading && !user) {
+    // We only want to check for a user when loading is complete
+    if (isUserLoading) return;
+    
+    // If loading is finished and there's no user, redirect to login
+    if (!user) {
       router.push('/auth/login');
     }
   }, [user, isUserLoading, router]);
@@ -67,8 +66,10 @@ export default function DashboardLayout({
   }, []);
 
   const handleLogout = async () => {
-    await auth.signOut();
-    router.push('/');
+    if (auth) {
+      await auth.signOut();
+    }
+    // The user state listener in the provider will handle the redirect.
   };
 
 
@@ -78,6 +79,8 @@ export default function DashboardLayout({
       { href: '/pedidos/nuevo', label: 'Nuevo Pedido', icon: FilePlus2 },
   ];
   
+  // While user is loading, or if there is no user, show a loading spinner.
+  // The useEffect hook will handle redirection if necessary.
   if (isUserLoading || !user) {
     return (
         <div className="flex h-screen items-center justify-center">
