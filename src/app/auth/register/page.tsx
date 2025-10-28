@@ -43,6 +43,7 @@ export default function RegisterPage() {
     const [showCompanyPassword, setShowCompanyPassword] = useState(false);
     const [showCompanyConfirmPassword, setShowCompanyConfirmPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isGoogleLoading, setIsGoogleLoading] = useState(false);
     
     const auth = useAuth();
     const firestore = useFirestore();
@@ -131,10 +132,10 @@ export default function RegisterPage() {
     }
 
     const handleGoogleSignIn = async () => {
-        setIsLoading(true);
+        setIsGoogleLoading(true);
         if (!auth || !firestore) {
             toast({ variant: 'destructive', title: 'Error de configuración', description: 'El servicio de autenticación no está disponible.' });
-            setIsLoading(false);
+            setIsGoogleLoading(false);
             return;
         }
         const provider = new GoogleAuthProvider();
@@ -151,6 +152,7 @@ export default function RegisterPage() {
                     email: user.email!,
                     displayName: user.displayName || user.email!,
                     role: 'personal',
+                    photoURL: user.photoURL || undefined,
                 };
                 await setDoc(userRef, userProfile);
             }
@@ -163,7 +165,7 @@ export default function RegisterPage() {
                 description: "No se pudo registrar con Google. Inténtalo de nuevo.",
             });
         } finally {
-             setIsLoading(false);
+             setIsGoogleLoading(false);
         }
     }
 
@@ -185,8 +187,8 @@ export default function RegisterPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                 <Button variant="outline" className="w-full" type="button" onClick={handleGoogleSignIn} disabled={isLoading}>
-                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Image src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png" alt="Google" width={16} height={16} className="mr-2" />}
+                 <Button variant="outline" className="w-full" type="button" onClick={handleGoogleSignIn} disabled={isLoading || isGoogleLoading}>
+                    {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Image src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png" alt="Google" width={16} height={16} className="mr-2" />}
                     Continuar con Google
                 </Button>
                 <div className="relative">
@@ -273,7 +275,7 @@ export default function RegisterPage() {
                 />
               </CardContent>
               <CardFooter className="flex flex-col gap-4">
-                <Button className="w-full" type="submit" disabled={isLoading}>
+                <Button className="w-full" type="submit" disabled={isLoading || isGoogleLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Crear Cuenta Personal
                 </Button>
@@ -400,7 +402,7 @@ export default function RegisterPage() {
                 />
               </CardContent>
               <CardFooter className="flex flex-col gap-4">
-                <Button className="w-full" type="submit" disabled={isLoading}>
+                <Button className="w-full" type="submit" disabled={isLoading || isGoogleLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Crear Cuenta de Empresa
                 </Button>

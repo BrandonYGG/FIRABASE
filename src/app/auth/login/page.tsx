@@ -35,6 +35,7 @@ type LoginValues = z.infer<typeof LoginSchema>;
 export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isGoogleLoading, setIsGoogleLoading] = useState(false);
     const auth = useAuth();
     const firestore = useFirestore();
     const router = useRouter();
@@ -58,6 +59,7 @@ export default function LoginPage() {
                 email: user.email!,
                 displayName: user.displayName || user.email!, 
                 role: 'personal',
+                photoURL: user.photoURL || undefined,
             };
             await setDoc(userRef, userProfile, { merge: true });
         }
@@ -94,10 +96,10 @@ export default function LoginPage() {
     }
 
     const handleGoogleSignIn = async () => {
-        setIsLoading(true);
+        setIsGoogleLoading(true);
         if (!auth) {
             toast({ variant: 'destructive', title: 'Error de configuración', description: 'El servicio de autenticación no está disponible.' });
-            setIsLoading(false);
+            setIsGoogleLoading(false);
             return;
         }
         const provider = new GoogleAuthProvider();
@@ -111,7 +113,7 @@ export default function LoginPage() {
                 description: "No se pudo iniciar sesión con Google. Inténtalo de nuevo.",
             });
         } finally {
-            setIsLoading(false);
+            setIsGoogleLoading(false);
         }
     }
 
@@ -127,8 +129,8 @@ export default function LoginPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-4">
-                     <Button variant="outline" className="w-full" type="button" onClick={handleGoogleSignIn} disabled={isLoading}>
-                        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Image src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png" alt="Google" width={16} height={16} className="mr-2" />}
+                     <Button variant="outline" className="w-full" type="button" onClick={handleGoogleSignIn} disabled={isLoading || isGoogleLoading}>
+                        {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Image src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png" alt="Google" width={16} height={16} className="mr-2" />}
                         Continuar con Google
                     </Button>
                     <div className="relative">
@@ -179,7 +181,7 @@ export default function LoginPage() {
                     />
                 </CardContent>
                 <CardFooter className="flex flex-col gap-4">
-                    <Button className="w-full" type="submit" disabled={isLoading}>
+                    <Button className="w-full" type="submit" disabled={isLoading || isGoogleLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Iniciar Sesión con Correo
                     </Button>
