@@ -77,14 +77,6 @@
       "description": "Represents a user's profile information.",
       "type": "object",
       "properties": {
-        "fullName": {
-          "type": "string",
-          "description": "The user's full name."
-        },
-        "companyName": {
-            "type": "string",
-            "description": "The user's company name."
-        },
         "email": {
           "type": "string",
           "format": "email",
@@ -93,6 +85,26 @@
         "role": {
           "type": "string",
           "enum": ["personal", "company"]
+        },
+        "fullName": {
+          "type": "string",
+          "description": "The user's full name (for personal accounts)."
+        },
+        "companyName": {
+            "type": "string",
+            "description": "The user's company name (for company accounts)."
+        },
+        "legalRepresentative": {
+          "type": "string",
+          "description": "The legal representative of the company."
+        },
+        "rfc": {
+          "type": "string",
+          "description": "The company's RFC."
+        },
+        "phone": {
+          "type": "string",
+          "description": "The company's phone number."
         }
       },
       "required": ["email", "role"]
@@ -130,3 +142,4 @@
     ]
   }
 }
+

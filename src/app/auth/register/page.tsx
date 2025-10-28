@@ -73,7 +73,7 @@ export default function RegisterPage() {
         }
     });
 
-     const createUserProfile = async (user: User, role: 'personal' | 'company' = 'personal', extraData: Record<string, any> = {}) => {
+     const handleUserSession = async (user: User, role: 'personal' | 'company' = 'personal', extraData: Record<string, any> = {}) => {
         if (!firestore) return;
         const userRef = doc(firestore, 'users', user.uid);
         const userDoc = await getDoc(userRef);
@@ -131,7 +131,7 @@ export default function RegisterPage() {
                 }
             }
             
-            await createUserProfile(user, role, profileData);
+            await handleUserSession(user, role, profileData);
 
         } catch (error: any) {
             console.error("Registration Error:", error);
@@ -140,6 +140,7 @@ export default function RegisterPage() {
                 errorMessage = 'Este correo electrónico ya está en uso. Por favor, intenta con otro.';
             }
             toast({ variant: 'destructive', title: 'Error de Registro', description: errorMessage });
+        } finally {
             setIsLoading(false);
         }
     }
@@ -163,13 +164,14 @@ export default function RegisterPage() {
         const provider = new GoogleAuthProvider();
         try {
             const result = await signInWithPopup(auth, provider);
-            await createUserProfile(result.user, 'personal');
+            await handleUserSession(result.user, 'personal');
         } catch (error: any) {
              toast({
                 variant: "destructive",
                 title: "Error con Google",
                 description: "No se pudo registrar con Google. Inténtalo de nuevo.",
             });
+        } finally {
              setIsLoading(false);
         }
     }

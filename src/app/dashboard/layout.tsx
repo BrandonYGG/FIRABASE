@@ -68,8 +68,8 @@ export default function DashboardLayout({
   const handleLogout = async () => {
     if (auth) {
       await auth.signOut();
+      router.push('/auth/login');
     }
-    // The user state listener in the provider will handle the redirect.
   };
 
 
