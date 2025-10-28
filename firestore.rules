@@ -1,80 +1,45 @@
 /**
- * @fileoverview Firestore Security Rules for the application.
+ * @fileoverview Firestore Security Rules for the 'orders' collection.
  *
  * Core Philosophy:
- * This ruleset enforces a strict user-ownership model.  Users can only read and write their own profile data and their own orders.
+ * This ruleset provides public read access to the 'orders' collection,
+ * enabling the display of all orders in the application. Write access
+ * is currently open, but this is intended for prototyping only and MUST
+ * be secured when user authentication is implemented.
  *
  * Data Structure:
- * - User profiles are stored in `/users/{userId}`.
- * - Orders are stored in a subcollection `/users/{userId}/pedidos/{pedidoId}`.
+ * All order documents are stored in the top-level '/orders/{orderId}' collection.
  *
  * Key Security Decisions:
- * - Users can only list orders that belong to them.
- * - Schema enforcement is relaxed during this prototyping phase to allow for rapid iteration, but authorization checks are strictly enforced.
- * - The `id` field is validated to ensure data consistency between the path and the document content.
+ * - Public read access is granted to allow displaying orders.
+ * - Write access is currently open for prototyping and MUST be restricted
+ *   in future versions with authentication.
+ * - No user listing is allowed as there are no users in this prototype.
  *
  * Denormalization for Authorization:
- *  - The `id` field inside the `Order` document is used for validation and authorization, ensuring that the order belongs to the user specified in the path.
+ * - No denormalization is currently used because authentication is not yet implemented.
+ *   Future versions will need to denormalize user roles or permissions into the order
+ *   documents to control write access.
+ *
+ * Structural Segregation:
+ * - All orders are placed in a single collection, simplifying the initial security rules setup.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Controls access to user profile documents.
-     * @path /users/{userId}
-     * @allow (create) User with matching UID can create their own profile.
-     * @allow (get, update, delete) User with matching UID can read/update/delete their own profile.
-     * @deny (create) User cannot create a profile with a mismatched UID.
-     * @deny (get, update, delete) User cannot read/update/delete another user's profile.
-     * @principle Enforces document ownership for all operations.
+     * @description Allows public read access (get, list) to the 'orders' collection. Write access (create, update, delete) is currently open for prototyping but MUST be secured later.
+     * @path /orders/{orderId}
+     * @allow (get, list) Allows any user to read any order.
+     * @deny (create, update, delete) Write operations are open for prototyping and MUST be secured.
+     * @principle Allows public read access for prototyping. Write access MUST be secured later.
      */
-    match /users/{userId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
-
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-
-      // Allow the user to create their own profile if the UID matches.
-      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.email == request.auth.token.email;
-      // Allow the user to read their own profile if the UID matches.
-      allow get: if isSignedIn() && isOwner(userId);
-      // Allow the user to update their own profile if the UID matches. Enforce immutability for `email`.
-      allow update: if isSignedIn() && isOwner(userId) && request.resource.data.email == resource.data.email;
-      // Allow the user to delete their own profile if the UID matches.
-      allow delete: if isSignedIn() && isOwner(userId);
-      // No listing of users.
-      allow list: if false;
-    }
-
-    /**
-     * @description Controls access to order documents within a user's subcollection.
-     * @path /users/{userId}/pedidos/{pedidoId}
-     * @allow (create) User with matching UID can create orders in their own subcollection with a matching id.
-     * @allow (get, list, update, delete) User with matching UID can read/list/update/delete orders in their own subcollection.
-     * @deny (create) User cannot create orders in another user's subcollection or with a mismatched id.
-     * @deny (get, list, update, delete) User cannot read/list/update/delete orders in another user's subcollection.
-     * @principle Enforces document ownership for all operations and validates relational integrity using the `id` field.
-     */
-    match /users/{userId}/pedidos/{pedidoId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
-
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-
-      // Validate that the user is signed in and the userId matches
-      // and the pedidoId matches the id field in the request
-      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == pedidoId;
-      allow get: if isSignedIn() && isOwner(userId);
-      allow list: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isOwner(userId) && resource.data.id == pedidoId;
-      allow delete: if isSignedIn() && isOwner(userId) && resource.data.id == pedidoId;
+    match /orders/{orderId} {
+      allow get, list: if true;
+      allow create: if true; // TODO: Secure create access when authentication is implemented.
+      allow update: if true; // TODO: Secure update access when authentication is implemented.
+      allow delete: if true; // TODO: Secure delete access when authentication is implemented.
     }
   }
 }

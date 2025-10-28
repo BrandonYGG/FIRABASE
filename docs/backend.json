@@ -1,49 +1,10 @@
-
 {
   "entities": {
-    "UserProfile": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "User Profile",
-      "type": "object",
-      "description": "Represents a user's profile in the system.",
-      "properties": {
-        "email": {
-          "type": "string",
-          "format": "email",
-          "description": "The user's email address."
-        },
-        "displayName": {
-          "type": "string",
-          "description": "The user's display name (can be full name or company name)."
-        },
-        "role": {
-          "type": "string",
-          "description": "The user's role.",
-          "enum": [
-            "personal",
-            "company"
-          ]
-        },
-        "rfc": {
-          "type": "string",
-          "description": "The company's RFC (only for company roles)."
-        },
-        "phone": {
-          "type": "string",
-          "description": "The company's phone number (only for company roles)."
-        }
-      },
-      "required": [
-        "email",
-        "displayName",
-        "role"
-      ]
-    },
     "Order": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Order",
       "type": "object",
-      "description": "Represents a material order placed by a user.",
+      "description": "Represents a material order placed by a construction company.",
       "properties": {
         "id": {
           "type": "string",
@@ -59,41 +20,38 @@
         },
         "location": {
           "type": "string",
-          "description": "Location of the construction project."
+          "description": "Location of the construction project. Supports autocompletion."
         },
         "minDeliveryDate": {
           "type": "string",
-          "description": "Earliest possible delivery date for the order.",
+          "description": "The earliest acceptable delivery date.",
           "format": "date-time"
         },
         "maxDeliveryDate": {
           "type": "string",
-          "description": "Latest possible delivery date for the order.",
+          "description": "The latest acceptable delivery date.",
           "format": "date-time"
         },
         "paymentType": {
           "type": "string",
-          "description": "Type of payment for the order (Cash or Credit).",
-          "format": "enum",
-          "items": {
-            "type": "string"
-          }
+          "description": "Type of payment for the order (Credit or Cash)."
         },
         "creditInstallmentType": {
           "type": "string",
-          "description": "Type of credit installment (Weekly, Bi-weekly, Monthly). Only applicable if paymentType is Credit.",
-          "format": "enum",
-          "items": {
-            "type": "string"
-          }
+          "description": "Type of credit installments (Weekly, Bi-Weekly, Monthly). Only applicable if payment type is credit.",
+          "format": "string"
         },
         "paymentMethod": {
           "type": "string",
-          "description": "Payment method used for the order (e.g., credit card). Only applicable if paymentType is Credit."
+          "description": "The selected payment method."
         },
-        "orderStatus": {
+        "urgencyLevel": {
           "type": "string",
-          "description": "The status of the order"
+          "description": "The urgency level of the order (Normal, Soon, Urgent). Derived from delivery dates."
+        },
+        "deliveryStatus": {
+          "type": "string",
+          "description": "The delivery status of the order."
         }
       },
       "required": [
@@ -110,26 +68,28 @@
   "auth": {
     "providers": [
       "password",
-      "anonymous",
-      "google.com"
+      "anonymous"
     ]
   },
   "firestore": {
-    "collections": [
+    "structure": [
       {
-        "path": "/users/{userId}",
-        "schema": {
-          "$ref": "#/entities/UserProfile"
-        },
-        "description": "Stores user profile information."
-      },
-      {
-        "path": "/users/{userId}/pedidos/{pedidoId}",
-        "schema": {
-          "$ref": "#/entities/Order"
-        },
-        "description": "Stores orders for a specific user. Each user has their own 'pedidos' subcollection."
+        "path": "/orders/{orderId}",
+        "definition": {
+          "entityName": "Order",
+          "schema": {
+            "$ref": "#/backend/entities/Order"
+          },
+          "description": "Stores material orders placed by construction companies. The initial implementation allows for temporal persistence without user authentication. 'orderId' is the unique identifier for each order.",
+          "params": [
+            {
+              "name": "orderId",
+              "description": "Unique identifier for the order."
+            }
+          ]
+        }
       }
-    ]
+    ],
+    "reasoning": "Given the requirement for a purely frontend application interacting directly with Firestore, a flat collection structure is suitable for initial temporal persistence. As the application evolves, especially with the introduction of user authentication, the structure should be adjusted to incorporate user-specific subcollections for better security and scalability. For now, the focus remains on enabling the core features of order registration, display, filtering, and urgency indication, all while storing data temporarily.\n\nThe design uses structural segregation by placing all orders in a single collection. This simplifies the initial security rules setup as all documents within the 'orders' collection share the same security posture during the initial phase. This approach supports the required QAPs by enabling simple list operations.\n\nThe authorization independence principle is not fully applied in this initial setup because there is no user authentication. However, future iterations should incorporate denormalization strategies as the application gains complexity, especially when user roles and access controls become relevant. This would typically involve denormalizing user roles or permissions into the order documents themselves to avoid complex `get()` calls in security rules."
   }
 }
