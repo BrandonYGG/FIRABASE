@@ -3,10 +3,10 @@
 // and by the emulator config in development.
 // For Firebase Hosting, initialization is automatic.
 export const firebaseConfig = {
-  "apiKey": "mock-api-key",
-  "authDomain": "mock-auth-domain",
-  "projectId": "mock-project-id",
-  "storageBucket": "mock-storage-bucket",
-  "messagingSenderId": "mock-messaging-sender-id",
-  "appId": "mock-app-id"
+  "apiKey": "mock-api-key-from-studio",
+  "authDomain": "orderflow-construct.firebaseapp.com",
+  "projectId": "orderflow-construct",
+  "storageBucket": "orderflow-construct.appspot.com",
+  "messagingSenderId": "1234567890",
+  "appId": "1:1234567890:web:1234567890abcdef"
 };
