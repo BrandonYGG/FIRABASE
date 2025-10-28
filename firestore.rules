@@ -1,42 +1,71 @@
 /**
- * @fileoverview Firestore Security Rules for the "orders" collection.
+ * @file Firebase Security Rules for Firestore.
  *
  * Core Philosophy:
- * This ruleset provides basic read and write access to the `/orders/{orderId}` collection
- * without user authentication. This is intended for the initial prototyping phase
- * where the application operates purely on the frontend and data is stored temporarily.
- * In future iterations, this will be expanded to incorporate user-based access controls.
+ * This ruleset enforces a strict user-ownership model for both user profiles and orders.
+ * Users can only create, read, update, and delete their own data.
  *
  * Data Structure:
- * All order data is stored in a flat `/orders` collection, with each document identified by its `orderId`.
+ * - /users/{userId}: Stores user profile data.  Access is restricted to the owning user.
+ * - /users/{userId}/pedidos/{orderId}: Stores orders placed by a specific user. Only the user who owns the parent /users/{userId} document can access these orders.
  *
  * Key Security Decisions:
- * - No user authentication is required in this initial phase.
- * - All users can read (get and list) all orders.
- * - All users can create, update, and delete any order. This will be restricted in future versions.
- * - The ruleset does NOT validate the data schema in this prototype phase.
- *
- * Denormalization for Authorization:
- * Not applicable in this initial phase, as there is no user authentication.
- *
- * Structural Segregation:
- * All orders are stored in a single collection.
+ * - No public listing of users or orders is allowed.
+ * - Data validation is limited to ensuring ownership and relational integrity (userId consistency).
+ * - Denormalization:  The `userId` is present both in the path and in the Order document itself to guarantee authorization and data consistency.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Allows read access (get and list) to all documents in the `/orders` collection. Allows any user to create, update, and delete documents in the `/orders` collection.
-     * @path /orders/{orderId}
-     * @allow (get, list): Any user can read any order.
-     * @allow (create, update, delete): Any user can create, update, or delete any order.
-     * @deny None - All requests are allowed in the initial prototyping phase.
-     * @principle No authentication required. Open access for initial prototyping.
+     * @description Secure user profiles. Only the authenticated user can read or write their own profile.
+     * @path /users/{userId}
+     * @allow (create) - User with UID 'user123' can create their own profile document at /users/user123.
+     * @allow (get) - User with UID 'user123' can read their own profile document at /users/user123.
+     * @allow (update) - User with UID 'user123' can update their own profile document at /users/user123.
+     * @allow (delete) - User with UID 'user123' can delete their own profile document at /users/user123.
+     * @deny (create) - User with UID 'user456' cannot create a profile document at /users/user123.
+     * @deny (get) - User with UID 'user456' cannot read the profile document at /users/user123.
+     * @principle Enforces document ownership for all operations on user profiles.
      */
-    match /orders/{orderId} {
-      allow get, list: if true;
-      allow create, update, delete: if true; // CRITICAL: Remove this and implement ownership checks in future versions.
+    match /users/{userId} {
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+      function isSignedIn() {
+        return request.auth != null;
+      }
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isSignedIn() && isOwner(userId) ;
+      allow update: if isSignedIn() && isOwner(userId);
+      allow delete: if isSignedIn() && isOwner(userId);
+    }
+
+    /**
+     * @description Secure material orders for a specific user. Only the authenticated user who owns the parent user document can manage their orders.
+     * @path /users/{userId}/pedidos/{orderId}
+     * @allow (create) - User with UID 'user123' can create an order document at /users/user123/pedidos/order456.
+     * @allow (get) - User with UID 'user123' can read the order document at /users/user123/pedidos/order456.
+     * @allow (update) - User with UID 'user123' can update the order document at /users/user123/pedidos/order456.
+     * @allow (delete) - User with UID 'user123' can delete the order document at /users/user123/pedidos/order456.
+     * @deny (create) - User with UID 'user456' cannot create an order document at /users/user123/pedidos/order456.
+     * @deny (get) - User with UID 'user456' cannot read the order document at /users/user123/pedidos/order456.
+     * @principle Enforces document ownership for all operations on orders within a user's collection.
+     */
+    match /users/{userId}/pedidos/{orderId} {
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+       function isSignedIn() {
+        return request.auth != null;
+      }
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isSignedIn() && isOwner(userId) && resource.data.userId == userId;
+      allow delete: if isSignedIn() && isOwner(userId) && resource.data.userId == userId;
     }
   }
 }

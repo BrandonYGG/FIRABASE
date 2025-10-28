@@ -4,7 +4,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Order",
       "type": "object",
-      "description": "Represents a material order placed by a construction company.",
+      "description": "Represents a material order placed by a user.",
       "properties": {
         "id": {
           "type": "string",
@@ -16,42 +16,42 @@
         },
         "projectName": {
           "type": "string",
-          "description": "Name of the construction project."
+          "description": "Name of the construction project for which the order is placed."
         },
         "location": {
           "type": "string",
-          "description": "Location of the construction project. Supports autocompletion."
+          "description": "Location of the construction project."
         },
         "minDeliveryDate": {
           "type": "string",
-          "description": "The earliest acceptable delivery date.",
+          "description": "Earliest acceptable delivery date.",
           "format": "date-time"
         },
         "maxDeliveryDate": {
           "type": "string",
-          "description": "The latest acceptable delivery date.",
+          "description": "Latest acceptable delivery date.",
           "format": "date-time"
         },
         "paymentType": {
           "type": "string",
-          "description": "Type of payment for the order (Credit or Cash)."
+          "description": "Type of payment (Credit or Cash)."
         },
         "creditInstallmentType": {
           "type": "string",
-          "description": "Type of credit installments (Weekly, Bi-Weekly, Monthly). Only applicable if payment type is credit.",
-          "format": "string"
+          "description": "Installment type if payment is on credit (Weekly, Bi-Weekly, Monthly)."
         },
         "paymentMethod": {
           "type": "string",
-          "description": "The selected payment method."
+          "description": "Payment Method chosen by the user."
         },
-        "urgencyLevel": {
+        "orderDate": {
           "type": "string",
-          "description": "The urgency level of the order (Normal, Soon, Urgent). Derived from delivery dates."
+          "description": "Date when the order was registered.",
+          "format": "date-time"
         },
-        "deliveryStatus": {
+        "userId": {
           "type": "string",
-          "description": "The delivery status of the order."
+          "description": "Reference to the User that created the order. (Relationship: User 1:N Order)"
         }
       },
       "required": [
@@ -61,7 +61,35 @@
         "location",
         "minDeliveryDate",
         "maxDeliveryDate",
-        "paymentType"
+        "paymentType",
+        "orderDate",
+        "userId"
+      ]
+    },
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user."
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name of the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the user.",
+          "format": "email"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "email"
       ]
     }
   },
@@ -74,22 +102,42 @@
   "firestore": {
     "structure": [
       {
-        "path": "/orders/{orderId}",
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Collection to store user profiles.  Individual user documents are only accessible by the user themselves.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/pedidos/{orderId}",
         "definition": {
           "entityName": "Order",
           "schema": {
             "$ref": "#/backend/entities/Order"
           },
-          "description": "Stores material orders placed by construction companies. The initial implementation allows for temporal persistence without user authentication. 'orderId' is the unique identifier for each order.",
+          "description": "Collection to store orders for a specific user. Orders are owned by the user identified by the userId path parameter.",
           "params": [
             {
+              "name": "userId",
+              "description": "The unique identifier of the user who created the order."
+            },
+            {
               "name": "orderId",
-              "description": "Unique identifier for the order."
+              "description": "The unique identifier of the order."
             }
           ]
         }
       }
     ],
-    "reasoning": "Given the requirement for a purely frontend application interacting directly with Firestore, a flat collection structure is suitable for initial temporal persistence. As the application evolves, especially with the introduction of user authentication, the structure should be adjusted to incorporate user-specific subcollections for better security and scalability. For now, the focus remains on enabling the core features of order registration, display, filtering, and urgency indication, all while storing data temporarily.\n\nThe design uses structural segregation by placing all orders in a single collection. This simplifies the initial security rules setup as all documents within the 'orders' collection share the same security posture during the initial phase. This approach supports the required QAPs by enabling simple list operations.\n\nThe authorization independence principle is not fully applied in this initial setup because there is no user authentication. However, future iterations should incorporate denormalization strategies as the application gains complexity, especially when user roles and access controls become relevant. This would typically involve denormalizing user roles or permissions into the order documents themselves to avoid complex `get()` calls in security rules."
+    "reasoning": "The Firestore data structure is designed to address the \"Missing or insufficient permissions\" error by ensuring authorization independence and secure data access based on the user's authentication status. The structure is based on path-based ownership. This approach ensures that users can only access their own orders, addressing the error reported by NextJS.\n\n*   **Authorization Independence**: Achieved by storing orders under the `/users/{userId}/pedidos/{orderId}` path. This structure inherently links each order to a specific user, eliminating the need for `get()` calls to verify ownership.\n*   **QAPs (Rules are not Filters)**: The structure enables secure `list` operations by ensuring that users can only list orders associated with their own `userId`. The security rules can then enforce that only the authenticated user (`request.auth.uid`) can access the `/users/{userId}/pedidos` collection. This structure also helps to avoid unintended data exposure.\n\nThe `userId` field within each order document is redundant but strongly encouraged as a best practice for data integrity checks (e.g. to ensure the path `userId` and the document `userId` are the same value).\n"
   }
 }
