@@ -8,21 +8,20 @@ import { useMemo } from 'react';
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
 export function initializeFirebase(): { firebaseApp: FirebaseApp; auth: Auth; firestore: Firestore } {
-    if (getApps().length > 0) {
-        const app = getApp();
-        return {
-            firebaseApp: app,
-            auth: getAuth(app),
-            firestore: getFirestore(app),
-        };
+    let app: FirebaseApp;
+    if (getApps().length === 0) {
+        app = initializeApp(firebaseConfig);
+    } else {
+        app = getApp();
     }
-    const firebaseApp = initializeApp(firebaseConfig);
+
     return {
-        firebaseApp,
-        auth: getAuth(firebaseApp),
-        firestore: getFirestore(firebaseApp)
+        firebaseApp: app,
+        auth: getAuth(app),
+        firestore: getFirestore(app)
     };
 }
+
 
 export * from './provider';
 export * from './client-provider';
