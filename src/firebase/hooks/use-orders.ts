@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { collection, query, where, orderBy } from 'firebase/firestore';
+import { collection, query, orderBy } from 'firebase/firestore';
 import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
 import { OrderFirestore, type Order } from '@/lib/types';
 
@@ -13,8 +13,7 @@ export function useOrders() {
     if (!firestore || !user) return null;
     // Query for orders belonging to the user and order them by creation date
     return query(
-        collection(firestore, 'pedidos'), 
-        where('userId', '==', user.uid),
+        collection(firestore, 'users', user.uid, 'pedidos'),
         orderBy('createdAt', 'desc')
     );
   }, [firestore, user]);

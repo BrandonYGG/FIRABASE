@@ -1,10 +1,48 @@
 {
   "entities": {
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User Profile",
+      "type": "object",
+      "description": "Represents a user's profile in the system.",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "The user's display name (can be full name or company name)."
+        },
+        "role": {
+          "type": "string",
+          "description": "The user's role.",
+          "enum": [
+            "personal",
+            "company"
+          ]
+        },
+        "rfc": {
+          "type": "string",
+          "description": "The company's RFC (only for company roles)."
+        },
+        "phone": {
+          "type": "string",
+          "description": "The company's phone number (only for company roles)."
+        }
+      },
+      "required": [
+        "email",
+        "displayName",
+        "role"
+      ]
+    },
     "Order": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Order",
       "type": "object",
-      "description": "Represents a material order placed by a construction company.",
+      "description": "Represents a material order placed by a user.",
       "properties": {
         "id": {
           "type": "string",
@@ -76,24 +114,21 @@
     ]
   },
   "firestore": {
-    "structure": [
+    "collections": [
       {
-        "path": "/orders/{orderId}",
-        "definition": {
-          "entityName": "Order",
-          "schema": {
-            "$ref": "#/backend/entities/Order"
-          },
-          "description": "Stores all order documents. The orderId is a unique identifier for each order.",
-          "params": [
-            {
-              "name": "orderId",
-              "description": "Unique identifier for the order document."
-            }
-          ]
-        }
+        "path": "/users/{userId}",
+        "schema": {
+          "$ref": "#/entities/UserProfile"
+        },
+        "description": "Stores user profile information."
+      },
+      {
+        "path": "/users/{userId}/pedidos/{pedidoId}",
+        "schema": {
+          "$ref": "#/entities/Order"
+        },
+        "description": "Stores orders for a specific user."
       }
-    ],
-    "reasoning": "Given the requirements for a user-friendly order management system for a construction company, with features like order registration, real-time display, filtering, and temporary data persistence, the following Firestore structure is recommended. It prioritizes simplicity and scalability for the initial frontend-only implementation, while also preparing for future authentication and more complex security rules. The structure avoids authorization dependencies to allow atomic operations.\n\nThe proposed structure includes a single collection: `orders`. This collection will store all order documents. Since this is a front-end only application with temporary persistence, and the instructions mention preparing for future authentication, there are no user-specific subcollections or complex access control mechanisms yet. This simplifies the initial data model.\n\nSince all orders share the same security posture (for now), a single `orders` collection satisfies Structural Segregation. As authentication gets implemented, role-based access control can be handled in the security rules of this collection by checking if the user has a specific role (e.g., admin) that allows them to view or modify all orders. For example, a hypothetical `roles_admin` collection could be used in Firestore rules to grant admin privileges based on a user's UID existing in that collection. Such collection would enable QAPs with secure `list` operations via existence check.\n"
+    ]
   }
 }

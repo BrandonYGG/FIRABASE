@@ -145,7 +145,7 @@ export function OrderForm() {
             status: 'Pendiente' as const,
         };
 
-        const pedidosCollection = collection(firestore, 'pedidos');
+        const pedidosCollection = collection(firestore, 'users', user.uid, 'pedidos');
         const docRef = await addDoc(pedidosCollection, docData);
 
         const newOrderForClient: Order = {
@@ -638,5 +638,3 @@ export function OrderForm() {
     </Card>
   );
 }
-
-    
