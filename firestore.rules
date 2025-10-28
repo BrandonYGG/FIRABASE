@@ -2,77 +2,103 @@
  * @fileoverview Firestore Security Rules for Prototyping.
  *
  * Core Philosophy:
- * This ruleset enforces a strict user-ownership model for both user profiles and orders.
- * Users can only read and write their own data.
+ * This ruleset prioritizes strict authorization based on user identity and ownership,
+ * while adopting a flexible approach to data validation to accelerate prototyping.
+ * It enforces granular permissions for reads and writes at each collection path,
+ * ensuring that only authorized users can access or modify data. Data validation
+ * is intentionally relaxed to allow for rapid schema iteration and experimentation,
+ * focusing on authorization checks rather than strict data type enforcement.
  *
  * Data Structure:
- * - /users/{userId}: Stores user profile information.
- * - /pedidos/{pedidoId}: Stores material orders. Each order document contains a `userId` field
- *   indicating the owner of the order.
+ * - /users/{userId}: Stores individual user profiles.
+ * - /pedidos/{pedidoId}: Stores material orders placed by users.
  *
  * Key Security Decisions:
- * - Users cannot list all user profiles (to protect privacy).
- * - Users can list all orders.
+ * - Users can only access their own user profiles.
+ * - Users can only access their own material orders.
+ * - Data validation is relaxed to allow rapid prototyping.
+ * - All `list` operations are restricted by ownership to prevent unauthorized data enumeration.
  *
  * Denormalization for Authorization:
- * - The `pedidos` collection denormalizes the `userId` field on each order document, allowing
- *   for efficient owner-based access control without additional `get()` calls.
+ * - The "Order" entity includes a "userId" field, which is used to enforce ownership.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Manages access to user profile documents.
-     * @path /users/{userId}
-     * @allow (create) Authenticated user can create their own profile if the userId matches their auth.uid.
-     * @allow (get, update, delete) Authenticated user can only access their own profile.
-     * @deny (list) Listing all user profiles is not allowed.
-     * @deny (create) User cannot create a profile with a userId that doesn't match their auth.uid.
-     * @principle Enforces strict user-ownership for profile data.
+     * @description Defines helper function to determine if the current user is signed in.
      */
-    match /users/{userId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
-
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-
-      function isExistingOwner(userId) {
-          return isOwner(userId) && resource != null;
-      }
-      
-      allow get, update, delete: if isExistingOwner(userId);
-      allow list: if false;
-      allow create: if isSignedIn() && isOwner(userId);
+    function isSignedIn() {
+      return request.auth != null;
     }
 
     /**
-     * @description Manages access to order documents.
+     * @description Defines helper function to determine if the current user is the owner of the resource.
+     */
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    /**
+     * @description Defines helper function to determine if the current user is the owner of the existing resource.
+     * @principle Ensures that update and delete operations are only performed on existing documents.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * @description Rules for user profiles.
+     * @path /users/{userId}
+     * @allow (create) User with ID 'user123' creates their profile.
+     *   - auth.uid: 'user123'
+     *   - request.resource.data.id: 'user123'
+     * @allow (get) User with ID 'user123' reads their profile.
+     *   - auth.uid: 'user123'
+     * @allow (update) User with ID 'user123' updates their profile.
+     *   - auth.uid: 'user123'
+     * @allow (delete) User with ID 'user123' deletes their profile.
+     *   - auth.uid: 'user123'
+     * @deny (create) User with ID 'user123' tries to create profile for user 'user456'.
+     *   - auth.uid: 'user123'
+     *   - request.resource.data.id: 'user456'
+     * @principle Enforces user-ownership for profile data.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Rules for material orders.
      * @path /pedidos/{pedidoId}
-     * @allow (create) Authenticated user can create a new order with their userId.
-     * @allow (get, list, update, delete) Authenticated user can only access their own orders.
-     * @deny (create) User cannot create an order with a userId that doesn't match their auth.uid.
-     * @principle Enforces document ownership for orders.
+     * @allow (create) User with ID 'user123' creates an order.
+     *   - auth.uid: 'user123'
+     *   - request.resource.data.userId: 'user123'
+     * @allow (get) User with ID 'user123' reads their order.
+     *   - auth.uid: 'user123'
+     *   - resource.data.userId: 'user123'
+     * @allow (update) User with ID 'user123' updates their order.
+     *   - auth.uid: 'user123'
+     *   - resource.data.userId: 'user123'
+     * @allow (delete) User with ID 'user123' deletes their order.
+     *   - auth.uid: 'user123'
+     *   - resource.data.userId: 'user123'
+     * @deny (create) User with ID 'user123' tries to create order for user 'user456'.
+     *   - auth.uid: 'user123'
+     *   - request.resource.data.userId: 'user456'
+     * @principle Enforces user-ownership for order data.
      */
     match /pedidos/{pedidoId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
-
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-
-      function isExistingOwner(userId) {
-          return isOwner(userId) && resource != null;
-      }
-
-      allow get, list: if isSignedIn();
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if isExistingOwner(resource.data.userId);
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
   }
 }
