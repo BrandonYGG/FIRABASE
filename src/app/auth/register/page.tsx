@@ -131,6 +131,22 @@ export default function RegisterPage() {
         await handleRegistration(data, 'company');
     }
 
+    const handleUserSession = async (user: User) => {
+        if (!firestore) return;
+        const userRef = doc(firestore, 'users', user.uid);
+        const userDoc = await getDoc(userRef);
+
+        if (!userDoc.exists()) {
+            const userProfile: UserProfile = {
+                email: user.email!,
+                displayName: user.displayName || user.email!, 
+                photoURL: user.photoURL || undefined,
+            };
+            await setDoc(userRef, userProfile, { merge: true });
+        }
+        router.push('/dashboard');
+    }
+
     const handleGoogleSignIn = async () => {
         setIsGoogleLoading(true);
         if (!auth || !firestore) {
@@ -141,23 +157,7 @@ export default function RegisterPage() {
         const provider = new GoogleAuthProvider();
         try {
             const result = await signInWithPopup(auth, provider);
-            const user = result.user;
-            
-            // Check if user already exists in Firestore
-            const userRef = doc(firestore, 'users', user.uid);
-            const userDoc = await getDoc(userRef);
-
-            if (!userDoc.exists()) {
-                 const userProfile: UserProfile = {
-                    email: user.email!,
-                    displayName: user.displayName || user.email!,
-                    role: 'personal',
-                    photoURL: user.photoURL || undefined,
-                };
-                await setDoc(userRef, userProfile);
-            }
-            router.push('/dashboard');
-
+            await handleUserSession(result.user);
         } catch (error: any) {
              toast({
                 variant: "destructive",
@@ -233,17 +233,20 @@ export default function RegisterPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Contraseña</FormLabel>
-                       <div className="relative">
+                       <div className="relative group">
                         <FormControl>
                             <Input type={showPersonalPassword ? "text" : "password"} {...field} className="pr-10" />
                         </FormControl>
                         <button
                             type="button"
                             onClick={() => setShowPersonalPassword(!showPersonalPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active:scale-90"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-transform duration-200 ease-in-out group-hover:scale-110"
                             aria-label={showPersonalPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                         >
-                            {showPersonalPassword ? <EyeOff className="h-5 w-5 transition-transform duration-300 rotate-y-180" /> : <Eye className="h-5 w-5 transition-transform duration-300" />}
+                            {showPersonalPassword 
+                                ? <EyeOff className="h-5 w-5 transition-opacity duration-300 animate-in fade-in" /> 
+                                : <Eye className="h-5 w-5 transition-opacity duration-300 animate-in fade-in" />
+                            }
                         </button>
                        </div>
                       <FormMessage />
@@ -256,17 +259,20 @@ export default function RegisterPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Confirmar Contraseña</FormLabel>
-                      <div className="relative">
+                      <div className="relative group">
                         <FormControl>
                             <Input type={showPersonalConfirmPassword ? "text" : "password"} {...field} className="pr-10" />
                         </FormControl>
                         <button
                             type="button"
                             onClick={() => setShowPersonalConfirmPassword(!showPersonalConfirmPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active:scale-90"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-transform duration-200 ease-in-out group-hover:scale-110"
                             aria-label={showPersonalConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                         >
-                            {showPersonalConfirmPassword ? <EyeOff className="h-5 w-5 transition-transform duration-300 rotate-y-180" /> : <Eye className="h-5 w-5 transition-transform duration-300" />}
+                           {showPersonalConfirmPassword 
+                                ? <EyeOff className="h-5 w-5 transition-opacity duration-300 animate-in fade-in" /> 
+                                : <Eye className="h-5 w-5 transition-opacity duration-300 animate-in fade-in" />
+                            }
                         </button>
                       </div>
                       <FormMessage />
@@ -361,17 +367,20 @@ export default function RegisterPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Contraseña</FormLabel>
-                       <div className="relative">
+                       <div className="relative group">
                         <FormControl>
                             <Input type={showCompanyPassword ? "text" : "password"} {...field} className="pr-10" />
                         </FormControl>
                         <button
                             type="button"
                             onClick={() => setShowCompanyPassword(!showCompanyPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active:scale-90"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-transform duration-200 ease-in-out group-hover:scale-110"
                             aria-label={showCompanyPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                         >
-                            {showCompanyPassword ? <EyeOff className="h-5 w-5 transition-transform duration-300 rotate-y-180" /> : <Eye className="h-5 w-5 transition-transform duration-300" />}
+                            {showCompanyPassword 
+                                ? <EyeOff className="h-5 w-5 transition-opacity duration-300 animate-in fade-in" /> 
+                                : <Eye className="h-5 w-5 transition-opacity duration-300 animate-in fade-in" />
+                            }
                         </button>
                        </div>
                       <FormMessage />
@@ -383,17 +392,20 @@ export default function RegisterPage() {
                   name="confirmPassword"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Confirmar Contraseña</FormLabel>                       <div className="relative">
+                      <FormLabel>Confirmar Contraseña</FormLabel>                       <div className="relative group">
                         <FormControl>
                             <Input type={showCompanyConfirmPassword ? "text" : "password"} {...field} className="pr-10" />
                         </FormControl>
                         <button
                             type="button"
                             onClick={() => setShowCompanyConfirmPassword(!showCompanyConfirmPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active:scale-90"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-transform duration-200 ease-in-out group-hover:scale-110"
                             aria-label={showCompanyConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                         >
-                            {showCompanyConfirmPassword ? <EyeOff className="h-5 w-5 transition-transform duration-300 rotate-y-180" /> : <Eye className="h-5 w-5 transition-transform duration-300" />}
+                            {showCompanyConfirmPassword
+                                ? <EyeOff className="h-5 w-5 transition-opacity duration-300 animate-in fade-in" /> 
+                                : <Eye className="h-5 w-5 transition-opacity duration-300 animate-in fade-in" />
+                            }
                         </button>
                        </div>
                       <FormMessage />

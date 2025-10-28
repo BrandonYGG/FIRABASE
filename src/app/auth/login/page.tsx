@@ -58,7 +58,6 @@ export default function LoginPage() {
             const userProfile: UserProfile = {
                 email: user.email!,
                 displayName: user.displayName || user.email!, 
-                role: 'personal',
                 photoURL: user.photoURL || undefined,
             };
             await setDoc(userRef, userProfile, { merge: true });
@@ -78,8 +77,8 @@ export default function LoginPage() {
             return;
         }
         try {
-            await signInWithEmailAndPassword(auth, data.email, data.password);
-            router.push('/dashboard');
+            const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
+            await handleUserSession(userCredential.user);
         } catch (error: any) {
              let description = "Ocurrió un error inesperado.";
             if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
@@ -162,17 +161,20 @@ export default function LoginPage() {
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Contraseña</FormLabel>
-                                <div className="relative">
+                                <div className="relative group">
                                     <FormControl>
                                         <Input type={showPassword ? "text" : "password"} {...field} />
                                     </FormControl>
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-all duration-300 ease-in-out hover:scale-110 active:scale-90"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-transform duration-200 ease-in-out group-hover:scale-110"
                                         aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                                     >
-                                        {showPassword ? <EyeOff className="h-5 w-5 transition-transform duration-300 rotate-y-180" /> : <Eye className="h-5 w-5 transition-transform duration-300" />}
+                                        {showPassword 
+                                            ? <EyeOff className="h-5 w-5 transition-opacity duration-300 animate-in fade-in" /> 
+                                            : <Eye className="h-5 w-5 transition-opacity duration-300 animate-in fade-in" />
+                                        }
                                     </button>
                                 </div>
                                 <FormMessage />
