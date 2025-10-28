@@ -34,6 +34,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useTheme } from 'next-themes';
 import { useAuth, useUser } from '@/firebase';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardLayout({
   children,
@@ -79,15 +80,18 @@ export default function DashboardLayout({
       { href: '/pedidos/nuevo', label: 'Nuevo Pedido', icon: FilePlus2 },
   ];
   
-  // While user is loading, or if there is no user, show a loading spinner.
-  // The useEffect hook will handle redirection if necessary.
-  if (isUserLoading || !user) {
+  if (isUserLoading) {
     return (
         <div className="flex h-screen items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin" />
         </div>
     );
   }
+  
+  if (!user) {
+    return null; // The useEffect will handle the redirect
+  }
+
 
   return (
     <SidebarProvider>
