@@ -1,4 +1,6 @@
 
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -6,9 +8,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ArrowRight, ListOrdered, Wand2, Building, Zap, Newspaper, ScanLine } from 'lucide-react';
 import Header from '@/components/layout/header';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useEffect, useState } from 'react';
 
 export default function Home() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-construction');
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -170,7 +178,7 @@ export default function Home() {
 
       </main>
       <footer className="py-6 px-4 text-center text-muted-foreground">
-        © {new Date().getFullYear()} OrderFlow Construct. Todos los derechos reservados.
+        © {currentYear} OrderFlow Construct. Todos los derechos reservados.
       </footer>
     </div>
   );
