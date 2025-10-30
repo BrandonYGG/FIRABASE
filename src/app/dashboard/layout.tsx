@@ -27,7 +27,7 @@ import {
   SidebarTrigger,
   SidebarFooter
 } from '@/components/ui/sidebar';
-import { Construction, LayoutDashboard, ListOrdered, FilePlus2, LogOut, Settings, CalendarIcon, Moon, Sun, Loader2 } from 'lucide-react';
+import { Construction, LayoutDashboard, ListOrdered, FilePlus2, LogOut, Settings, CalendarIcon, Moon, Sun, Loader2, Database } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
@@ -77,6 +77,7 @@ export default function DashboardLayout({
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/pedidos', label: 'Mis Pedidos', icon: ListOrdered },
       { href: '/pedidos/nuevo', label: 'Nuevo Pedido', icon: FilePlus2 },
+      { href: '/dashboard/database', label: 'Base de Datos', icon: Database },
   ];
   
   if (isUserLoading || !user) {
