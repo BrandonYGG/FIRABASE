@@ -1,11 +1,17 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowRight, ListOrdered, Wand2, Building, Zap, Newspaper, ScanLine } from 'lucide-react';
-import Header from '@/components/layout/header';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const Header = dynamic(() => import('@/components/layout/header'), {
+  loading: () => <header className="sticky top-0 z-50 w-full border-b h-14"><Skeleton className="h-full w-full" /></header>
+});
+
 
 export default function Home() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-construction');
@@ -79,99 +85,13 @@ export default function Home() {
                     </p>
                   </CardContent>
                 </Card>
-                <Card className="hover:shadow-lg transition-shadow duration-300 text-left">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Building className="text-primary" />
-                      Gestión para Empresas
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>
-                        Registra tu empresa y gestiona los pedidos de múltiples obras y solicitantes desde una única cuenta.
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card className="hover:shadow-lg transition-shadow duration-300 text-left">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <ScanLine className="text-primary" />
-                      Interfaz Intuitiva
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>
-                        Diseñada para ser fácil de usar en cualquier dispositivo, permitiéndote gestionar tus pedidos sin complicaciones.
-                    </p>
-                  </CardContent>
-                </Card>
             </div>
         </section>
-
-        <section id="ai-features" className="bg-background/50">
-            <div className="container mx-auto px-4 py-16 md:py-24">
-                <div className="grid md:grid-cols-2 gap-12 items-center">
-                    <div>
-                        <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Potenciado por Inteligencia Artificial</h2>
-                        <p className="text-muted-foreground text-lg mb-6">
-                            Nuestra IA trabaja para ti, optimizando la logística y ofreciéndote información valiosa para tomar mejores decisiones.
-                        </p>
-                        <Card className="bg-accent/10 border-accent/20">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Wand2 className="text-accent"/>
-                                    Análisis de Urgencia Inteligente
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <p>
-                                    Al crear un pedido, nuestra IA analiza el rango de fechas de entrega y lo clasifica automáticamente como <span className="font-bold text-destructive">Urgente</span>, <span className="font-bold text-yellow-600">Pronto</span> o <span className="font-bold text-green-700">Normal</span>. Además, te proporciona sugerencias para planificar la logística, confirmar la disponibilidad de proveedores y optimizar costos de envío.
-                                </p>
-                            </CardContent>
-                        </Card>
-                    </div>
-                    <div>
-                         {heroImage && (
-                            <Image
-                            src="https://picsum.photos/seed/2/600/400"
-                            alt="AI helping in construction management"
-                            width={600}
-                            height={400}
-                            className="rounded-lg shadow-xl"
-                            data-ai-hint="artificial intelligence construction"
-                            />
-                        )}
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="news" className="container mx-auto px-4 py-16 md:py-24 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Últimas Novedades</h2>
-             <p className="max-w-3xl mx-auto text-muted-foreground text-lg mb-12">
-                Estamos en constante mejora para ofrecerte la mejor herramienta de gestión.
-            </p>
-            <Card className="max-w-2xl mx-auto text-left">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Newspaper className="text-primary"/>
-                        Lanzamiento de la Plataforma
-                    </CardTitle>
-                    <CardDescription>
-                        Octubre 2025
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <p>
-                        ¡Estamos emocionados de lanzar la primera versión de OrderFlow Construct! Ahora puedes registrar tus pedidos, gestionar tu historial y aprovechar las primeras funcionalidades de nuestra inteligencia artificial. ¡Próximamente integraremos más características para ti!
-                    </p>
-                </CardContent>
-            </Card>
-        </section>
-
       </main>
-      <footer className="py-6 px-4 text-center text-muted-foreground">
-        © {currentYear} OrderFlow Construct. Todos los derechos reservados.
+      <footer className="bg-background border-t">
+        <div className="container mx-auto px-4 py-6 text-center text-muted-foreground">
+            <p>&copy; {currentYear} OrderFlow Construct. Todos los derechos reservados.</p>
+        </div>
       </footer>
     </div>
   );
