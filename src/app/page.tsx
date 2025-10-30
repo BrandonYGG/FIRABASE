@@ -1,9 +1,11 @@
 
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowRight, ListOrdered, Zap, Building, Smartphone, BrainCircuit, Gauge } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowRight, ListOrdered, Zap, Building, Smartphone } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Header from '@/components/layout/header';
 
@@ -115,21 +117,13 @@ export default function Home() {
                     <div>
                         <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Potenciado por Inteligencia Artificial</h2>
                         <p className="text-muted-foreground text-lg mb-6">
-                            Nuestra IA trabaja para ti, optimizando la logística y ofreciéndote información valiosa para tomar mejores decisiones.
+                            Nuestra IA trabaja para ti, optimizando la logística y ofreciéndote información valiosa para tomar mejores decisiones. Al crear un pedido, nuestra IA analiza el rango de fechas de entrega y lo clasifica automáticamente para darte sugerencias de planificación.
                         </p>
-                        <Card className="bg-background">
-                          <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                              <Gauge className="text-primary" />
-                              Análisis de Urgencia Inteligente
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <p>
-                              Al crear un pedido, nuestra IA analiza el rango de fechas de entrega y lo clasifica automáticamente como Urgente, Pronto o Normal. Además, te proporciona sugerencias para planificar la logística, confirmar la disponibilidad de proveedores y optimizar costos de envío.
-                            </p>
-                          </CardContent>
-                        </Card>
+                        <Button asChild>
+                           <Link href="/auth/register">
+                            Empezar Ahora <ArrowRight className="ml-2" />
+                           </Link>
+                        </Button>
                     </div>
                     <div className="relative aspect-video rounded-lg overflow-hidden shadow-lg">
                         {aiImage && (
@@ -146,32 +140,10 @@ export default function Home() {
             </div>
         </section>
 
-        <section id="news" className="container mx-auto px-4 py-16 md:py-24 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-12">Últimas Novedades</h2>
-            <div className="relative max-w-2xl mx-auto">
-                <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-border -translate-x-1/2"></div>
-                <div className="relative">
-                    <div className="mb-8 flex justify-between items-center w-full">
-                        <div className="order-1 w-5/12"></div>
-                        <div className="z-20 flex items-center order-1 bg-primary shadow-xl w-8 h-8 rounded-full">
-                            <h3 className="mx-auto font-semibold text-lg text-primary-foreground">1</h3>
-                        </div>
-                        <Card className="order-1 w-5/12 p-4 text-left">
-                            <p className="text-sm text-muted-foreground">Octubre 2025</p>
-                            <h4 className="font-bold mb-1">Lanzamiento de la Plataforma</h4>
-                            <p className="text-sm">
-                                ¡Estamos emocionados de lanzar la primera versión de OrderFlow Construct! Ahora puedes registrar tus pedidos, gestionar tu historial y aprovechar las primeras funcionalidades de nuestra inteligencia artificial. ¡Próximamente integraremos más características para ti!
-                            </p>
-                        </Card>
-                    </div>
-                </div>
-            </div>
-        </section>
-
       </main>
       <footer className="bg-background border-t">
         <div className="container mx-auto px-4 py-6 text-center text-muted-foreground">
-            <p>&copy; 2025 OrderFlow Construct. Todos los derechos reservados.</p>
+            <p>&copy; {currentYear} OrderFlow Construct. Todos los derechos reservados.</p>
         </div>
       </footer>
     </div>
