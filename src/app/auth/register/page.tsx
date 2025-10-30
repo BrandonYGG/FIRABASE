@@ -140,7 +140,8 @@ export default function RegisterPage() {
              // New user from Google Sign In, create profile with default role
             const userProfile: UserProfile = {
                 email: user.email!,
-                displayName: user.displayName || user.email!, 
+                // Use email prefix as a fallback for displayName
+                displayName: user.displayName || user.email!.split('@')[0], 
                 photoURL: user.photoURL || undefined,
                 role: 'personal', // Assign default role
             };
