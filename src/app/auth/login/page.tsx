@@ -55,12 +55,27 @@ export default function LoginPage() {
         const userDoc = await getDoc(userRef);
 
         if (!userDoc.exists()) {
+            // New user from Google Sign In, create profile with default role
             const userProfile: UserProfile = {
                 email: user.email!,
-                displayName: user.displayName || user.email!, 
+                displayName: user.displayName || user.email!,
                 photoURL: user.photoURL || undefined,
+                role: 'personal', // Assign default role
             };
             await setDoc(userRef, userProfile, { merge: true });
+        } else {
+            // Existing user, check if displayName or photoURL needs an update from Google profile
+            const existingData = userDoc.data() as UserProfile;
+            const updates: Partial<UserProfile> = {};
+            if (user.displayName && user.displayName !== existingData.displayName) {
+                updates.displayName = user.displayName;
+            }
+            if (user.photoURL && user.photoURL !== existingData.photoURL) {
+                updates.photoURL = user.photoURL;
+            }
+            if (Object.keys(updates).length > 0) {
+                await setDoc(userRef, updates, { merge: true });
+            }
         }
         router.push('/dashboard');
     }
@@ -78,7 +93,8 @@ export default function LoginPage() {
         }
         try {
             const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
-            await handleUserSession(userCredential.user);
+            // Login with email doesn't create a new user, so a simple redirect is fine
+            router.push('/dashboard');
         } catch (error: any) {
              let description = "Ocurrió un error inesperado.";
             if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {

@@ -137,10 +137,12 @@ export default function RegisterPage() {
         const userDoc = await getDoc(userRef);
 
         if (!userDoc.exists()) {
+             // New user from Google Sign In, create profile with default role
             const userProfile: UserProfile = {
                 email: user.email!,
                 displayName: user.displayName || user.email!, 
                 photoURL: user.photoURL || undefined,
+                role: 'personal', // Assign default role
             };
             await setDoc(userRef, userProfile, { merge: true });
         }
