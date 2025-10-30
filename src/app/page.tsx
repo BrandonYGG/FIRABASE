@@ -31,7 +31,7 @@ export default function Home() {
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
               OrderFlow Construct
             </h1>
-            <p className="mt-4 max-w-2xl mx-auto text-lg md:text-xl text-primary-foreground/90">
+            <p className="mt-4 max-w-2xl mx-auto text-lg md:text-xl text-white">
               Digitalizando la gestión de materiales para su obra.
             </p>
              <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
