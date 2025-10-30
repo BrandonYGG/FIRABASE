@@ -9,6 +9,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { addDoc, collection, Timestamp } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -36,7 +37,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import mxLocations from '@/lib/data/mx-locations.json';
 import { Textarea } from '../ui/textarea';
 import { generateOrderPdf } from '@/lib/pdf-generator';
-import { useUser, useFirestore } from '@/firebase';
+import { useUser, useFirestore, useStorage, errorEmitter, FirestorePermissionError } from '@/firebase';
 
 type OrderFormValues = z.infer<typeof OrderFormSchema>;
 
@@ -63,6 +64,7 @@ export function OrderForm() {
   const { toast } = useToast();
   const { user } = useUser();
   const firestore = useFirestore();
+  const storage = useStorage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [date, setDate] = useState<DateRange | undefined>();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -113,68 +115,118 @@ export function OrderForm() {
   }, [date]);
 
 
+  const uploadFile = async (file: File, orderId: string, type: 'ine' | 'comprobante') => {
+      if (!user || !storage) return null;
+      const filePath = `orders/${user.uid}/${orderId}/${type}-${file.name}`;
+      const fileRef = ref(storage, filePath);
+      const uploadResult = await uploadBytes(fileRef, file);
+      return getDownloadURL(uploadResult.ref);
+  };
+
   async function onSubmit(data: OrderFormValues) {
-    if (!user) {
-        toast({
-            variant: 'destructive',
-            title: 'Error de autenticación',
-            description: 'Debe iniciar sesión para crear un pedido.',
-        });
-        return;
-    }
-    if (!firestore) {
-        toast({
-            variant: 'destructive',
-            title: 'Error de base de datos',
-            description: 'No se pudo conectar a la base de datos.',
-        });
-        return;
-    }
-    setIsSubmitting(true);
-    
-    // Create a serializable copy of the data, excluding file inputs
-    const { ine, comprobanteDomicilio, ...serializableData } = data;
+      if (!user || !firestore) {
+          toast({
+              variant: 'destructive',
+              title: 'Error de autenticación/base de datos',
+              description: 'No se pudo crear el pedido. Verifique su sesión.',
+          });
+          return;
+      }
 
-    try {
-        const docData = {
-            ...serializableData,
-            userId: user.uid, 
-            fechaMinEntrega: Timestamp.fromDate(serializableData.fechaMinEntrega),
-            fechaMaxEntrega: Timestamp.fromDate(serializableData.fechaMaxEntrega),
-            createdAt: Timestamp.now(),
-            status: 'Pendiente' as const,
-        };
+      setIsSubmitting(true);
 
-        const pedidosCollection = collection(firestore, 'users', user.uid, 'pedidos');
-        const docRef = await addDoc(pedidosCollection, docData);
+      const tempId = `temp_${Date.now()}`;
+      const { ine, comprobanteDomicilio, ...serializableData } = data;
+      
+      const newOrderForClient: Order = {
+          id: tempId,
+          ...serializableData,
+          userId: user.uid,
+          fechaMinEntrega: serializableData.fechaMinEntrega,
+          fechaMaxEntrega: serializableData.fechaMaxEntrega,
+          createdAt: new Date(),
+          status: 'Pendiente',
+          ineUrl: '',
+          comprobanteDomicilioUrl: ''
+      };
+      
+      const docData: any = {
+        ...serializableData,
+        userId: user.uid, 
+        fechaMinEntrega: Timestamp.fromDate(serializableData.fechaMinEntrega),
+        fechaMaxEntrega: Timestamp.fromDate(serializableData.fechaMaxEntrega),
+        createdAt: Timestamp.now(),
+        status: 'Pendiente' as const,
+      };
 
-        const newOrderForClient: Order = {
-            id: docRef.id,
-            ...serializableData,
-            userId: user.uid,
-            fechaMinEntrega: serializableData.fechaMinEntrega,
-            fechaMaxEntrega: serializableData.fechaMaxEntrega,
-            createdAt: docData.createdAt.toDate(),
-            status: docData.status,
-        };
+      // Optimistic UI update
+      setLastSubmittedOrder(newOrderForClient);
+      setIsSubmitting(false);
 
-        toast({
-            title: 'Éxito',
-            description: 'Pedido creado con éxito.',
-        });
-        
-        setLastSubmittedOrder(newOrderForClient);
+      const pedidosCollection = collection(firestore, 'users', user.uid, 'pedidos');
 
-    } catch (error) {
-        console.error('Error creating order:', error);
-        toast({
-            variant: 'destructive',
-            title: 'Error al crear el pedido',
-            description: 'No se pudo crear el pedido. Por favor, revise la consola para más detalles.',
-        });
-    } finally {
-        setIsSubmitting(false);
-    }
+      addDoc(pedidosCollection, docData)
+      .then(async (docRef) => {
+          let ineUrl, comprobanteDomicilioUrl;
+          
+          if (data.tipoPago === 'Credito' && storage) {
+              try {
+                  if (ine?.[0]) {
+                      ineUrl = await uploadFile(ine[0], docRef.id, 'ine');
+                  }
+                  if (comprobanteDomicilio?.[0]) {
+                      comprobanteDomicilioUrl = await uploadFile(comprobanteDomicilio[0], docRef.id, 'comprobante');
+                  }
+
+                  const updateData: { ineUrl?: string, comprobanteDomicilioUrl?: string } = {};
+                  if (ineUrl) updateData.ineUrl = ineUrl;
+                  if (comprobanteDomicilioUrl) updateData.comprobanteDomicilioUrl = comprobanteDomicilioUrl;
+                  
+                  if(Object.keys(updateData).length > 0) {
+                      // This is a fire-and-forget update. We don't await it.
+                      // updateDoc(docRef, updateData);
+                  }
+              } catch (uploadError) {
+                  console.error("Error subiendo archivos:", uploadError);
+                  toast({
+                      variant: 'destructive',
+                      title: 'Error de subida',
+                      description: 'El pedido se creó, pero no se pudieron subir los archivos adjuntos.',
+                  });
+              }
+          }
+          
+          // Update the optimistic UI with the final data
+          setLastSubmittedOrder(prev => prev ? {
+              ...prev,
+              id: docRef.id,
+              ineUrl,
+              comprobanteDomicilioUrl
+          } : null);
+
+          toast({
+              title: 'Éxito',
+              description: 'Pedido creado con éxito.',
+          });
+      })
+      .catch(error => {
+          console.error('Error creating order:', error);
+          const permissionError = new FirestorePermissionError({
+              path: `users/${user.uid}/pedidos`,
+              operation: 'create',
+              requestResourceData: docData,
+          });
+          errorEmitter.emit('permission-error', permissionError);
+
+          // Revert optimistic UI
+          setLastSubmittedOrder(null);
+
+          toast({
+              variant: 'destructive',
+              title: 'Error al crear el pedido',
+              description: 'No se pudo guardar el pedido en la base de datos.',
+          });
+      });
   }
 
   const handleDownload = () => {
@@ -189,7 +241,7 @@ export function OrderForm() {
   };
 
 
-  if (lastSubmittedOrder) {
+  if (lastSubmittedOrder && !isSubmitting) {
     return (
         <Card className="max-w-4xl mx-auto text-center">
             <CardHeader>
@@ -592,7 +644,7 @@ export function OrderForm() {
                                     <Input 
                                         type="file" 
                                         accept="image/jpeg,image/png,image/webp,application/pdf"
-                                        onChange={(e) => onChange(e.target.files)} 
+                                        onChange={(e) => onChange(e.target.files?.[0] ? e.target.files : null)} 
                                         {...rest}
                                     />
                                 </FormControl>
@@ -613,7 +665,7 @@ export function OrderForm() {
                                     <Input 
                                         type="file" 
                                         accept="image/jpeg,image/png,image/webp,application/pdf"
-                                        onChange={(e) => onChange(e.target.files)}
+                                        onChange={(e) => onChange(e.target.files?.[0] ? e.target.files : null)}
                                         {...rest} 
                                     />
                                 </FormControl>
@@ -638,3 +690,5 @@ export function OrderForm() {
     </Card>
   );
 }
+
+    

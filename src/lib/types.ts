@@ -71,7 +71,7 @@ export const OrderFormSchema = z.object({
 })
 .refine(data => {
     if (data.tipoPago === 'Credito') {
-        return data.ine !== undefined && data.ine !== null && data.ine.length > 0;
+        return data.ine !== undefined && data.ine !== null && data.ine instanceof FileList && data.ine.length > 0;
     }
     return true;
 }, {
@@ -80,7 +80,7 @@ export const OrderFormSchema = z.object({
 })
 .refine(data => {
     if (data.tipoPago === 'Credito') {
-        return data.comprobanteDomicilio !== undefined && data.comprobanteDomicilio !== null && data.comprobanteDomicilio.length > 0;
+        return data.comprobanteDomicilio !== undefined && data.comprobanteDomicilio !== null && data.comprobanteDomicilio instanceof FileList && data.comprobanteDomicilio.length > 0;
     }
     return true;
 }, {
@@ -108,6 +108,8 @@ interface BaseOrder {
   status: keyof typeof OrderStatus;
   total: number;
   materiales: MaterialItem[];
+  ineUrl?: string;
+  comprobanteDomicilioUrl?: string;
 }
 
 export interface Order extends BaseOrder {
@@ -130,3 +132,5 @@ export interface UserProfile {
     rfc?: string;
     phone?: string;
 }
+
+    

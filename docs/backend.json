@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Order": {
@@ -52,6 +53,16 @@
         "userId": {
           "type": "string",
           "description": "Reference to the User that created the order. (Relationship: User 1:N Order)"
+        },
+        "ineUrl": {
+          "type": "string",
+          "description": "URL of the uploaded INE document for credit applications.",
+          "format": "uri"
+        },
+        "comprobanteDomicilioUrl": {
+          "type": "string",
+          "description": "URL of the uploaded proof of address document for credit applications.",
+          "format": "uri"
         }
       },
       "required": [
