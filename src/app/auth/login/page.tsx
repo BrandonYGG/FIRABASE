@@ -21,9 +21,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useAuth, useFirestore } from '@/firebase';
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, User } from "firebase/auth";
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, type User } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
-import { UserProfile } from "@/lib/types";
+import type { UserProfile } from "@/lib/types";
 
 const LoginSchema = z.object({
   email: z.string().email({ message: 'Por favor, ingrese un correo electrónico válido.' }),
