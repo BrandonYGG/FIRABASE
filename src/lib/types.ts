@@ -4,7 +4,7 @@ import type { Timestamp } from 'firebase/firestore';
 
 export const PaymentType = {
   Efectivo: 'Efectivo',
-  Credito: 'Credito',
+  Tarjeta: 'Tarjeta',
 } as const;
 
 export const CreditFrequency = {
@@ -61,7 +61,7 @@ export const OrderFormSchema = z.object({
     message: 'La fecha máxima no puede ser anterior a la fecha mínima.',
     path: ['fechaMaxEntrega'],
 }).refine(data => {
-    if (data.tipoPago === 'Credito') {
+    if (data.tipoPago === 'Tarjeta') {
         return !!data.frecuenciaCredito;
     }
     return true;
@@ -70,7 +70,7 @@ export const OrderFormSchema = z.object({
     path: ['frecuenciaCredito'],
 })
 .refine(data => {
-    if (data.tipoPago === 'Credito') {
+    if (data.tipoPago === 'Tarjeta') {
         return data.ine !== undefined && data.ine !== null && data.ine instanceof FileList && data.ine.length > 0;
     }
     return true;
@@ -79,7 +79,7 @@ export const OrderFormSchema = z.object({
     path: ['ine'],
 })
 .refine(data => {
-    if (data.tipoPago === 'Credito') {
+    if (data.tipoPago === 'Tarjeta') {
         return data.comprobanteDomicilio !== undefined && data.comprobanteDomicilio !== null && data.comprobanteDomicilio instanceof FileList && data.comprobanteDomicilio.length > 0;
     }
     return true;

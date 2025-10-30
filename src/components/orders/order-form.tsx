@@ -169,7 +169,7 @@ export function OrderForm() {
       .then(async (docRef) => {
           let ineUrl, comprobanteDomicilioUrl;
           
-          if (data.tipoPago === 'Credito' && storage) {
+          if (data.tipoPago === 'Tarjeta' && storage) {
               try {
                   if (ine?.[0]) {
                       ineUrl = await uploadFile(ine[0], docRef.id, 'ine');
@@ -610,7 +610,7 @@ export function OrderForm() {
                 )}
                 />
 
-                {tipoPago === 'Credito' && (
+                {tipoPago === 'Tarjeta' && (
                 <div className="flex flex-col space-y-8 border-l-4 border-primary pl-4 animate-in fade-in-50">
                     <FormField
                     control={form.control}

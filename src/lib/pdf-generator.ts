@@ -30,7 +30,7 @@ export function generateOrderPdf(order: Order) {
     { title: 'Solicitante:', content: order.solicitante },
     { title: 'Dirección de Entrega:', content: fullAddress },
     { title: 'Fechas de Entrega:', content: deliveryDate },
-    { title: 'Forma de Pago:', content: `${order.tipoPago}${order.tipoPago === 'Credito' && order.frecuenciaCredito ? ` (${order.frecuenciaCredito})` : ''}` },
+    { title: 'Forma de Pago:', content: `${order.tipoPago}${order.tipoPago === 'Tarjeta' && order.frecuenciaCredito ? ` (${order.frecuenciaCredito})` : ''}` },
   ];
 
   doc.autoTable({

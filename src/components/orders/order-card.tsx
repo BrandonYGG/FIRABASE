@@ -46,10 +46,10 @@ export function OrderCard({ order }: OrderCardProps) {
           </span>
         </div>
         <div className="flex items-center">
-          {order.tipoPago === 'Credito' ? <CreditCard className="mr-2 h-4 w-4 text-muted-foreground" /> : <Wallet className="mr-2 h-4 w-4 text-muted-foreground" />}
+          {order.tipoPago === 'Tarjeta' ? <CreditCard className="mr-2 h-4 w-4 text-muted-foreground" /> : <Wallet className="mr-2 h-4 w-4 text-muted-foreground" />}
           <span>
             <span className="font-semibold">Pago:</span> {order.tipoPago}
-            {order.tipoPago === 'Credito' && ` (${order.frecuenciaCredito})`}
+            {order.tipoPago === 'Tarjeta' && ` (${order.frecuenciaCredito})`}
           </span>
         </div>
          <div className="flex items-start">
