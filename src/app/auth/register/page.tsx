@@ -145,14 +145,14 @@ export default function RegisterPage() {
                 photoURL: user.photoURL || undefined,
                 role: 'personal', // Assign default role
             };
-            await setDoc(userRef, userProfile, { merge: true });
+            await setDoc(userRef, userProfile);
         }
         router.push('/dashboard');
     }
 
     const handleGoogleSignIn = async () => {
         setIsGoogleLoading(true);
-        if (!auth || !firestore) {
+        if (!auth) {
             toast({ variant: 'destructive', title: 'Error de configuración', description: 'El servicio de autenticación no está disponible.' });
             setIsGoogleLoading(false);
             return;

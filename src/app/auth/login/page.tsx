@@ -63,7 +63,7 @@ export default function LoginPage() {
                 photoURL: user.photoURL || undefined,
                 role: 'personal', // Assign default role
             };
-            await setDoc(userRef, userProfile, { merge: true });
+            await setDoc(userRef, userProfile);
         } else {
             // Existing user, check if displayName or photoURL needs an update from Google profile
             const existingData = userDoc.data() as UserProfile;
