@@ -1,17 +1,11 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowRight, ListOrdered, Wand2, Building, Zap, Newspaper, ScanLine } from 'lucide-react';
+import { ArrowRight, ListOrdered, Zap } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Skeleton } from '@/components/ui/skeleton';
-
-const Header = dynamic(() => import('@/components/layout/header'), {
-  loading: () => <header className="sticky top-0 z-50 w-full border-b h-14"><Skeleton className="h-full w-full" /></header>
-});
-
+import Header from '@/components/layout/header';
 
 export default function Home() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-construction');
