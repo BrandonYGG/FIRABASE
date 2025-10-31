@@ -11,7 +11,6 @@ import Header from '@/components/layout/header';
 
 export default function Home() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-construction');
-  const aiImage = PlaceHolderImages.find(p => p.id === 'ai-construction');
   const currentYear = new Date().getFullYear();
 
   return (
@@ -55,7 +54,7 @@ export default function Home() {
             <p className="max-w-3xl mx-auto text-muted-foreground text-lg mb-12">
                 Desde la solicitud hasta la entrega, OrderFlow Construct centraliza y simplifica cada paso del proceso de adquisición de materiales.
             </p>
-            <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
                 <Card className="hover:shadow-lg transition-shadow duration-300 text-left">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -110,36 +109,6 @@ export default function Home() {
                 </Card>
             </div>
         </section>
-
-        <section id="ai-features" className="bg-muted/40">
-            <div className="container mx-auto px-4 py-16 md:py-24">
-                <div className="grid md:grid-cols-2 gap-12 items-center">
-                    <div>
-                        <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Potenciado por Inteligencia Artificial</h2>
-                        <p className="text-muted-foreground text-lg mb-6">
-                            Nuestra IA trabaja para ti, optimizando la logística y ofreciéndote información valiosa para tomar mejores decisiones. Al crear un pedido, nuestra IA analiza el rango de fechas de entrega y lo clasifica automáticamente para darte sugerencias de planificación.
-                        </p>
-                        <Button asChild>
-                           <Link href="/auth/register">
-                            Empezar Ahora <ArrowRight className="ml-2" />
-                           </Link>
-                        </Button>
-                    </div>
-                    <div className="relative aspect-video rounded-lg overflow-hidden shadow-lg">
-                        {aiImage && (
-                            <Image 
-                                src={aiImage.imageUrl}
-                                alt={aiImage.description}
-                                fill
-                                className="object-cover"
-                                data-ai-hint={aiImage.imageHint}
-                            />
-                        )}
-                    </div>
-                </div>
-            </div>
-        </section>
-
       </main>
       <footer className="bg-background border-t">
         <div className="container mx-auto px-4 py-6 text-center text-muted-foreground">
