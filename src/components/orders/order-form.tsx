@@ -147,6 +147,10 @@ export function OrderForm() {
             status: 'Pendiente' as const,
         };
 
+        if (docData.frecuenciaCredito === null || docData.frecuenciaCredito === undefined) {
+          delete docData.frecuenciaCredito;
+        }
+
         const pedidosCollection = collection(firestore, 'users', user.uid, 'pedidos');
         const docRef = await addDoc(pedidosCollection, docData);
 
@@ -686,3 +690,4 @@ export function OrderForm() {
   );
 }
 
+    
