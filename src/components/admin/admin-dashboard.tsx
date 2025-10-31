@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, orderBy, getDocs, collectionGroup } from 'firebase/firestore';
+import { collection, query, orderBy } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { UserProfileWithId, OrderFirestore, Order } from '@/lib/types';
@@ -217,5 +217,3 @@ export function AdminDashboard() {
         </div>
     )
 }
-
-    
