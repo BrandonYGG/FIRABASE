@@ -405,7 +405,7 @@ export function OrderForm() {
                         <FormItem>
                         <FormLabel>Código Postal</FormLabel>
                         <FormControl>
-                            <Input placeholder="Ej. 50000" {...field} />
+                            <Input type="number" placeholder="Ej. 50000" {...field} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
