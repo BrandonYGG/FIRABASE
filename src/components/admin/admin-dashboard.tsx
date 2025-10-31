@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { OrderCard } from '../orders/order-card';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Frown, Users, ListOrdered, DollarSign, FileClock } from 'lucide-react';
-import { useCollectionGroup } from '../hooks/use-collection-group';
+import { useCollectionGroup } from '@/firebase/hooks/use-collection-group';
 
 function UserOrders({ userId }: { userId: string }) {
     const firestore = useFirestore();
@@ -107,9 +107,9 @@ export function AdminDashboard() {
             totalOrders: allOrders.length,
             totalAmount,
             pendingOrders,
-            totalUsers: users.length > 0 ? users.length - 1 : 0 // Exclude admin
+            totalUsers: users.length > 0 ? users.filter(u => u.id !== adminUser?.uid).length : 0
         };
-    }, [allOrders, users]);
+    }, [allOrders, users, adminUser]);
 
     const isLoading = usersLoading || ordersLoading;
     const error = usersError || ordersError;
@@ -200,3 +200,5 @@ export function AdminDashboard() {
         </div>
     )
 }
+
+    
