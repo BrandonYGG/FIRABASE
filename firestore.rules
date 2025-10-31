@@ -34,10 +34,10 @@ service cloud.firestore {
 
     // Rules for the 'pedidos' subcollection within a user's path
     match /users/{userId}/pedidos/{orderId} {
-      // An admin can perform any operation on any order.
-      // A user can perform any operation (read, write, delete) on their own orders.
+      // An admin can read, write, or delete any order.
+      // A user can only perform these actions on their own orders.
       allow read, write, delete: if isAdmin() || isOwner(userId);
-
+    
       // Ensure that when a user creates a new order, the userId in the document
       // matches their authenticated ID. This prevents a user from creating
       // an order on behalf of another user.
