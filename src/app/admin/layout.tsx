@@ -72,6 +72,7 @@ export default function AdminLayout({
 
   const sidebarMenuItems = [
       { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { href: '/admin/pedidos', label: 'Todos los Pedidos', icon: ListOrdered },
   ];
   
   if (isUserLoading || !user) {

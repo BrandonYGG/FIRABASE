@@ -1,6 +1,7 @@
 
 'use client';
 import { useMemo } from 'react';
+import Link from 'next/link';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, orderBy, getDocs, collectionGroup } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -87,7 +88,7 @@ export function AdminDashboard() {
 
     const allOrdersQuery = useMemoFirebase(() => {
         if (!firestore) return null;
-        return collectionGroup(firestore, 'pedidos');
+        return query(collectionGroup(firestore, 'pedidos'), orderBy('createdAt', 'desc'));
     }, [firestore]);
 
     const { data: allOrders, isLoading: ordersLoading, error: ordersError } = useCollectionGroup<OrderFirestore>(allOrdersQuery);
@@ -136,16 +137,18 @@ export function AdminDashboard() {
                         <p className="text-xs text-muted-foreground">Usuarios registrados en la plataforma.</p>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Pedidos Totales</CardTitle>
-                        <ListOrdered className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                         {isLoading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{globalMetrics.totalOrders}</div>}
-                        <p className="text-xs text-muted-foreground">Todos los pedidos registrados.</p>
-                    </CardContent>
-                </Card>
+                 <Link href="/admin/pedidos">
+                    <Card className="hover:bg-muted/50 transition-colors">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Pedidos Totales</CardTitle>
+                            <ListOrdered className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            {isLoading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{globalMetrics.totalOrders}</div>}
+                            <p className="text-xs text-muted-foreground">Todos los pedidos registrados.</p>
+                        </CardContent>
+                    </Card>
+                 </Link>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Monto Global</CardTitle>
@@ -156,49 +159,59 @@ export function AdminDashboard() {
                         <p className="text-xs text-muted-foreground">Suma de todos los pedidos.</p>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Pedidos Pendientes</CardTitle>
-                        <FileClock className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                         {isLoading ? <Skeleton className="h-8 w-1/4" /> : <div className="text-2xl font-bold">{globalMetrics.pendingOrders}</div>}
-                        <p className="text-xs text-muted-foreground">Pedidos esperando acción.</p>
-                    </CardContent>
-                </Card>
+                <Link href={{ pathname: '/admin/pedidos', query: { status: 'Pendiente' } }}>
+                    <Card className="hover:bg-muted/50 transition-colors">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Pedidos Pendientes</CardTitle>
+                            <FileClock className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            {isLoading ? <Skeleton className="h-8 w-1/4" /> : <div className="text-2xl font-bold">{globalMetrics.pendingOrders}</div>}
+                            <p className="text-xs text-muted-foreground">Pedidos esperando acción.</p>
+                        </CardContent>
+                    </Card>
+                </Link>
             </div>
             
-            {isLoading ? (
-                <div className="space-y-4">
-                    {[...Array(3)].map((_, i) => (
-                        <Skeleton key={i} className="h-20 w-full" />
-                    ))}
-                </div>
-            ) : (
-                <Accordion type="single" collapsible className="w-full space-y-2">
-                    {filteredUsers?.map(user => (
-                        <AccordionItem value={user.id} key={user.id} className="border rounded-md bg-card">
-                            <AccordionTrigger className="p-4 hover:no-underline">
-                                <div className="flex items-center gap-4">
-                                    <Avatar>
-                                        <AvatarImage src={user.photoURL || undefined} alt="Avatar" className="object-cover"/>
-                                        <AvatarFallback>{user.displayName?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}</AvatarFallback>
-                                    </Avatar>
-                                    <div className="text-left">
-                                        <p className="font-semibold">{user.displayName || 'Sin Nombre'}</p>
-                                        <p className="text-sm text-muted-foreground">{user.email}</p>
-                                    </div>
-                                </div>
-                            </AccordionTrigger>
-                            <AccordionContent>
-                            <UserOrders userId={user.id} />
-                            </AccordionContent>
-                        </AccordionItem>
-                    ))}
-                </Accordion>
-            )}
+            <Card>
+                 <CardHeader>
+                    <CardTitle>Gestión de Usuarios y Pedidos</CardTitle>
+                    <CardDescription>
+                    Seleccione un usuario para ver y administrar sus pedidos individuales.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {isLoading ? (
+                        <div className="space-y-4">
+                            {[...Array(3)].map((_, i) => (
+                                <Skeleton key={i} className="h-20 w-full" />
+                            ))}
+                        </div>
+                    ) : (
+                        <Accordion type="single" collapsible className="w-full space-y-2">
+                            {filteredUsers?.map(user => (
+                                <AccordionItem value={user.id} key={user.id} className="border rounded-md bg-card hover:bg-muted/50 transition-colors">
+                                    <AccordionTrigger className="p-4 hover:no-underline">
+                                        <div className="flex items-center gap-4">
+                                            <Avatar>
+                                                <AvatarImage src={user.photoURL || undefined} alt="Avatar" className="object-cover"/>
+                                                <AvatarFallback>{user.displayName?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="text-left">
+                                                <p className="font-semibold">{user.displayName || 'Sin Nombre'}</p>
+                                                <p className="text-sm text-muted-foreground">{user.email}</p>
+                                            </div>
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent>
+                                    <UserOrders userId={user.id} />
+                                    </AccordionContent>
+                                </AccordionItem>
+                            ))}
+                        </Accordion>
+                    )}
+                 </CardContent>
+            </Card>
         </div>
     )
 }
-
-    
