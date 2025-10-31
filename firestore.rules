@@ -10,7 +10,9 @@ service cloud.firestore {
 
     // Helper function to check if the user is an admin
     function isAdmin() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      // Check if the user's document exists and if their role is 'admin'
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
     // Rules for the 'users' collection
@@ -23,7 +25,7 @@ service cloud.firestore {
       allow create: if isOwner(userId);
 
       // An admin can update any user's profile
-      // A user can update their own profile, but not change their role
+      // A user can update their own profile, but cannot change their own role
       allow update: if isAdmin() || (isOwner(userId) && request.resource.data.role == resource.data.role);
 
       // Admin can list all users
