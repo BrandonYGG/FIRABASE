@@ -23,6 +23,7 @@ import {
 import { useOrders } from '@/firebase/hooks/use-orders';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Order } from '@/lib/types';
+import { OrdersChart } from '@/components/dashboard/orders-chart';
 
 
 export default function DashboardPage() {
@@ -101,6 +102,17 @@ export default function DashboardPage() {
         </Card>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+         <Card className="col-span-full">
+          <CardHeader>
+            <CardTitle>Actividad Mensual</CardTitle>
+             <CardDescription>
+              Un resumen del monto total de los pedidos por mes.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pl-2">
+             <OrdersChart orders={orders} loading={loading} />
+          </CardContent>
+        </Card>
         <Card className="col-span-full">
           <CardHeader>
             <CardTitle>Pedidos Recientes</CardTitle>
