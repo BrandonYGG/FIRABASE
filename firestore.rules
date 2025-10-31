@@ -8,23 +8,33 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == userId;
     }
 
+    // Helper function to check if the user is an admin
+    function isAdmin() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
     // Rules for the 'users' collection
     match /users/{userId} {
+      // An admin can read any user profile
       // A user can read their own profile
-      allow get: if isOwner(userId);
+      allow get: if isAdmin() || isOwner(userId);
 
       // A user can create their own profile during sign-up
       allow create: if isOwner(userId);
 
-      // A user can update their own profile
-      // We check that they are not trying to change their role
-      allow update: if isOwner(userId) && request.resource.data.role == resource.data.role;
+      // An admin can update any user's profile
+      // A user can update their own profile, but not change their role
+      allow update: if isAdmin() || (isOwner(userId) && request.resource.data.role == resource.data.role);
+
+      // Admin can list all users
+      allow list: if isAdmin();
     }
 
     // Rules for the 'pedidos' subcollection
     match /users/{userId}/pedidos/{orderId} {
+      // An admin can perform any operation on any order
       // A user can perform any operation (read, write, delete) on their own orders
-      allow read, write, delete: if isOwner(userId);
+      allow read, write, delete: if isAdmin() || isOwner(userId);
 
       // Ensure that when creating a new order, the userId in the document
       // matches the authenticated user's ID. This prevents a user from creating

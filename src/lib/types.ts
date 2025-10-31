@@ -1,4 +1,3 @@
-
 import { z } from 'zod';
 import type { Timestamp } from 'firebase/firestore';
 
@@ -36,11 +35,10 @@ export const OrderFormSchema = z.object({
   obra: z.string().min(3, { message: 'El nombre de la obra debe tener al menos 3 caracteres.' }),
   calle: z.string().min(3, { message: 'La calle debe tener al menos 3 caracteres.' }),
   numero: z.preprocess(
-    (val) => (val === "" ? undefined : val),
-    z.coerce.number({
-        required_error: "El número es obligatorio.",
-        invalid_type_error: "El número solo debe contener dígitos.",
-      }).positive("El número debe ser positivo.").optional().or(z.literal(''))
+    (val) => (val === "" ? undefined : String(val)),
+    z.string().refine((val) => /^\d+$/.test(val), {
+        message: "El número solo debe contener dígitos.",
+    }).optional()
   ),
   codigoPostal: z.string().regex(/^\d{5}$/, { message: 'El código postal debe tener 5 dígitos.' }),
   colonia: z.string().min(3, { message: 'La colonia debe tener al menos 3 caracteres.' }),
@@ -130,9 +128,11 @@ export interface OrderFirestore extends BaseOrder {
   createdAt: Timestamp;
 }
 
+export type UserProfileWithId = UserProfile & { id: string };
+
 export interface UserProfile {
     email: string;
-    role: 'personal' | 'company';
+    role: 'personal' | 'company' | 'admin';
     displayName?: string;
     photoURL?: string;
     rfc?: string;

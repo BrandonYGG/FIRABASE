@@ -54,9 +54,11 @@ export default function LoginPage() {
         const userRef = doc(firestore, 'users', user.uid);
         const userDoc = await getDoc(userRef);
 
+        let userProfile: UserProfile | undefined;
+
         if (!userDoc.exists()) {
             // New user from Google Sign In, create profile with default role
-            const userProfile: UserProfile = {
+            userProfile = {
                 email: user.email!,
                 // Use email prefix as a fallback for displayName
                 displayName: user.displayName || user.email!.split('@')[0], 
@@ -67,6 +69,7 @@ export default function LoginPage() {
         } else {
             // Existing user, check if displayName or photoURL needs an update from Google profile
             const existingData = userDoc.data() as UserProfile;
+            userProfile = existingData;
             const updates: Partial<UserProfile> = {};
             if (user.displayName && user.displayName !== existingData.displayName) {
                 updates.displayName = user.displayName;
@@ -78,7 +81,12 @@ export default function LoginPage() {
                 await setDoc(userRef, updates, { merge: true });
             }
         }
-        router.push('/dashboard');
+        
+        if (userProfile?.role === 'admin') {
+            router.push('/admin/dashboard');
+        } else {
+            router.push('/dashboard');
+        }
     }
 
     async function onSubmit(data: LoginValues) {
@@ -94,8 +102,7 @@ export default function LoginPage() {
         }
         try {
             const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
-            // Login with email doesn't create a new user, so a simple redirect is fine
-            router.push('/dashboard');
+            await handleUserSession(userCredential.user);
         } catch (error: any) {
              let description = "Ocurrió un error inesperado.";
             if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
