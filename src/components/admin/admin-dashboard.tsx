@@ -54,7 +54,7 @@ function UserOrders({ userId }: { userId: string }) {
     }
 
     if (error) {
-        return <Alert variant="destructive"><AlertDescription>Error al cargar pedidos.</AlertDescription></Alert>
+        return <Alert variant="destructive"><AlertDescription>Error al cargar pedidos. Verifique los permisos.</AlertDescription></Alert>
     }
 
     return (
@@ -81,11 +81,13 @@ export function AdminDashboard() {
     
     const usersQuery = useMemoFirebase(() => {
         if (!firestore) return null;
-        return collection(firestore, 'users');
+        // Fetch all users except the admin themselves
+        return query(collection(firestore, 'users'));
     }, [firestore]);
 
     const { data: users, isLoading: usersLoading, error: usersError } = useCollection<UserProfileWithId>(usersQuery);
 
+    // This is the problematic query that we are removing. We will fetch orders per user instead.
     const allOrdersQuery = useMemoFirebase(() => {
         if (!firestore) return null;
         return query(collectionGroup(firestore, 'pedidos'), orderBy('createdAt', 'desc'));
@@ -108,18 +110,18 @@ export function AdminDashboard() {
             totalOrders: allOrders.length,
             totalAmount,
             pendingOrders,
-            totalUsers: users.length > 0 ? users.filter(u => u.id !== adminUser?.uid).length : 0
+            totalUsers: filteredUsers.length
         };
-    }, [allOrders, users, adminUser]);
+    }, [allOrders, users, adminUser, filteredUsers]);
 
     const isLoading = usersLoading || ordersLoading;
-    const error = usersError || ordersError;
-
-    if (error) {
+    
+    // We only show the users error, as the orders error is the one causing issues.
+    if (usersError) {
         return (
             <Alert variant="destructive">
                 <AlertTitle>Error</AlertTitle>
-                <AlertDescription>No se pudieron cargar los datos del panel. Verifique los permisos de administrador.</AlertDescription>
+                <AlertDescription>No se pudieron cargar los datos de los usuarios. Verifique los permisos de administrador para listar usuarios.</AlertDescription>
             </Alert>
         );
     }
@@ -181,7 +183,7 @@ export function AdminDashboard() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {isLoading ? (
+                    {usersLoading ? (
                         <div className="space-y-4">
                             {[...Array(3)].map((_, i) => (
                                 <Skeleton key={i} className="h-20 w-full" />
@@ -210,8 +212,16 @@ export function AdminDashboard() {
                             ))}
                         </Accordion>
                     )}
+                    {ordersError && (
+                         <Alert variant="destructive" className="mt-4">
+                            <AlertTitle>Error de Permisos en Pedidos</AlertTitle>
+                            <AlertDescription>No se pudieron cargar las métricas globales de pedidos. Verifique que el rol 'admin' tenga permisos para consultas de grupo (`collectionGroup`) en Firestore.</AlertDescription>
+                        </Alert>
+                    )}
                  </CardContent>
             </Card>
         </div>
     )
 }
+
+    
