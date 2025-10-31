@@ -5,12 +5,14 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowRight, ListOrdered, Zap, Building, Smartphone } from 'lucide-react';
+import { ArrowRight, ListOrdered, Zap, Building, Smartphone, Wand2 } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Header from '@/components/layout/header';
 
 export default function Home() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-construction');
+  const aiImage = PlaceHolderImages.find(p => p.id === 'ai-workspace');
+  const currentYear = new Date().getFullYear();
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -109,15 +111,49 @@ export default function Home() {
             </div>
         </section>
 
-        <section id="news" className="bg-muted py-16 md:py-24">
+        <section id="ai-feature" className="py-16 md:py-24 bg-muted">
+            <div className="container mx-auto px-4">
+                <div className="grid md:grid-cols-2 gap-12 items-center">
+                    <div className="text-left">
+                        <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Potenciado por Inteligencia Artificial</h2>
+                        <p className="text-muted-foreground text-lg mb-8">
+                            Nuestra IA trabaja para ti, optimizando la logística y ofreciéndote información valiosa para tomar mejores decisiones.
+                        </p>
+                        <div className="bg-background/50 border border-border rounded-lg p-6">
+                            <h3 className="flex items-center gap-2 font-semibold text-lg mb-2">
+                                <Wand2 className="h-5 w-5 text-accent" />
+                                Análisis de Urgencia Inteligente
+                            </h3>
+                            <p className="text-muted-foreground">
+                                Al crear un pedido, nuestra IA analiza el rango de fechas de entrega y lo clasifica automáticamente como <span className="font-semibold text-red-500">Urgente</span>, <span className="font-semibold text-yellow-500">Pronto</span> o <span className="font-semibold text-green-600">Normal</span>. Además, te proporciona sugerencias para planificar la logística, confirmar la disponibilidad de proveedores y optimizar costos de envío.
+                            </p>
+                        </div>
+                    </div>
+                     {aiImage && (
+                        <div className="rounded-lg overflow-hidden shadow-2xl">
+                             <Image
+                                src={aiImage.imageUrl}
+                                alt={aiImage.description}
+                                width={600}
+                                height={400}
+                                className="object-cover w-full h-full"
+                                data-ai-hint={aiImage.imageHint}
+                            />
+                        </div>
+                    )}
+                </div>
+            </div>
+        </section>
+
+        <section id="news" className="bg-background py-16 md:py-24">
             <div className="container mx-auto px-4 text-center">
                 <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-12">Últimas Novedades</h2>
                 <div className="relative max-w-2xl mx-auto">
                     <div className="absolute left-1/2 w-0.5 h-full bg-border -translate-x-1/2"></div>
                     <div className="relative">
                         <div className="absolute left-1/2 top-4 w-4 h-4 bg-primary rounded-full border-4 border-background -translate-x-1/2"></div>
-                        <div className="ml-auto md:ml-0 md:w-1/2 md:pl-8 text-left">
-                            <Card className="ml-4 md:ml-0">
+                        <div className="w-full text-left">
+                            <Card className="ml-8 relative">
                                 <CardHeader>
                                     <CardTitle>Lanzamiento de la Plataforma</CardTitle>
                                     <p className="text-sm text-muted-foreground">Octubre 2025</p>
@@ -135,7 +171,7 @@ export default function Home() {
       </main>
       <footer className="bg-background border-t">
         <div className="container mx-auto px-4 py-6 text-center text-muted-foreground">
-            <p>&copy; 2025 OrderFlow Construct. Todos los derechos reservados.</p>
+            <p>&copy; {currentYear} OrderFlow Construct. Todos los derechos reservados.</p>
         </div>
       </footer>
     </div>
