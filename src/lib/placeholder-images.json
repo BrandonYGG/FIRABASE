@@ -8,9 +8,9 @@
     },
     {
       "id": "ai-workspace",
-      "description": "A modern, clean desk setup with a monitor, tablet, and keyboard.",
-      "imageUrl": "https://images.unsplash.com/photo-1587575979269-a8c517f8a9e2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxtb2Rlcm4lMjB3b3Jrc3BhY2V8ZW58MHx8fHwxNzYxODc4NTM3fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "modern workspace"
+      "description": "A robot hand and a human hand about to touch, symbolizing the collaboration between AI and humans.",
+      "imageUrl": "https://images.unsplash.com/photo-1677442135703-1787eea5ce01?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1032",
+      "imageHint": "ai collaboration"
     }
   ]
 }
