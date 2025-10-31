@@ -54,7 +54,7 @@ function UserOrders({ userId }: { userId: string }) {
     }
 
     if (error) {
-        return <Alert variant="destructive"><AlertDescription>Error al cargar pedidos. Verifique los permisos.</AlertDescription></Alert>
+        return <Alert variant="destructive"><AlertDescription>Error al cargar pedidos para este usuario. Verifique los permisos.</AlertDescription></Alert>
     }
 
     return (
@@ -81,47 +81,43 @@ export function AdminDashboard() {
     
     const usersQuery = useMemoFirebase(() => {
         if (!firestore) return null;
-        // Fetch all users except the admin themselves
+        // Fetch all users
         return query(collection(firestore, 'users'));
     }, [firestore]);
 
     const { data: users, isLoading: usersLoading, error: usersError } = useCollection<UserProfileWithId>(usersQuery);
 
-    // This is the problematic query that we are removing. We will fetch orders per user instead.
+    // This is the problematic query that we are removing.
     const allOrdersQuery = useMemoFirebase(() => {
         if (!firestore) return null;
-        return query(collectionGroup(firestore, 'pedidos'), orderBy('createdAt', 'desc'));
+        // The collectionGroup query is causing permission errors and is removed.
+        // We will calculate metrics based on individual user order fetches if needed, or disable them.
+        return null; 
     }, [firestore]);
 
     const { data: allOrders, isLoading: ordersLoading, error: ordersError } = useCollectionGroup<OrderFirestore>(allOrdersQuery);
     
     const filteredUsers = useMemo(() => {
         if (!users || !adminUser) return [];
+        // Filter out the admin from the list of users to display
         return users.filter(user => user.id !== adminUser.uid);
     }, [users, adminUser]);
 
-    const globalMetrics = useMemo(() => {
-        if (!allOrders || !users) return { totalOrders: 0, totalAmount: 0, pendingOrders: 0, totalUsers: 0 };
-        
-        const totalAmount = allOrders.reduce((sum, order) => sum + (order.total || 0), 0);
-        const pendingOrders = allOrders.filter(order => order.status === 'Pendiente').length;
-
-        return {
-            totalOrders: allOrders.length,
-            totalAmount,
-            pendingOrders,
-            totalUsers: filteredUsers.length
-        };
-    }, [allOrders, users, adminUser, filteredUsers]);
-
-    const isLoading = usersLoading || ordersLoading;
+    // Metrics are disabled as they relied on the failing collectionGroup query.
+    const globalMetrics = {
+        totalOrders: 0,
+        totalAmount: 0,
+        pendingOrders: 0,
+        totalUsers: filteredUsers.length
+    };
     
-    // We only show the users error, as the orders error is the one causing issues.
+    const isLoading = usersLoading; // We only care about users loading now.
+    
     if (usersError) {
         return (
             <Alert variant="destructive">
-                <AlertTitle>Error</AlertTitle>
-                <AlertDescription>No se pudieron cargar los datos de los usuarios. Verifique los permisos de administrador para listar usuarios.</AlertDescription>
+                <AlertTitle>Error de Permisos</AlertTitle>
+                <AlertDescription>No se pudieron cargar los datos de los usuarios. Verifique que el rol 'admin' tenga permisos para listar usuarios en las reglas de Firestore.</AlertDescription>
             </Alert>
         );
     }
@@ -142,12 +138,12 @@ export function AdminDashboard() {
                  <Link href="/admin/pedidos">
                     <Card className="hover:bg-muted/50 transition-colors">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Pedidos Totales</CardTitle>
+                            <CardTitle className="text-sm font-medium">Ver Todos los Pedidos</CardTitle>
                             <ListOrdered className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            {isLoading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{globalMetrics.totalOrders}</div>}
-                            <p className="text-xs text-muted-foreground">Todos los pedidos registrados.</p>
+                            <div className="text-2xl font-bold">Ir a la lista</div>
+                            <p className="text-xs text-muted-foreground">Ver y filtrar todos los pedidos.</p>
                         </CardContent>
                     </Card>
                  </Link>
@@ -157,22 +153,20 @@ export function AdminDashboard() {
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                         {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">${globalMetrics.totalAmount.toLocaleString('es-MX')}</div>}
-                        <p className="text-xs text-muted-foreground">Suma de todos los pedidos.</p>
+                         <div className="text-2xl font-bold text-muted-foreground/50">N/A</div>
+                        <p className="text-xs text-muted-foreground">Métrica deshabilitada.</p>
                     </CardContent>
                 </Card>
-                <Link href={{ pathname: '/admin/pedidos', query: { status: 'Pendiente' } }}>
-                    <Card className="hover:bg-muted/50 transition-colors">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Pedidos Pendientes</CardTitle>
-                            <FileClock className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            {isLoading ? <Skeleton className="h-8 w-1/4" /> : <div className="text-2xl font-bold">{globalMetrics.pendingOrders}</div>}
-                            <p className="text-xs text-muted-foreground">Pedidos esperando acción.</p>
-                        </CardContent>
-                    </Card>
-                </Link>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Pedidos Pendientes</CardTitle>
+                        <FileClock className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold text-muted-foreground/50">N/A</div>
+                        <p className="text-xs text-muted-foreground">Métrica deshabilitada.</p>
+                    </CardContent>
+                </Card>
             </div>
             
             <Card>
@@ -212,11 +206,11 @@ export function AdminDashboard() {
                             ))}
                         </Accordion>
                     )}
-                    {ordersError && (
-                         <Alert variant="destructive" className="mt-4">
-                            <AlertTitle>Error de Permisos en Pedidos</AlertTitle>
-                            <AlertDescription>No se pudieron cargar las métricas globales de pedidos. Verifique que el rol 'admin' tenga permisos para consultas de grupo (`collectionGroup`) en Firestore.</AlertDescription>
-                        </Alert>
+                    {filteredUsers.length === 0 && !usersLoading && (
+                         <div className="text-center py-8">
+                            <Frown className="mx-auto h-10 w-10 text-muted-foreground" />
+                            <p className="mt-2 text-sm text-muted-foreground">No hay otros usuarios registrados para mostrar.</p>
+                        </div>
                     )}
                  </CardContent>
             </Card>
