@@ -10,7 +10,7 @@ import { UserProfileWithId, OrderFirestore, Order } from '@/lib/types';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { OrderCard } from '../orders/order-card';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Frown, Users, ListOrdered, DollarSign, FileClock } from 'lucide-react';
 import { useCollectionGroup } from '@/firebase/hooks/use-collection-group';
 
