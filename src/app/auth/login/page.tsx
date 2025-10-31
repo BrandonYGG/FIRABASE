@@ -184,7 +184,15 @@ export default function LoginPage() {
                         name="password"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Contraseña</FormLabel>
+                                <div className="flex justify-between items-center">
+                                  <FormLabel>Contraseña</FormLabel>
+                                  <Link
+                                      href="/auth/restablecer-contrasena"
+                                      className="text-xs text-muted-foreground underline"
+                                  >
+                                      ¿Olvidaste tu contraseña?
+                                  </Link>
+                                </div>
                                 <div className="relative group">
                                     <FormControl>
                                         <Input type={showPassword ? "text" : "password"} {...field} />
