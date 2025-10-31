@@ -1,18 +1,26 @@
 
 import type { Order } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarDays, User, HardHat, CreditCard, Wallet, MapPin, DollarSign, Download } from 'lucide-react';
+import { CalendarDays, User, HardHat, CreditCard, Wallet, MapPin, DollarSign, Download, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { UrgencyBadge } from './urgency-badge';
 import { Button } from '@/components/ui/button';
 import { generateOrderPdf } from '@/lib/pdf-generator';
+import { OrderStatus } from '@/lib/types';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { updateOrderStatus } from '@/firebase/hooks/update-order-status';
+import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
 
 type OrderCardProps = {
   order: Order;
+  isAdminView?: boolean;
 };
 
-export function OrderCard({ order }: OrderCardProps) {
+export function OrderCard({ order, isAdminView = false }: OrderCardProps) {
+  const [isUpdating, setIsUpdating] = useState(false);
+  const { toast } = useToast();
   
   const fullAddress = `${order.calle} ${order.numero}, ${order.colonia}, ${order.ciudad}, ${order.estado}, C.P. ${order.codigoPostal}`;
 
@@ -20,8 +28,30 @@ export function OrderCard({ order }: OrderCardProps) {
     generateOrderPdf(order);
   }
 
+  const handleStatusChange = async (newStatus: string) => {
+    if (newStatus === order.status) return;
+
+    setIsUpdating(true);
+    try {
+        await updateOrderStatus(order.userId, order.id, newStatus as keyof typeof OrderStatus);
+        toast({
+            title: "Estado Actualizado",
+            description: `El pedido de ${order.obra} ahora está ${newStatus}.`
+        })
+    } catch(error) {
+        console.error("Failed to update status: ", error);
+        toast({
+            variant: 'destructive',
+            title: "Error",
+            description: "No se pudo actualizar el estado del pedido."
+        })
+    } finally {
+        setIsUpdating(false);
+    }
+  }
+
   return (
-    <Card className={`transition-all hover:shadow-md`}>
+    <Card className={`transition-all hover:shadow-md flex flex-col`}>
       <CardHeader>
         <div className="flex justify-between items-start">
           <div>
@@ -34,7 +64,7 @@ export function OrderCard({ order }: OrderCardProps) {
           <UrgencyBadge date={order.fechaMaxEntrega} />
         </div>
       </CardHeader>
-      <CardContent className="grid gap-4 text-sm">
+      <CardContent className="grid gap-4 text-sm flex-grow">
         <div className="flex items-center">
           <User className="mr-2 h-4 w-4 text-muted-foreground" />
           <span><span className="font-semibold">Solicitante:</span> {order.solicitante}</span>
@@ -63,11 +93,37 @@ export function OrderCard({ order }: OrderCardProps) {
         </div>
         )}
       </CardContent>
-      <CardFooter className="flex justify-between items-center">
-        <div className="text-xs text-muted-foreground flex items-center">
-            <HardHat className="mr-2 h-4 w-4" />
-            <span>Estado: {order.status}</span>
-        </div>
+      <CardFooter className="flex justify-between items-center bg-muted/50 py-3 px-4 rounded-b-lg">
+        {isAdminView ? (
+             <div className="flex items-center gap-2">
+                <HardHat className="h-4 w-4 text-muted-foreground"/>
+                {isUpdating ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin"/>
+                        <span>Actualizando...</span>
+                    </div>
+                ) : (
+                    <Select onValueChange={handleStatusChange} defaultValue={order.status}>
+                        <SelectTrigger className="w-[150px] h-8 text-xs">
+                            <SelectValue placeholder="Cambiar estado" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {Object.values(OrderStatus).map((status) => (
+                                <SelectItem key={status} value={status} className="text-xs">
+                                    {status}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                )}
+             </div>
+        ) : (
+             <div className="text-xs text-muted-foreground flex items-center">
+                <HardHat className="mr-2 h-4 w-4" />
+                <span>Estado: {order.status}</span>
+            </div>
+        )}
+       
         <Button variant="outline" size="icon" onClick={handleDownload} aria-label="Descargar PDF del pedido">
           <Download className="h-4 w-4" />
         </Button>

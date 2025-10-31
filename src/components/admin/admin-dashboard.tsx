@@ -1,3 +1,4 @@
+
 'use client';
 import { useMemo } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -58,7 +59,7 @@ function UserOrders({ userId }: { userId: string }) {
             {mappedOrders.length > 0 ? (
                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {mappedOrders.map((order) => (
-                        <OrderCard key={order.id} order={order} />
+                        <OrderCard key={order.id} order={order} isAdminView={true} />
                     ))}
                 </div>
             ) : (
