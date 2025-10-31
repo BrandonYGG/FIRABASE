@@ -5,14 +5,38 @@ import { z } from 'zod';
 const hasUpperCase = /(?=.*[A-Z])/;
 const hasNumber = /(?=.*\d)/;
 const hasSpecialChar = /(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/;
-const noConsecutiveChars = /^(?!.*(.)\1)/;
+const noIdenticalConsecutiveChars = /^(?!.*(.)\1)/;
+
+// Custom validation function for sequential characters
+const noSequentialChars = (password: string): boolean => {
+    for (let i = 0; i < password.length - 2; i++) {
+        const char1 = password.charCodeAt(i);
+        const char2 = password.charCodeAt(i + 1);
+        const char3 = password.charCodeAt(i + 2);
+
+        // Check for sequential numbers (e.g., 123, 456)
+        if (char2 === char1 + 1 && char3 === char2 + 1) {
+            return false;
+        }
+        // Check for sequential letters, case-insensitive (e.g., abc, GHI)
+        const lowerChar1 = password[i].toLowerCase().charCodeAt(0);
+        const lowerChar2 = password[i+1].toLowerCase().charCodeAt(0);
+        const lowerChar3 = password[i+2].toLowerCase().charCodeAt(0);
+        if (lowerChar2 === lowerChar1 + 1 && lowerChar3 === lowerChar2 + 1) {
+            return false;
+        }
+    }
+    return true;
+};
+
 
 const passwordSchema = z.string()
     .min(8, { message: 'La contraseña debe tener al menos 8 caracteres.' })
     .regex(hasUpperCase, { message: 'Debe contener al menos una letra mayúscula.' })
     .regex(hasNumber, { message: 'Debe contener al menos un número.' })
     .regex(hasSpecialChar, { message: 'Debe contener al menos un símbolo especial.' })
-    .regex(noConsecutiveChars, { message: 'No debe contener caracteres consecutivos idénticos.' });
+    .regex(noIdenticalConsecutiveChars, { message: 'No debe contener caracteres idénticos consecutivos.' })
+    .refine(noSequentialChars, { message: 'No debe contener secuencias de caracteres (ej. "abc", "123").' });
 
 
 // Schema for Personal Registration
