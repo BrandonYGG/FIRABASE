@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { addDoc, collection, Timestamp } from 'firebase/firestore';
+import { addDoc, collection, Timestamp, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 import { Button } from '@/components/ui/button';
@@ -124,110 +124,97 @@ export function OrderForm() {
   };
 
   async function onSubmit(data: OrderFormValues) {
-      if (!user || !firestore) {
-          toast({
-              variant: 'destructive',
-              title: 'Error de autenticación/base de datos',
-              description: 'No se pudo crear el pedido. Verifique su sesión.',
-          });
-          return;
-      }
+    if (!user || !firestore) {
+        toast({
+            variant: 'destructive',
+            title: 'Error de autenticación/base de datos',
+            description: 'No se pudo crear el pedido. Verifique su sesión.',
+        });
+        return;
+    }
 
-      setIsSubmitting(true);
+    setIsSubmitting(true);
 
-      const tempId = `temp_${Date.now()}`;
-      const { ine, comprobanteDomicilio, ...serializableData } = data;
-      
-      const newOrderForClient: Order = {
-          id: tempId,
-          ...serializableData,
-          userId: user.uid,
-          fechaMinEntrega: serializableData.fechaMinEntrega,
-          fechaMaxEntrega: serializableData.fechaMaxEntrega,
-          createdAt: new Date(),
-          status: 'Pendiente',
-          ineUrl: '',
-          comprobanteDomicilioUrl: ''
-      };
-      
-      const docData: any = {
-        ...serializableData,
-        userId: user.uid, 
-        fechaMinEntrega: Timestamp.fromDate(serializableData.fechaMinEntrega),
-        fechaMaxEntrega: Timestamp.fromDate(serializableData.fechaMaxEntrega),
-        createdAt: Timestamp.now(),
-        status: 'Pendiente' as const,
-      };
+    try {
+        const { ine, comprobanteDomicilio, ...serializableData } = data;
+        
+        const docData: any = {
+            ...serializableData,
+            userId: user.uid, 
+            fechaMinEntrega: Timestamp.fromDate(serializableData.fechaMinEntrega),
+            fechaMaxEntrega: Timestamp.fromDate(serializableData.fechaMaxEntrega),
+            createdAt: Timestamp.now(),
+            status: 'Pendiente' as const,
+        };
 
-      // Optimistic UI update
-      setLastSubmittedOrder(newOrderForClient);
-      setIsSubmitting(false);
+        const pedidosCollection = collection(firestore, 'users', user.uid, 'pedidos');
+        const docRef = await addDoc(pedidosCollection, docData);
 
-      const pedidosCollection = collection(firestore, 'users', user.uid, 'pedidos');
+        let ineUrl, comprobanteDomicilioUrl;
+        if (data.tipoPago === 'Tarjeta' && storage) {
+            try {
+                if (ine?.[0]) ineUrl = await uploadFile(ine[0], docRef.id, 'ine');
+                if (comprobanteDomicilio?.[0]) comprobanteDomicilioUrl = await uploadFile(comprobanteDomicilio[0], docRef.id, 'comprobante');
 
-      addDoc(pedidosCollection, docData)
-      .then(async (docRef) => {
-          let ineUrl, comprobanteDomicilioUrl;
-          
-          if (data.tipoPago === 'Tarjeta' && storage) {
-              try {
-                  if (ine?.[0]) {
-                      ineUrl = await uploadFile(ine[0], docRef.id, 'ine');
-                  }
-                  if (comprobanteDomicilio?.[0]) {
-                      comprobanteDomicilioUrl = await uploadFile(comprobanteDomicilio[0], docRef.id, 'comprobante');
-                  }
+                const updateData: { ineUrl?: string, comprobanteDomicilioUrl?: string } = {};
+                if (ineUrl) updateData.ineUrl = ineUrl;
+                if (comprobanteDomicilioUrl) updateData.comprobanteDomicilioUrl = comprobanteDomicilioUrl;
+                
+                if(Object.keys(updateData).length > 0) {
+                    await updateDoc(docRef, updateData);
+                }
+            } catch (uploadError) {
+                console.error("Error subiendo archivos:", uploadError);
+                toast({
+                    variant: 'destructive',
+                    title: 'Error de subida',
+                    description: 'El pedido se creó, pero falló la subida de archivos.',
+                });
+            }
+        }
+        
+        const finalOrder: Order = {
+            id: docRef.id,
+            ...serializableData,
+            userId: user.uid,
+            fechaMinEntrega: serializableData.fechaMinEntrega,
+            fechaMaxEntrega: serializableData.fechaMaxEntrega,
+            createdAt: new Date(),
+            status: 'Pendiente',
+            ineUrl,
+            comprobanteDomicilioUrl
+        };
+        
+        setLastSubmittedOrder(finalOrder);
 
-                  const updateData: { ineUrl?: string, comprobanteDomicilioUrl?: string } = {};
-                  if (ineUrl) updateData.ineUrl = ineUrl;
-                  if (comprobanteDomicilioUrl) updateData.comprobanteDomicilioUrl = comprobanteDomicilioUrl;
-                  
-                  if(Object.keys(updateData).length > 0) {
-                      // This is a fire-and-forget update. We don't await it.
-                      // updateDoc(docRef, updateData);
-                  }
-              } catch (uploadError) {
-                  console.error("Error subiendo archivos:", uploadError);
-                  toast({
-                      variant: 'destructive',
-                      title: 'Error de subida',
-                      description: 'El pedido se creó, pero no se pudieron subir los archivos adjuntos.',
-                  });
-              }
-          }
-          
-          // Update the optimistic UI with the final data
-          setLastSubmittedOrder(prev => prev ? {
-              ...prev,
-              id: docRef.id,
-              ineUrl,
-              comprobanteDomicilioUrl
-          } : null);
+        if (finalOrder.tipoPago === 'Efectivo') {
+            generateOrderPdf(finalOrder); // Auto-download ticket for cash payments
+        }
 
-          toast({
-              title: 'Éxito',
-              description: 'Pedido creado con éxito.',
-          });
-      })
-      .catch(error => {
-          console.error('Error creating order:', error);
-          const permissionError = new FirestorePermissionError({
-              path: `users/${user.uid}/pedidos`,
-              operation: 'create',
-              requestResourceData: docData,
-          });
-          errorEmitter.emit('permission-error', permissionError);
+        toast({
+            title: 'Éxito',
+            description: 'Pedido creado con éxito.',
+        });
 
-          // Revert optimistic UI
-          setLastSubmittedOrder(null);
+    } catch (error) {
+        console.error('Error creating order:', error);
+        const permissionError = new FirestorePermissionError({
+            path: `users/${user.uid}/pedidos`,
+            operation: 'create',
+            requestResourceData: data,
+        });
+        errorEmitter.emit('permission-error', permissionError);
 
-          toast({
-              variant: 'destructive',
-              title: 'Error al crear el pedido',
-              description: 'No se pudo guardar el pedido en la base de datos.',
-          });
-      });
-  }
+        toast({
+            variant: 'destructive',
+            title: 'Error al crear el pedido',
+            description: 'No se pudo guardar el pedido en la base de datos.',
+        });
+    } finally {
+        setIsSubmitting(false);
+    }
+}
+
 
   const handleDownload = () => {
     if (lastSubmittedOrder) {
@@ -242,19 +229,27 @@ export function OrderForm() {
 
 
   if (lastSubmittedOrder && !isSubmitting) {
+    const isCashPayment = lastSubmittedOrder.tipoPago === 'Efectivo';
     return (
         <Card className="max-w-4xl mx-auto text-center">
             <CardHeader>
                 <div className="mx-auto bg-green-100 rounded-full h-20 w-20 flex items-center justify-center">
                     <CheckCircle className="h-12 w-12 text-green-600" />
                 </div>
-                <CardTitle className="text-2xl font-headline mt-4">Pedido Registrado con Éxito</CardTitle>
-                <CardDescription>Tu pedido para la obra "{lastSubmittedOrder.obra}" ha sido creado.</CardDescription>
+                <CardTitle className="text-2xl font-headline mt-4">
+                    {isCashPayment ? "Ticket Generado con Éxito" : "Pedido Registrado con Éxito"}
+                </CardTitle>
+                <CardDescription>
+                    {isCashPayment 
+                        ? `Tu ticket para el pedido de la obra "${lastSubmittedOrder.obra}" se ha descargado. Preséntalo al momento de pagar.`
+                        : `Tu pedido para la obra "${lastSubmittedOrder.obra}" ha sido creado.`
+                    }
+                </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col sm:flex-row justify-center gap-4">
                 <Button onClick={handleDownload}>
                     <FileDown className="mr-2 h-4 w-4" />
-                    Descargar PDF
+                    {isCashPayment ? "Descargar Ticket de Nuevo" : "Descargar PDF"}
                 </Button>
                 <Button variant="outline" onClick={handleCreateNew}>
                     <PlusCircle className="mr-2 h-4 w-4" />
@@ -690,5 +685,3 @@ export function OrderForm() {
     </Card>
   );
 }
-
-    

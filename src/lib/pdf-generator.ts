@@ -17,13 +17,22 @@ export function generateOrderPdf(order: Order) {
 
   const fullAddress = `${order.calle} ${order.numero}, ${order.colonia}, ${order.ciudad}, ${order.estado}, C.P. ${order.codigoPostal}`;
   const deliveryDate = `Del ${format(order.fechaMinEntrega, 'dd/MM/yyyy')} al ${format(order.fechaMaxEntrega, 'dd/MM/yyyy')}`;
+  const isCashPayment = order.tipoPago === 'Efectivo';
+  const title = isCashPayment ? 'Ticket de Compra (Pago en Efectivo)' : 'Resumen de Pedido';
+  const idPrefix = isCashPayment ? 'TICKET' : 'PEDIDO';
+  const orderId = `${idPrefix}-${order.id.substring(0, 8).toUpperCase()}`;
 
-  // Title
+  // Header
   doc.setFontSize(20);
-  doc.text('Resumen de Pedido', 14, 22);
+  doc.text(title, 14, 22);
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text(orderId, 200, 22, { align: 'right' });
+
 
   // Order Details
   doc.setFontSize(12);
+  doc.setFont('helvetica', 'normal');
   doc.text(`Pedido para la obra: ${order.obra}`, 14, 32);
   
   const details = [
