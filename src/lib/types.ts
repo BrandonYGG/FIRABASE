@@ -36,11 +36,11 @@ export const OrderFormSchema = z.object({
   obra: z.string().min(3, { message: 'El nombre de la obra debe tener al menos 3 caracteres.' }),
   calle: z.string().min(3, { message: 'La calle debe tener al menos 3 caracteres.' }),
   numero: z.preprocess(
-    (val) => (val === "" ? null : val),
+    (val) => (val === "" ? undefined : val),
     z.coerce.number({
         required_error: "El número es obligatorio.",
         invalid_type_error: "El número solo debe contener dígitos.",
-      }).positive("El número debe ser positivo.")
+      }).positive("El número debe ser positivo.").optional().or(z.literal(''))
   ),
   codigoPostal: z.string().regex(/^\d{5}$/, { message: 'El código postal debe tener 5 dígitos.' }),
   colonia: z.string().min(3, { message: 'La colonia debe tener al menos 3 caracteres.' }),

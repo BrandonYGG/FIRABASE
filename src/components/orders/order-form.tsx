@@ -76,7 +76,7 @@ export function OrderForm() {
       solicitante: '',
       obra: '',
       calle: '',
-      numero: undefined,
+      numero: '',
       colonia: '',
       codigoPostal: '',
       ciudad: '',
@@ -333,7 +333,7 @@ export function OrderForm() {
                             <FormItem>
                                 <FormLabel>Número</FormLabel>
                                 <FormControl>
-                                    <Input type="number" placeholder="Ej. 123" {...field} onChange={e => field.onChange(e.target.value === '' ? null : e.target.value)} />
+                                    <Input type="number" placeholder="Ej. 123" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
