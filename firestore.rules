@@ -8,26 +8,27 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == userId;
     }
 
-    // Helper function to check if the user is an admin
-    // This now directly checks the user's custom claims or their document data.
+    // Helper function to check if the user is an admin by checking custom claims
     function isAdmin() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      // Check for the 'role' custom claim in the user's auth token.
+      // This is more efficient than reading another document.
+      return request.auth != null && request.auth.token.role == 'admin';
     }
 
     // Rules for the 'users' collection
     match /users/{userId} {
-      // An admin can read any user profile
-      // A user can read their own profile
+      // An admin can read any user profile.
+      // A user can only read their own profile.
       allow get: if isAdmin() || isOwner(userId);
 
-      // A user can create their own profile during sign-up
+      // A user can create their own profile during sign-up.
       allow create: if isOwner(userId);
 
-      // An admin can update any user's profile
-      // A user can update their own profile, but cannot change their own role
+      // An admin can update any user's profile.
+      // A user can update their own profile, but cannot change their own role.
       allow update: if isAdmin() || (isOwner(userId) && request.resource.data.role == resource.data.role);
 
-      // Admin can list all users
+      // An admin can list all users.
       allow list: if isAdmin();
     }
 
