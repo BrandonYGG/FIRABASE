@@ -9,10 +9,9 @@ service cloud.firestore {
     }
 
     // Helper function to check if the user is an admin
+    // This now directly checks the user's custom claims or their document data.
     function isAdmin() {
-      // Check if the user's document exists and if their role is 'admin'
-      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
     // Rules for the 'users' collection
@@ -43,9 +42,9 @@ service cloud.firestore {
       // an order on behalf of another user.
       allow create: if isOwner(userId) && request.resource.data.userId == userId;
     }
-    
-    // Rule for the 'pedidos' collection group query
-    // This allows an admin to query across all 'pedidos' subcollections.
+
+    // This is the crucial rule for collection group queries.
+    // It allows an admin to query across all 'pedidos' subcollections.
     match /{path=**}/pedidos/{orderId} {
       allow list: if isAdmin();
     }
