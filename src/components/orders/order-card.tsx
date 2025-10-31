@@ -2,7 +2,7 @@
 'use client'
 import type { Order } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarDays, User, HardHat, CreditCard, Wallet, MapPin, DollarSign, Download, Loader2 } from 'lucide-react';
+import { CalendarDays, User, HardHat, CreditCard, Wallet, MapPin, DollarSign, Download, Loader2, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { UrgencyBadge } from './urgency-badge';
@@ -21,6 +21,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { OrderDetailsDialog } from './order-details-dialog';
+import { Badge } from '../ui/badge';
 
 
 type OrderCardProps = {
@@ -55,6 +56,8 @@ export function OrderCard({ order, isAdminView = false }: OrderCardProps) {
         setIsUpdating(false);
     }
   }
+
+  const isDelivered = order.status === OrderStatus.Entregado;
 
   return (
     <Dialog>
@@ -110,6 +113,11 @@ export function OrderCard({ order, isAdminView = false }: OrderCardProps) {
                                 <Loader2 className="h-4 w-4 animate-spin"/>
                                 <span>Actualizando...</span>
                             </div>
+                        ) : isDelivered ? (
+                            <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                                <CheckCircle className="h-3 w-3" />
+                                Entregado
+                            </Badge>
                         ) : (
                             <Select onValueChange={handleStatusChange} defaultValue={order.status}>
                                 <SelectTrigger 
@@ -130,8 +138,9 @@ export function OrderCard({ order, isAdminView = false }: OrderCardProps) {
                     </div>
                 ) : (
                     <div className="text-xs text-muted-foreground flex items-center">
-                        <HardHat className="mr-2 h-4 w-4" />
-                        <span>Estado: {order.status}</span>
+                         <Badge className="text-xs" variant={order.status === 'Entregado' ? 'secondary' : order.status === 'Cancelado' ? 'destructive' : 'default'}>
+                            {order.status}
+                        </Badge>
                     </div>
                 )}
             
