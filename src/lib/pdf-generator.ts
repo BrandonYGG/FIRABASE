@@ -2,7 +2,7 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import type { Order } from '@/lib/types';
-import { format } from 'date-fns';
+import { format, getMonth, getYear, getDaysInMonth, startOfMonth, getDay, getDate } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 // Augment jsPDF with the autoTable method
@@ -11,6 +11,81 @@ declare module 'jspdf' {
     autoTable: (options: any) => jsPDF;
   }
 }
+
+function drawCalendar(doc: jsPDF, order: Order, startY: number) {
+    const startDate = order.fechaMinEntrega;
+    const endDate = order.fechaMaxEntrega;
+    const month = getMonth(startDate);
+    const year = getYear(startDate);
+    
+    const firstDayOfMonth = startOfMonth(startDate);
+    // getDay() returns 0 for Sunday, 1 for Monday... we want Monday as 0
+    const startDayOfWeek = (getDay(firstDayOfMonth) + 6) % 7; 
+    const daysInMonth = getDaysInMonth(startDate);
+
+    const monthName = format(startDate, 'MMMM yyyy', { locale: es });
+
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Calendario de Entrega', 14, startY);
+    doc.setFontSize(12);
+    doc.text(monthName.charAt(0).toUpperCase() + monthName.slice(1), 105, startY + 10, { align: 'center' });
+
+    const cellWidth = 15;
+    const cellHeight = 10;
+    const startX = 14;
+    const calendarY = startY + 20;
+    const dayHeaders = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'];
+
+    // Draw day headers
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    dayHeaders.forEach((header, index) => {
+        doc.text(header, startX + index * cellWidth + cellWidth / 2, calendarY, { align: 'center' });
+    });
+
+    let currentDay = 1;
+    doc.setFont('helvetica', 'normal');
+    doc.setLineWidth(0.2);
+
+    for (let week = 0; week < 6; week++) {
+        for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
+            if ((week === 0 && dayOfWeek < startDayOfWeek) || currentDay > daysInMonth) {
+                continue;
+            }
+
+            const x = startX + dayOfWeek * cellWidth;
+            const y = calendarY + (week + 1) * cellHeight;
+
+            const currentDate = new Date(year, month, currentDay);
+            const isStartDate = getDate(currentDate) === getDate(startDate) && getMonth(currentDate) === getMonth(startDate);
+            const isEndDate = getDate(currentDate) === getDate(endDate) && getMonth(currentDate) === getMonth(endDate);
+            const isInRange = currentDate > startDate && currentDate < endDate;
+            
+            if (isStartDate) {
+                doc.setFillColor(34, 153, 84); // Green
+                doc.setTextColor(255, 255, 255);
+                doc.rect(x, y - cellHeight / 1.5, cellWidth, cellHeight, 'F');
+            } else if (isEndDate) {
+                doc.setFillColor(203, 67, 53); // Red
+                doc.setTextColor(255, 255, 255);
+                doc.rect(x, y - cellHeight / 1.5, cellWidth, cellHeight, 'F');
+            } else if (isInRange) {
+                doc.setFillColor(243, 243, 243); // Light gray
+                doc.rect(x, y - cellHeight / 1.5, cellWidth, cellHeight, 'F');
+            }
+            
+            doc.text(String(currentDay), x + cellWidth / 2, y, { align: 'center' });
+            
+            // Reset text color
+            doc.setTextColor(0, 0, 0);
+
+            currentDay++;
+        }
+        if (currentDay > daysInMonth) break;
+    }
+}
+
 
 export function generateOrderPdf(order: Order) {
   const doc = new jsPDF();
@@ -90,13 +165,22 @@ export function generateOrderPdf(order: Order) {
   doc.text('Total del Pedido:', 140, finalTableY + 10, { align: 'right' });
   doc.text(`$${order.total.toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN`, 200, finalTableY + 10, { align: 'right' });
   
+  // Calendar
+  let calendarY = finalTableY + 20;
+  if (calendarY > 200) { // Add a new page if calendar won't fit
+    doc.addPage();
+    calendarY = 20;
+  }
+  drawCalendar(doc, order, calendarY);
+
+
   // Footer
   const pageCount = doc.internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
     doc.setFontSize(10);
     doc.setTextColor(150);
-    doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 10, { align: 'center' });
+    doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.width / 2, doc.internal.pageSize.height - 10, { align: 'center' });
     doc.text(`© ${new Date().getFullYear()} OrderFlow Construct`, 14, doc.internal.pageSize.height - 10);
   }
 
