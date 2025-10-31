@@ -76,7 +76,7 @@ export function OrderForm() {
       solicitante: '',
       obra: '',
       calle: '',
-      numero: '',
+      numero: undefined,
       colonia: '',
       codigoPostal: '',
       ciudad: '',
@@ -140,6 +140,7 @@ export function OrderForm() {
         
         const docData: any = {
             ...serializableData,
+            numero: String(serializableData.numero),
             userId: user.uid, 
             fechaMinEntrega: Timestamp.fromDate(serializableData.fechaMinEntrega),
             fechaMaxEntrega: Timestamp.fromDate(serializableData.fechaMaxEntrega),
@@ -180,6 +181,7 @@ export function OrderForm() {
         const finalOrder: Order = {
             id: docRef.id,
             ...serializableData,
+            numero: String(serializableData.numero),
             userId: user.uid,
             fechaMinEntrega: serializableData.fechaMinEntrega,
             fechaMaxEntrega: serializableData.fechaMaxEntrega,
@@ -331,7 +333,7 @@ export function OrderForm() {
                             <FormItem>
                                 <FormLabel>Número</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Ej. 123" {...field} />
+                                    <Input type="number" placeholder="Ej. 123" {...field} onChange={e => field.onChange(e.target.value === '' ? null : e.target.value)} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -689,5 +691,3 @@ export function OrderForm() {
     </Card>
   );
 }
-
-    
