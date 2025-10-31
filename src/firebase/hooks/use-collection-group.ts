@@ -13,6 +13,7 @@ import {
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useFirestore, useMemoFirebase } from '@/firebase';
+import type { InternalQuery } from '@/firebase/firestore/use-collection';
 
 export type WithId<T> = T & { id: string };
 
@@ -53,7 +54,7 @@ export function useCollectionGroup<T = any>(
         setIsLoading(false);
       },
       (err: FirestoreError) => {
-        const path = 'pedidos';
+        const path = (query as unknown as InternalQuery)._query.path.canonicalString() || 'collection group';
         const contextualError = new FirestorePermissionError({
           operation: 'list',
           path: path,
@@ -70,5 +71,3 @@ export function useCollectionGroup<T = any>(
 
   return { data, isLoading, error };
 }
-
-    
