@@ -1,7 +1,7 @@
 
 'use client';
 import { useMemo } from 'react';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -74,12 +74,19 @@ function UserOrders({ userId }: { userId: string }) {
 
 export function AdminDashboard() {
     const firestore = useFirestore();
+    const { user: adminUser } = useUser();
+    
     const usersQuery = useMemoFirebase(() => {
         if (!firestore) return null;
         return collection(firestore, 'users');
     }, [firestore]);
 
     const { data: users, isLoading, error } = useCollection<UserProfileWithId>(usersQuery);
+
+    const filteredUsers = useMemo(() => {
+        if (!users || !adminUser) return [];
+        return users.filter(user => user.id !== adminUser.uid);
+    }, [users, adminUser]);
 
     if (isLoading) {
         return (
@@ -102,7 +109,7 @@ export function AdminDashboard() {
     
     return (
         <Accordion type="single" collapsible className="w-full space-y-2">
-            {users?.map(user => (
+            {filteredUsers?.map(user => (
                 <AccordionItem value={user.id} key={user.id} className="border rounded-md bg-card">
                     <AccordionTrigger className="p-4 hover:no-underline">
                         <div className="flex items-center gap-4">
