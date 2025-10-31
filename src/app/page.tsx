@@ -11,7 +11,6 @@ import Header from '@/components/layout/header';
 
 export default function Home() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-construction');
-  const currentYear = new Date().getFullYear();
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -109,10 +108,34 @@ export default function Home() {
                 </Card>
             </div>
         </section>
+
+        <section id="news" className="bg-muted py-16 md:py-24">
+            <div className="container mx-auto px-4 text-center">
+                <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-12">Últimas Novedades</h2>
+                <div className="relative max-w-2xl mx-auto">
+                    <div className="absolute left-1/2 w-0.5 h-full bg-border -translate-x-1/2"></div>
+                    <div className="relative">
+                        <div className="absolute left-1/2 top-4 w-4 h-4 bg-primary rounded-full border-4 border-background -translate-x-1/2"></div>
+                        <div className="ml-auto md:ml-0 md:w-1/2 md:pl-8 text-left">
+                            <Card className="ml-4 md:ml-0">
+                                <CardHeader>
+                                    <CardTitle>Lanzamiento de la Plataforma</CardTitle>
+                                    <p className="text-sm text-muted-foreground">Octubre 2025</p>
+                                </CardHeader>
+                                <CardContent>
+                                    <p>¡Estamos emocionados de lanzar la primera versión de OrderFlow Construct! Ahora puedes registrar tus pedidos, gestionar tu historial y aprovechar las primeras funcionalidades de nuestra inteligencia artificial. ¡Próximamente integraremos más características para ti!</p>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
       </main>
       <footer className="bg-background border-t">
         <div className="container mx-auto px-4 py-6 text-center text-muted-foreground">
-            <p>&copy; {currentYear} OrderFlow Construct. Todos los derechos reservados.</p>
+            <p>&copy; 2025 OrderFlow Construct. Todos los derechos reservados.</p>
         </div>
       </footer>
     </div>
