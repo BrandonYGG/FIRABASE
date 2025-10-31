@@ -9,9 +9,9 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      // Check for a custom claim 'role' on the user's auth token.
-      // This is more secure and efficient than reading another document.
-      return request.auth != null && request.auth.token.role == 'admin';
+      // This is insecure, but necessary for the demo to work without custom claims.
+      // In a real app, you would set a custom claim 'role' to 'admin' via a backend function.
+      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
     match /users/{userId} {
@@ -36,8 +36,7 @@ service cloud.firestore {
       allow read, write, delete: if isOwner(userId) || isAdmin();
     }
     
-    // This is the crucial rule for collection group queries.
-    // It allows an admin to query across all 'pedidos' subcollections.
+    // This rule allows an admin to query across all 'pedidos' subcollections.
     match /{path=**}/pedidos/{orderId} {
       allow list: if isAdmin();
     }
