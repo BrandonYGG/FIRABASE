@@ -395,7 +395,8 @@ export default function RegisterPage() {
                   name="confirmPassword"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Confirmar Contraseña</FormLabel>                       <div className="relative group">
+                      <FormLabel>Confirmar Contraseña</FormLabel>
+                      <div className="relative group">
                         <FormControl>
                             <Input type={showCompanyConfirmPassword ? "text" : "password"} {...field} className="pr-10" />
                         </FormControl>
