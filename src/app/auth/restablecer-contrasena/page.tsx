@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from "@/components/ui/button"
@@ -53,6 +54,7 @@ export default function ResetPasswordPage() {
         }
 
         try {
+            auth.languageCode = 'es'; // Set language to Spanish
             await sendPasswordResetEmail(auth, data.email);
             setIsSubmitted(true);
         } catch (error: any) {
