@@ -139,43 +139,41 @@ export function OrderCard({ order, isAdminView = false }: OrderCardProps) {
                  </div>
             </DialogTrigger>
             <CardFooter className="flex justify-between items-center bg-muted/50 py-3 px-4 rounded-b-lg">
-                {isAdminView ? (
-                    <div className="flex items-center gap-2">
-                        <HardHat className="h-4 w-4 text-muted-foreground"/>
-                        {isUpdating ? (
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Loader2 className="h-4 w-4 animate-spin"/>
-                                <span>Actualizando...</span>
-                            </div>
-                        ) : isDelivered ? (
-                             <Badge variant="secondary" className="text-xs flex items-center gap-1">
-                                <CheckCircle className="h-3 w-3" />
-                                Entregado
-                            </Badge>
-                        ) : (
-                            <Select onValueChange={handleStatusChange} defaultValue={order.status}>
-                                <SelectTrigger 
-                                    className="w-[150px] h-8 text-xs"
-                                >
-                                    <SelectValue placeholder="Cambiar estado" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {Object.values(OrderStatus).map((status) => (
-                                        <SelectItem key={status} value={status} className="text-xs">
-                                            {status}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    </div>
-                ) : (
-                    <div className="text-xs text-muted-foreground flex items-center">
-                         <Badge className="text-xs" variant={order.status === 'Entregado' ? 'secondary' : order.status === 'Cancelado' ? 'destructive' : 'default'}>
+                <div className="flex items-center gap-2">
+                    {isAdminView ? (
+                        <>
+                            <HardHat className="h-4 w-4 text-muted-foreground"/>
+                            {isUpdating ? (
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <Loader2 className="h-4 w-4 animate-spin"/>
+                                    <span>Actualizando...</span>
+                                </div>
+                            ) : isDelivered ? (
+                                <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                                    <CheckCircle className="h-3 w-3" />
+                                    Entregado
+                                </Badge>
+                            ) : (
+                                <Select onValueChange={handleStatusChange} defaultValue={order.status}>
+                                    <SelectTrigger className="w-[150px] h-8 text-xs">
+                                        <SelectValue placeholder="Cambiar estado" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {Object.values(OrderStatus).map((status) => (
+                                            <SelectItem key={status} value={status} className="text-xs">
+                                                {status}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        </>
+                    ) : (
+                        <Badge className="text-xs" variant={order.status === 'Entregado' ? 'secondary' : order.status === 'Cancelado' ? 'destructive' : 'default'}>
                             {order.status}
                         </Badge>
-                    </div>
-                )}
+                    )}
+                </div>
             
                 <div className="flex items-center gap-2">
                     {isAdminView && (
@@ -203,9 +201,9 @@ export function OrderCard({ order, isAdminView = false }: OrderCardProps) {
                         </AlertDialog>
                     )}
                     <DialogTrigger asChild>
-                         <div className="text-xs text-muted-foreground cursor-pointer">
+                         <Button variant="link" className="text-xs text-muted-foreground p-0 h-auto">
                             Ver detalles
-                        </div>
+                         </Button>
                     </DialogTrigger>
                 </div>
             </CardFooter>
