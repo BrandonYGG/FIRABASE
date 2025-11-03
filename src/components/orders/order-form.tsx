@@ -472,8 +472,8 @@ export function OrderForm() {
                                                             type="number"
                                                             min="0"
                                                             {...field}
-                                                            onChange={e => field.onChange(e.target.value === '' ? '' : parseInt(e.target.value, 10))}
-                                                            value={field.value ?? ''}
+                                                            onChange={e => field.onChange(e.target.valueAsNumber || undefined)}
+                                                            value={field.value ?? ""}
                                                         />
                                                     </FormControl>
                                                     <FormMessage />
