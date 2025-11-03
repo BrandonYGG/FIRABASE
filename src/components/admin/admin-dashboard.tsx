@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, orderBy, collectionGroup } from 'firebase/firestore';
+import { collection, query, orderBy } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { UserProfileWithId, OrderFirestore, Order } from '@/lib/types';
@@ -12,7 +12,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { OrderCard } from '../orders/order-card';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Frown, Users, ListOrdered, DollarSign, FileClock, Search } from 'lucide-react';
-import { useCollectionGroup } from '@/firebase/hooks/use-collection-group';
 import { Input } from '../ui/input';
 
 function UserOrders({ userId }: { userId: string }) {
@@ -85,14 +84,8 @@ export function AdminDashboard() {
         if (!firestore) return null;
         return query(collection(firestore, 'users'));
     }, [firestore]);
-    
-    const allOrdersQuery = useMemoFirebase(() => {
-        if (!firestore) return null;
-        return query(collectionGroup(firestore, 'pedidos'));
-    }, [firestore]);
 
     const { data: users, isLoading: usersLoading, error: usersError } = useCollection<UserProfileWithId>(usersQuery);
-    const { data: allOrders, isLoading: ordersLoading, error: ordersError } = useCollectionGroup<OrderFirestore>(allOrdersQuery);
     
     const filteredUsers = useMemo(() => {
         if (!users || !adminUser) return [];
@@ -109,31 +102,18 @@ export function AdminDashboard() {
     }, [users, adminUser, searchQuery]);
 
     const globalMetrics = useMemo(() => {
-        const totalUsers = users ? users.filter(user => user.id !== adminUser?.uid).length : 0;
-        if (!allOrders) {
-            return { totalOrders: 0, totalAmount: 0, pendingOrders: 0, totalUsers };
-        }
-        const totalOrders = allOrders.length;
-        const totalAmount = allOrders.reduce((sum, order) => sum + (order.total || 0), 0);
-        const pendingOrders = allOrders.filter(o => o.status === 'Pendiente').length;
-        return { totalOrders, totalAmount, pendingOrders, totalUsers };
-    }, [users, allOrders, adminUser]);
+        if (!users) return { totalUsers: 0 };
+        const totalUsers = users.filter(user => user.id !== adminUser?.uid).length;
+        return { totalUsers };
+    }, [users, adminUser]);
     
-    const isLoading = usersLoading || ordersLoading;
+    const isLoading = usersLoading;
     
     if (usersError) {
         return (
             <Alert variant="destructive">
                 <AlertTitle>Error de Permisos</AlertTitle>
                 <AlertDescription>No se pudieron cargar los datos de los usuarios. Verifique que el rol 'admin' tenga permisos para listar usuarios en las reglas de Firestore.</AlertDescription>
-            </Alert>
-        );
-    }
-     if (ordersError) {
-        return (
-            <Alert variant="destructive">
-                <AlertTitle>Error de Permisos</AlertTitle>
-                <AlertDescription>No se pudieron cargar las métricas globales de pedidos. Verifique que el rol 'admin' tenga permisos para realizar consultas de grupo en la colección 'pedidos'.</AlertDescription>
             </Alert>
         );
     }
@@ -158,7 +138,7 @@ export function AdminDashboard() {
                             <ListOrdered className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            {isLoading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{globalMetrics.totalOrders}</div>}
+                            <div className="text-2xl font-bold">-</div>
                             <p className="text-xs text-muted-foreground">Ver y filtrar todos los pedidos.</p>
                         </CardContent>
                     </Card>
@@ -169,7 +149,7 @@ export function AdminDashboard() {
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                         {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">${globalMetrics.totalAmount.toLocaleString('es-MX')}</div>}
+                         <div className="text-2xl font-bold">-</div>
                         <p className="text-xs text-muted-foreground">Suma de todos los pedidos.</p>
                     </CardContent>
                 </Card>
@@ -179,7 +159,7 @@ export function AdminDashboard() {
                         <FileClock className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        {isLoading ? <Skeleton className="h-8 w-1/4" /> : <div className="text-2xl font-bold">{globalMetrics.pendingOrders}</div>}
+                        <div className="text-2xl font-bold">-</div>
                         <p className="text-xs text-muted-foreground">Pedidos esperando aprobación.</p>
                     </CardContent>
                 </Card>
@@ -241,3 +221,5 @@ export function AdminDashboard() {
         </div>
     )
 }
+
+    
