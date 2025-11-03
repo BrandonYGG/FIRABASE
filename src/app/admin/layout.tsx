@@ -28,7 +28,7 @@ import {
   SidebarTrigger,
   SidebarFooter
 } from '@/components/ui/sidebar';
-import { Shield, LayoutDashboard, Users, ListOrdered, FilePlus2, LogOut, Settings, CalendarIcon, Moon, Sun, Loader2 } from 'lucide-react';
+import { Shield, LayoutDashboard, Users, ListOrdered, FilePlus2, LogOut, Settings, CalendarIcon, Moon, Sun, Loader2, Siren } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
@@ -73,6 +73,7 @@ export default function AdminLayout({
   const sidebarMenuItems = [
       { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/admin/pedidos', label: 'Todos los Pedidos', icon: ListOrdered },
+      { href: '/admin/urgencias', label: 'Pedidos por Urgencia', icon: Siren },
   ];
   
   if (isUserLoading || !user) {

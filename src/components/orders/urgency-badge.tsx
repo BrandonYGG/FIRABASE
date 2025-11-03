@@ -1,8 +1,31 @@
+
 import { Badge } from '@/components/ui/badge';
 import { differenceInDays } from 'date-fns';
 
-type UrgencyLevel = 'Urgent' | 'Soon' | 'Normal';
-type Urgency = { level: UrgencyLevel; text: string; suggestion: string; variant: 'destructive' | 'default' | 'secondary' };
+export type UrgencyLevel = 'Urgent' | 'Soon' | 'Normal';
+export type Urgency = { level: UrgencyLevel; text: string; suggestion: string; variant: 'destructive' | 'default' | 'secondary' };
+
+export const URGENCY_LEVELS: Record<UrgencyLevel, Urgency> = {
+  Urgent: { 
+    level: 'Urgent', 
+    text: 'Urgente', 
+    variant: 'destructive',
+    suggestion: "Sugerencia IA: Entrega urgente. Se recomienda confirmar disponibilidad del proveedor." 
+  },
+  Soon: { 
+    level: 'Soon', 
+    text: 'Pronto', 
+    variant: 'default',
+    suggestion: "Sugerencia IA: El tiempo de entrega es moderado. Planifique con sus proveedores."
+  },
+  Normal: { 
+    level: 'Normal', 
+    text: 'Normal', 
+    variant: 'secondary',
+    suggestion: "Sugerencia IA: Cronograma flexible. Puede optar por envíos estándar para optimizar costos."
+  },
+};
+
 
 export function getUrgency(date: Date): Urgency {
   const today = new Date();
@@ -13,27 +36,12 @@ export function getUrgency(date: Date): Urgency {
   const daysDiff = differenceInDays(deliveryDate, today);
 
   if (daysDiff <= 3) {
-    return { 
-        level: 'Urgent', 
-        text: 'Urgente', 
-        variant: 'destructive',
-        suggestion: "Sugerencia IA: Entrega urgente. Se recomienda confirmar disponibilidad del proveedor." 
-    };
+    return URGENCY_LEVELS.Urgent;
   }
   if (daysDiff <= 10) {
-    return { 
-        level: 'Soon', 
-        text: 'Pronto', 
-        variant: 'default',
-        suggestion: "Sugerencia IA: El tiempo de entrega es moderado. Planifique con sus proveedores."
-    };
+    return URGENCY_LEVELS.Soon;
   }
-  return { 
-    level: 'Normal', 
-    text: 'Normal', 
-    variant: 'secondary',
-    suggestion: "Sugerencia IA: Cronograma flexible. Puede optar por envíos estándar para optimizar costos."
-  };
+  return URGENCY_LEVELS.Normal;
 }
 
 type UrgencyBadgeProps = {
