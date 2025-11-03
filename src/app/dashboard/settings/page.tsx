@@ -13,22 +13,17 @@ import { Loader2 } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { updateProfile } from "firebase/auth";
-import { avatars } from "@/lib/data/avatars";
-import Image from "next/image";
-import { cn } from "@/lib/utils";
 
 export default function SettingsPage() {
     const { user, isUserLoading } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [selectedAvatarUrl, setSelectedAvatarUrl] = useState<string | null>(null);
     const [displayName, setDisplayName] = useState('');
 
     useEffect(() => {
         if (user) {
             setDisplayName(user.displayName || '');
-            setSelectedAvatarUrl(user.photoURL || null);
         }
     }, [user]);
 
@@ -42,41 +37,24 @@ export default function SettingsPage() {
         setIsSubmitting(true);
 
         const nameChanged = displayName !== (user.displayName || '');
-        const avatarChanged = selectedAvatarUrl !== (user.photoURL || null);
 
-        if (!nameChanged && !avatarChanged) {
-            toast({ title: "Sin cambios", description: "No has modificado tu nombre ni tu avatar." });
+        if (!nameChanged) {
+            toast({ title: "Sin cambios", description: "No has modificado tu nombre." });
             setIsSubmitting(false);
             return;
         }
 
         try {
-            const authUpdates: { displayName?: string; photoURL?: string } = {};
-            const firestoreUpdates: { displayName?: string; photoURL?: string } = {};
-
-            if (nameChanged) {
-                authUpdates.displayName = displayName;
-                firestoreUpdates.displayName = displayName;
-            }
-            if (avatarChanged && selectedAvatarUrl) {
-                authUpdates.photoURL = selectedAvatarUrl;
-                firestoreUpdates.photoURL = selectedAvatarUrl;
-            }
-
             // Update Auth Profile
-            if (Object.keys(authUpdates).length > 0) {
-                await updateProfile(user, authUpdates);
-            }
+            await updateProfile(user, { displayName });
             
             // Update Firestore Document
-            if (Object.keys(firestoreUpdates).length > 0) {
-                const userRef = doc(firestore, 'users', user.uid);
-                await updateDoc(userRef, firestoreUpdates);
-            }
+            const userRef = doc(firestore, 'users', user.uid);
+            await updateDoc(userRef, { displayName });
             
             toast({
                 title: "Perfil Actualizado",
-                description: "Tu información ha sido guardada con éxito.",
+                description: "Tu nombre ha sido guardado con éxito.",
             });
 
         } catch (error: any) {
@@ -132,37 +110,25 @@ export default function SettingsPage() {
             <CardHeader>
                 <CardTitle>Detalles del Perfil</CardTitle>
                 <CardDescription>
-                    Actualiza tu nombre y elige un avatar para tu perfil.
+                    Actualiza tu nombre para tu perfil.
                 </CardDescription>
             </CardHeader>
             <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-8">
-                    <div className="space-y-2">
-                        <Label htmlFor="name">Nombre Completo o de Empresa</Label>
-                        <Input id="name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
-                        <p className="text-sm text-muted-foreground">Este es tu correo electrónico: {user.email}</p>
-                    </div>
-
-                    <div className="space-y-4">
-                        <Label>Elige tu Avatar</Label>
-                        <div className="grid grid-cols-6 sm:grid-cols-8 gap-3">
-                            {avatars.map((avatar) => (
-                                <button
-                                    key={avatar.id}
-                                    type="button"
-                                    onClick={() => setSelectedAvatarUrl(avatar.url)}
-                                    className={cn(
-                                        "rounded-full focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-transform hover:scale-105",
-                                        selectedAvatarUrl === avatar.url && "ring-2 ring-primary ring-offset-2 scale-105"
-                                    )}
-                                >
-                                    <Avatar className="h-16 w-16 border">
-                                        <AvatarImage src={avatar.url} alt={`Avatar ${avatar.id}`} className="object-cover" />
-                                        <AvatarFallback>{avatar.id}</AvatarFallback>
-                                    </Avatar>
-                                </button>
-                            ))}
+                     <div className="flex items-center space-x-6">
+                        <Avatar className="h-20 w-20">
+                            <AvatarImage src={user.photoURL || undefined} alt="Avatar de usuario" className="object-cover" />
+                            <AvatarFallback>{user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-grow space-y-2">
+                            <Label htmlFor="name">Nombre Completo o de Empresa</Label>
+                            <Input id="name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
                         </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                        <Label>Correo Electrónico</Label>
+                        <p className="text-sm text-muted-foreground">{user.email}</p>
                     </div>
                     
                     <div className="flex justify-end">
