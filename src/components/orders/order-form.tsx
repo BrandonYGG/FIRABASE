@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useForm, useFieldArray } from 'react-hook-form';
@@ -442,8 +441,8 @@ export function OrderForm() {
                                                     <Select onValueChange={(value) => {
                                                         const material = mockMaterials.find(m => m.id === value);
                                                         field.onChange(value);
-                                                        form.setValue(`materiales.${index}.precioUnitario`, material?.precio || 0);
-                                                        form.setValue(`materiales.${index}.descripcion`, material?.nombre || '');
+                                                        form.setValue(`materiales.${index}.precioUnitario`, material?.precio || 0, { shouldValidate: true });
+                                                        form.setValue(`materiales.${index}.descripcion`, material?.nombre || '', { shouldValidate: true });
                                                     }} defaultValue={field.value}>
                                                         <FormControl>
                                                             <SelectTrigger>
@@ -469,10 +468,10 @@ export function OrderForm() {
                                                 <FormItem className="sm:col-span-2">
                                                     <FormLabel>Cantidad</FormLabel>
                                                     <FormControl>
-                                                        <Input 
-                                                            type="number" 
+                                                        <Input
+                                                            type="number"
                                                             min="0"
-                                                            {...field} 
+                                                            {...field}
                                                             onChange={e => field.onChange(e.target.value === '' ? '' : parseInt(e.target.value, 10))}
                                                             value={field.value ?? ''}
                                                         />
@@ -707,5 +706,3 @@ export function OrderForm() {
     </Card>
   );
 }
-
-    
