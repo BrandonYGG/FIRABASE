@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -8,7 +9,7 @@ import { useCollectionGroup } from '@/firebase/hooks/use-collection-group';
 import { OrderFirestore, Order } from '@/lib/types';
 import { OrderCard } from '../orders/order-card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Frown } from 'lucide-react';
+import { Frown, ShieldAlert } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { OrderFilters } from '../orders/order-filters';
 
@@ -20,7 +21,10 @@ export function AllOrdersList() {
 
     const allOrdersQuery = useMemoFirebase(() => {
         if (!firestore) return null;
-        return query(collectionGroup(firestore, 'pedidos'), orderBy('createdAt', 'desc'));
+        // This query is known to cause permission errors with the current security rules.
+        // It is disabled to prevent application crashes.
+        // return query(collectionGroup(firestore, 'pedidos'), orderBy('createdAt', 'desc'));
+        return null;
     }, [firestore]);
 
     const { data: allOrders, isLoading, error } = useCollectionGroup<OrderFirestore>(allOrdersQuery);
@@ -29,6 +33,7 @@ export function AllOrdersList() {
     const [paymentTypeFilter, setPaymentTypeFilter] = useState('');
 
     const mappedAndFilteredOrders: Order[] = useMemo(() => {
+        // Since the query is disabled, this will always be empty.
         if (!allOrders) return [];
         return allOrders
             .map(order => ({
@@ -45,11 +50,12 @@ export function AllOrdersList() {
     }, [allOrders, statusFilter, paymentTypeFilter]);
 
 
-    if (error) {
+    if (error || !allOrdersQuery) {
         return (
             <Alert variant="destructive">
-                <AlertTitle>Error</AlertTitle>
-                <AlertDescription>No se pudieron cargar los pedidos. Por favor, intente de nuevo más tarde.</AlertDescription>
+                <ShieldAlert className="h-4 w-4" />
+                <AlertTitle>Función Deshabilitada</AlertTitle>
+                <AlertDescription>La vista de "Todos los Pedidos" está temporalmente deshabilitada debido a restricciones de permisos. Por favor, gestione los pedidos individualmente a través del <a href="/admin/dashboard" className="underline font-semibold">Dashboard de Administrador</a>.</AlertDescription>
             </Alert>
         );
     }

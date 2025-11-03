@@ -88,16 +88,6 @@ export function AdminDashboard() {
     }, [firestore]);
 
     const { data: users, isLoading: usersLoading, error: usersError } = useCollection<UserProfileWithId>(usersQuery);
-
-    // This is the problematic query that we are removing.
-    const allOrdersQuery = useMemoFirebase(() => {
-        if (!firestore) return null;
-        // The collectionGroup query is causing permission errors and is removed.
-        // We will calculate metrics based on individual user order fetches if needed, or disable them.
-        return null; 
-    }, [firestore]);
-
-    const { data: allOrders, isLoading: ordersLoading, error: ordersError } = useCollectionGroup<OrderFirestore>(allOrdersQuery);
     
     const filteredUsers = useMemo(() => {
         if (!users || !adminUser) return [];
