@@ -84,6 +84,23 @@ function drawCalendar(doc: jsPDF, order: Order, startY: number) {
         }
         if (currentDay > daysInMonth) break;
     }
+    
+    // Add legend
+    const legendX = startX + 7 * cellWidth + 10; // Position legend to the right of the calendar
+    const legendY = calendarY + 2.5 * cellHeight;
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+
+    // Start Date Legend
+    doc.setFillColor(34, 153, 84); // Green
+    doc.rect(legendX, legendY - 3, 3, 3, 'F');
+    doc.text('Fecha de inicio de entrega', legendX + 5, legendY);
+
+    // End Date Legend
+    doc.setFillColor(203, 67, 53); // Red
+    doc.rect(legendX, legendY + 7, 3, 3, 'F');
+    doc.text('Fecha límite de entrega', legendX + 5, legendY + 10);
 }
 
 
