@@ -91,9 +91,9 @@ export default function UrgenciesPage() {
             <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6">
                 {loading ? (
                     <>
-                        <Skeleton className="w-full h-full" />
-                        <Skeleton className="w-full h-full" />
-                        <Skeleton className="w-full h-full" />
+                        <Skeleton className="w-full h-full min-h-[400px]" />
+                        <Skeleton className="w-full h-full min-h-[400px]" />
+                        <Skeleton className="w-full h-full min-h-[400px]" />
                     </>
                 ) : (
                     <>
