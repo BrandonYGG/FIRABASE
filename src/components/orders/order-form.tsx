@@ -99,7 +99,11 @@ export function OrderForm() {
   const materiales = form.watch('materiales');
 
   useEffect(() => {
-    const total = materiales.reduce((sum, item) => sum + (item.cantidad * item.precioUnitario), 0);
+    const total = materiales.reduce((sum, item) => {
+        const cantidad = Number(item.cantidad) || 0;
+        const precio = Number(item.precioUnitario) || 0;
+        return sum + (cantidad * precio);
+    }, 0);
     form.setValue('total', total);
   }, [materiales, form]);
 
@@ -422,7 +426,12 @@ export function OrderForm() {
                         </AccordionTrigger>
                         <AccordionContent className="pt-4">
                             <div className="space-y-4">
-                                {fields.map((field, index) => (
+                                {fields.map((field, index) => {
+                                    const cantidad = form.watch(`materiales.${index}.cantidad`);
+                                    const precioUnitario = form.watch(`materiales.${index}.precioUnitario`);
+                                    const subtotal = (Number(cantidad) || 0) * (Number(precioUnitario) || 0);
+
+                                    return (
                                     <div key={field.id} className="grid grid-cols-1 sm:grid-cols-12 gap-4 p-4 border rounded-md relative">
                                         <FormField
                                             control={form.control}
@@ -460,7 +469,7 @@ export function OrderForm() {
                                                 <FormItem className="sm:col-span-2">
                                                     <FormLabel>Cantidad</FormLabel>
                                                     <FormControl>
-                                                        <Input type="number" min="0" {...field} onChange={e => field.onChange(e.target.value === '' ? '' : parseInt(e.target.value, 10))} />
+                                                        <Input type="number" min="0" {...field} onChange={e => field.onChange(e.target.value === '' ? 0 : parseInt(e.target.value, 10))} />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
@@ -469,7 +478,7 @@ export function OrderForm() {
                                         <div className="sm:col-span-3 flex flex-col justify-center">
                                             <FormLabel>Subtotal</FormLabel>
                                             <p className="font-medium h-10 flex items-center">
-                                               S/ {(materiales[index].cantidad * materiales[index].precioUnitario).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                                               S/ {subtotal.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                                             </p>
                                         </div>
                                         <div className="sm:col-span-3 flex items-end">
@@ -479,7 +488,8 @@ export function OrderForm() {
                                             </Button>
                                         </div>
                                     </div>
-                                ))}
+                                    )
+                                })}
                                 <Button
                                     type="button"
                                     variant="outline"
