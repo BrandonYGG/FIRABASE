@@ -39,7 +39,7 @@ function UserOrders({ userId }: { userId: string }) {
 
     if (isLoading) {
         return (
-             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
+             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
                 {[...Array(3)].map((_, i) => (
                     <div key={i} className="flex flex-col space-y-3">
                     <Skeleton className="h-[220px] w-full rounded-xl" />
@@ -60,7 +60,7 @@ function UserOrders({ userId }: { userId: string }) {
     return (
         <div className="bg-muted p-4 rounded-b-md">
             {mappedOrders.length > 0 ? (
-                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {mappedOrders.map((order) => (
                         <OrderCard key={order.id} order={order} isAdminView={true} />
                     ))}
@@ -120,7 +120,7 @@ export function AdminDashboard() {
     
     return (
         <div className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Usuarios Totales</CardTitle>

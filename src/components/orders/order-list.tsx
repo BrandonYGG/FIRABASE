@@ -38,7 +38,7 @@ export function OrderList() {
         setPaymentTypeFilter={setPaymentTypeFilter}
       />
       {loading ? (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="flex flex-col space-y-3">
               <Skeleton className="h-[220px] w-full rounded-xl" />
@@ -50,7 +50,7 @@ export function OrderList() {
           ))}
         </div>
       ) : filteredOrders.length > 0 ? (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredOrders.map((order) => (
             <OrderCard key={order.id} order={order} />
           ))}
