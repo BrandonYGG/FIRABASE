@@ -80,7 +80,7 @@ export default function UrgenciesPage() {
     }
 
     return (
-        <div className="h-[calc(100vh-theme(spacing.24))] flex flex-col gap-6">
+        <div className="flex flex-col h-full gap-6">
             <div className="flex-shrink-0">
                  <h1 className="text-3xl font-bold font-headline tracking-tight">
                     Pedidos por Nivel de Urgencia
@@ -88,7 +88,7 @@ export default function UrgenciesPage() {
                 <p className="text-muted-foreground">Clasificación automática de pedidos según la fecha de entrega límite.</p>
             </div>
 
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 overflow-hidden">
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6">
                 {loading ? (
                     <>
                         <Skeleton className="w-full h-full" />
