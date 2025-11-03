@@ -1,6 +1,6 @@
 
 'use client';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
@@ -11,8 +11,9 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { OrderCard } from '../orders/order-card';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Frown, Users, ListOrdered, DollarSign, FileClock } from 'lucide-react';
+import { Frown, Users, ListOrdered, DollarSign, FileClock, Search } from 'lucide-react';
 import { useCollectionGroup } from '@/firebase/hooks/use-collection-group';
+import { Input } from '../ui/input';
 
 function UserOrders({ userId }: { userId: string }) {
     const firestore = useFirestore();
@@ -78,6 +79,7 @@ function UserOrders({ userId }: { userId: string }) {
 export function AdminDashboard() {
     const firestore = useFirestore();
     const { user: adminUser } = useUser();
+    const [searchQuery, setSearchQuery] = useState('');
     
     const usersQuery = useMemoFirebase(() => {
         if (!firestore) return null;
@@ -99,16 +101,24 @@ export function AdminDashboard() {
     
     const filteredUsers = useMemo(() => {
         if (!users || !adminUser) return [];
-        // Filter out the admin from the list of users to display
-        return users.filter(user => user.id !== adminUser.uid);
-    }, [users, adminUser]);
+        
+        let allUsers = users.filter(user => user.id !== adminUser.uid);
+
+        if (searchQuery) {
+            allUsers = allUsers.filter(user => 
+                user.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                user.email.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
+        return allUsers;
+    }, [users, adminUser, searchQuery]);
 
     // Metrics are disabled as they relied on the failing collectionGroup query.
     const globalMetrics = {
         totalOrders: 0,
         totalAmount: 0,
         pendingOrders: 0,
-        totalUsers: filteredUsers.length
+        totalUsers: users ? users.filter(user => user.id !== adminUser?.uid).length : 0,
     };
     
     const isLoading = usersLoading; // We only care about users loading now.
@@ -173,10 +183,19 @@ export function AdminDashboard() {
                  <CardHeader>
                     <CardTitle>Gestión de Usuarios y Pedidos</CardTitle>
                     <CardDescription>
-                    Seleccione un usuario para ver y administrar sus pedidos individuales.
+                    Busca un usuario por nombre o correo y selecciona para ver y administrar sus pedidos.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
+                    <div className="mb-4 relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input 
+                            placeholder="Buscar por nombre o correo electrónico..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-9"
+                        />
+                    </div>
                     {usersLoading ? (
                         <div className="space-y-4">
                             {[...Array(3)].map((_, i) => (
@@ -185,7 +204,7 @@ export function AdminDashboard() {
                         </div>
                     ) : (
                         <Accordion type="single" collapsible className="w-full space-y-2">
-                            {filteredUsers?.map(user => (
+                            {filteredUsers.length > 0 ? filteredUsers.map(user => (
                                 <AccordionItem value={user.id} key={user.id} className="border rounded-md bg-card hover:bg-muted/50 transition-colors">
                                     <AccordionTrigger className="p-4 hover:no-underline">
                                         <div className="flex items-center gap-4">
@@ -203,14 +222,13 @@ export function AdminDashboard() {
                                     <UserOrders userId={user.id} />
                                     </AccordionContent>
                                 </AccordionItem>
-                            ))}
+                            )) : (
+                                <div className="text-center py-8">
+                                    <Frown className="mx-auto h-10 w-10 text-muted-foreground" />
+                                    <p className="mt-2 text-sm text-muted-foreground">No se encontraron usuarios que coincidan con la búsqueda.</p>
+                                </div>
+                            )}
                         </Accordion>
-                    )}
-                    {filteredUsers.length === 0 && !usersLoading && (
-                         <div className="text-center py-8">
-                            <Frown className="mx-auto h-10 w-10 text-muted-foreground" />
-                            <p className="mt-2 text-sm text-muted-foreground">No hay otros usuarios registrados para mostrar.</p>
-                        </div>
                     )}
                  </CardContent>
             </Card>
