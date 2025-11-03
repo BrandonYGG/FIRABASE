@@ -104,7 +104,9 @@ export function OrderCard({ order, isAdminView = false }: OrderCardProps) {
                                 <span>{order.ciudad}, {order.estado}</span>
                             </CardDescription>
                         </div>
-                        <UrgencyBadge date={order.fechaMaxEntrega} />
+                        <div className="ml-4">
+                          <UrgencyBadge date={order.fechaMaxEntrega} />
+                        </div>
                         </div>
                     </CardHeader>
                     <CardContent className="grid gap-4 text-sm flex-grow">
