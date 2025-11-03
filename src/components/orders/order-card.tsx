@@ -1,10 +1,9 @@
 
+
 'use client'
 import type { Order } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarDays, User, HardHat, CreditCard, Wallet, MapPin, DollarSign, Download, Loader2, CheckCircle, Trash2 } from 'lucide-react';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { HardHat, Loader2, CheckCircle, Trash2, MoreHorizontal } from 'lucide-react';
 import { UrgencyBadge } from './urgency-badge';
 import { Button } from '@/components/ui/button';
 import { OrderStatus } from '@/lib/types';
@@ -43,8 +42,6 @@ export function OrderCard({ order, isAdminView = false }: OrderCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
   
-  const fullAddress = `${order.calle} ${order.numero}, ${order.colonia}, ${order.ciudad}, ${order.estado}, C.P. ${order.codigoPostal}`;
-
   const handleStatusChange = async (newStatus: string) => {
     if (newStatus === order.status) return;
 
@@ -93,57 +90,18 @@ export function OrderCard({ order, isAdminView = false }: OrderCardProps) {
   return (
     <Dialog>
         <Card className={`transition-all flex flex-col`}>
-            <DialogTrigger asChild>
-                <div className="flex-grow cursor-pointer hover:bg-muted/30">
-                    <CardHeader>
-                        <div className="flex justify-between items-start">
-                        <div>
-                            <CardTitle className="text-lg font-headline">{order.obra}</CardTitle>
-                            <CardDescription className="flex items-center pt-1">
-                                <MapPin className="mr-1 h-3 w-3 text-muted-foreground" />
-                                <span>{order.ciudad}, {order.estado}</span>
-                            </CardDescription>
-                        </div>
-                        <div className="ml-4">
-                          <UrgencyBadge date={order.fechaMaxEntrega} />
-                        </div>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="grid gap-4 text-sm flex-grow">
-                        <div className="flex items-center">
-                        <User className="mr-2 h-4 w-4 text-muted-foreground" />
-                        <span><span className="font-semibold">Solicitante:</span> {order.solicitante}</span>
-                        </div>
-                        <div className="flex items-center">
-                        <CalendarDays className="mr-2 h-4 w-4 text-muted-foreground" />
-                        <span>
-                            <span className="font-semibold">Entrega:</span> {format(order.fechaMinEntrega, 'P', { locale: es })} - {format(order.fechaMaxEntrega, 'P', { locale: es })}
-                        </span>
-                        </div>
-                        <div className="flex items-center">
-                        {order.tipoPago === 'Tarjeta' ? <CreditCard className="mr-2 h-4 w-4 text-muted-foreground" /> : <Wallet className="mr-2 h-4 w-4 text-muted-foreground" />}
-                        <span>
-                            <span className="font-semibold">Pago:</span> {order.tipoPago}
-                            {order.tipoPago === 'Tarjeta' && ` (${order.frecuenciaCredito})`}
-                        </span>
-                        </div>
-                        <div className="flex items-start">
-                        <MapPin className="mr-2 mt-0.5 h-4 w-4 text-muted-foreground flex-shrink-0" />
-                        <span><span className="font-semibold">Dirección:</span> {fullAddress}</span>
-                        </div>
-                        {order.total && (
-                        <div className="flex items-center font-semibold">
-                        <DollarSign className="mr-2 h-4 w-4 text-muted-foreground" />
-                        <span>Total: ${order.total.toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN</span>
-                        </div>
-                        )}
-                    </CardContent>
-                 </div>
-            </DialogTrigger>
-            <CardFooter className="flex justify-between items-center bg-muted/50 py-3 px-4 rounded-b-lg">
-                <div className="flex items-center gap-2">
+                <CardHeader className="flex-row items-start justify-between">
+                    <div className="flex-1">
+                        <UrgencyBadge date={order.fechaMaxEntrega} />
+                        <CardTitle className="text-lg font-headline mt-2">{order.obra}</CardTitle>
+                        <CardDescription>
+                            Solicitante: {order.solicitante}
+                        </CardDescription>
+                    </div>
+                </CardHeader>
+                <CardContent className="flex-grow">
                     {isAdminView ? (
-                        <>
+                        <div className="flex items-center gap-2">
                             <HardHat className="h-4 w-4 text-muted-foreground"/>
                             {isUpdating ? (
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -157,7 +115,7 @@ export function OrderCard({ order, isAdminView = false }: OrderCardProps) {
                                 </Badge>
                             ) : (
                                 <Select onValueChange={handleStatusChange} defaultValue={order.status}>
-                                    <SelectTrigger className="w-[150px] h-8 text-xs">
+                                    <SelectTrigger className="w-full h-9 text-xs">
                                         <SelectValue placeholder="Cambiar estado" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -169,14 +127,14 @@ export function OrderCard({ order, isAdminView = false }: OrderCardProps) {
                                     </SelectContent>
                                 </Select>
                             )}
-                        </>
+                        </div>
                     ) : (
                         <Badge className="text-xs" variant={order.status === 'Entregado' ? 'secondary' : order.status === 'Cancelado' ? 'destructive' : 'default'}>
                             {order.status}
                         </Badge>
                     )}
-                </div>
-            
+                </CardContent>
+            <CardFooter className="flex justify-end items-center bg-muted/50 py-2 px-4 rounded-b-lg">
                 <div className="flex items-center gap-2">
                     {isAdminView && (
                         <AlertDialog>
@@ -203,7 +161,8 @@ export function OrderCard({ order, isAdminView = false }: OrderCardProps) {
                         </AlertDialog>
                     )}
                     <DialogTrigger asChild>
-                         <Button variant="link" className="text-xs text-muted-foreground p-0 h-auto">
+                         <Button variant="outline" size="sm">
+                            <MoreHorizontal className="mr-2 h-4 w-4" />
                             Ver detalles
                          </Button>
                     </DialogTrigger>
