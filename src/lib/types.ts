@@ -76,7 +76,7 @@ export const OrderFormSchema = z.object({
 })
 .refine(data => {
     if (data.tipoPago === 'Tarjeta') {
-        return data.ine !== undefined && data.ine !== null && data.ine instanceof FileList && data.ine.length > 0;
+        return data.ine && typeof data.ine === 'object' && 'length' in data.ine && data.ine.length > 0;
     }
     return true;
 }, {
@@ -85,7 +85,7 @@ export const OrderFormSchema = z.object({
 })
 .refine(data => {
     if (data.tipoPago === 'Tarjeta') {
-        return data.comprobanteDomicilio !== undefined && data.comprobanteDomicilio !== null && data.comprobanteDomicilio instanceof FileList && data.comprobanteDomicilio.length > 0;
+        return data.comprobanteDomicilio && typeof data.comprobanteDomicilio === 'object' && 'length' in data.comprobanteDomicilio && data.comprobanteDomicilio.length > 0;
     }
     return true;
 }, {
@@ -139,5 +139,3 @@ export interface UserProfile {
     rfc?: string;
     phone?: string;
 }
-
-    
