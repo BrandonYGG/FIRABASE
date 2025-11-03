@@ -40,5 +40,14 @@ service cloud.firestore {
     match /{path=**}/pedidos/{orderId} {
       allow list: if isAdmin();
     }
+
+    // Rules for notifications
+    match /users/{userId}/notifications/{notificationId} {
+      // Admins can create notifications (when updating order status)
+      // Users can read/update (mark as read) their own notifications.
+      allow read, update, list: if isOwner(userId);
+      allow create: if isAdmin();
+      allow delete: if isOwner(userId) || isAdmin();
+    }
   }
 }

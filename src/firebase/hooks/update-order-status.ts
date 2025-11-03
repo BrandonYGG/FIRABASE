@@ -1,15 +1,9 @@
-
 'use client';
 
-import { doc, updateDoc, getFirestore } from 'firebase/firestore';
+import { doc, updateDoc, getDoc, collection, addDoc, Timestamp } from 'firebase/firestore';
 import { initializeFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
 
-// Since this is a client-side utility, we get the firestore instance inside the function.
-// This avoids issues with trying to initialize Firebase on the server.
-
 export const updateOrderStatus = async (userId: string, orderId: string, newStatus: string) => {
-    // We can't use the useFirestore() hook here as this is not a component.
-    // So we initialize firebase and get the instance.
     const { firestore } = initializeFirebase();
     
     if (!userId || !orderId) {
@@ -19,13 +13,35 @@ export const updateOrderStatus = async (userId: string, orderId: string, newStat
     const orderRef = doc(firestore, 'users', userId, 'pedidos', orderId);
 
     try {
+        // First, get the order to have its data for the notification
+        const orderSnap = await getDoc(orderRef);
+        if (!orderSnap.exists()) {
+            throw new Error("Order not found!");
+        }
+        const orderData = orderSnap.data();
+
+        // Update the order status
         await updateDoc(orderRef, {
             status: newStatus,
         });
+
+        // Then, create a notification for the user
+        const notificationsCollection = collection(firestore, 'users', userId, 'notifications');
+        const message = `El estado de tu pedido para la obra "${orderData.obra}" ha cambiado a: ${newStatus}.`;
+        
+        await addDoc(notificationsCollection, {
+            userId,
+            orderId,
+            orderName: orderData.obra,
+            message,
+            status: newStatus,
+            createdAt: Timestamp.now(),
+            read: false,
+        });
+
     } catch (error) {
         console.error("Error updating order status:", error);
         
-        // Create and emit a contextual error for permission issues
         const permissionError = new FirestorePermissionError({
             path: orderRef.path,
             operation: 'update',
@@ -33,7 +49,6 @@ export const updateOrderStatus = async (userId: string, orderId: string, newStat
         });
         errorEmitter.emit('permission-error', permissionError);
 
-        // Re-throw the original error to be caught by the caller
         throw error;
     }
 };

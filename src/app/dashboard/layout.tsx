@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -35,6 +34,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useTheme } from 'next-themes';
 import { useAuth, useUser } from '@/firebase';
+import { Notifications } from '@/components/notifications/notifications';
 
 export default function DashboardLayout({
   children,
@@ -131,6 +131,7 @@ export default function DashboardLayout({
                  <div className="flex items-center gap-4">
                  </div>
                  <div className="ml-auto flex items-center gap-2">
+                    <Notifications />
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" className="md:h-8 md:w-8">

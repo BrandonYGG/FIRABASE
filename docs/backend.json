@@ -112,6 +112,22 @@
         }
       },
       "required": ["email", "role"]
+    },
+     "Notification": {
+      "title": "Notification",
+      "type": "object",
+      "description": "Represents a notification for a user about an order status change.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "orderId": { "type": "string" },
+        "orderName": { "type": "string" },
+        "message": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "read": { "type": "boolean" }
+      },
+      "required": ["id", "userId", "orderId", "orderName", "message", "status", "createdAt", "read"]
     }
   },
   "auth": {
@@ -158,6 +174,14 @@
             }
           ]
         }
+      },
+      {
+        "path": "/users/{userId}/notifications/{notificationId}",
+        "definition": {
+          "entityName": "Notification",
+          "schema": { "$ref": "#/backend/entities/Notification" },
+          "description": "Subcollection to store notifications for a specific user."
+        }
       }
     ],
     "reasoning": "The Firestore data structure is designed to address the \"Missing or insufficient permissions\" error by ensuring authorization independence and secure data access based on the user's authentication status. The structure is based on path-based ownership. This approach ensures that users can only access their own orders, addressing the error reported by NextJS.\n\n*   **Authorization Independence**: Achieved by storing orders under the `/users/{userId}/pedidos/{orderId}` path. This structure inherently links each order to a specific user, eliminating the need for `get()` calls to verify ownership.\n*   **QAPs (Rules are not Filters)**: The structure enables secure `list` operations by ensuring that users can only list orders associated with their own `userId`. The security rules can then enforce that only the authenticated user (`request.auth.uid`) can access the `/users/{userId}/pedidos` collection. This structure also helps to avoid unintended data exposure.\n\nThe `userId` field within each order document is redundant but strongly encouraged as a best practice for data integrity checks (e.g. to ensure the path `userId` and the document `userId` are the same value).\n"
@@ -166,5 +190,3 @@
     "rules": "rules_version = '2';\nservice firebase.storage {\n  match /b/{bucket}/o {\n    match /profile-pictures/{userId}/{fileName} {\n      allow read;\n      allow write: if request.auth != null && request.auth.uid == userId;\n    }\n  }\n}"
   }
 }
-
-    

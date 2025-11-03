@@ -1,4 +1,3 @@
-
 import { z } from 'zod';
 import type { Timestamp } from 'firebase/firestore';
 
@@ -35,12 +34,7 @@ export const OrderFormSchema = z.object({
   solicitante: z.string().min(3, { message: 'El nombre debe tener al menos 3 caracteres.' }),
   obra: z.string().min(3, { message: 'El nombre de la obra debe tener al menos 3 caracteres.' }),
   calle: z.string().min(3, { message: 'La calle debe tener al menos 3 caracteres.' }),
-  numero: z.preprocess(
-    (val) => (val === "" ? undefined : String(val)),
-    z.string().refine((val) => /^\d+$/.test(val), {
-        message: "El número solo debe contener dígitos.",
-    }).optional()
-  ),
+  numero: z.string().min(1, 'El número es obligatorio.'),
   codigoPostal: z.string().regex(/^\d{5}$/, { message: 'El código postal debe tener 5 dígitos.' }),
   colonia: z.string().min(3, { message: 'La colonia debe tener al menos 3 caracteres.' }),
   ciudad: z.string().min(1, { message: 'Debe seleccionar una ciudad/municipio.' }),
@@ -76,7 +70,7 @@ export const OrderFormSchema = z.object({
 })
 .refine(data => {
     if (data.tipoPago === 'Tarjeta') {
-        return data.ine && typeof data.ine === 'object' && 'length' in data.ine && data.ine.length > 0;
+       return data.ine && data.ine.length > 0;
     }
     return true;
 }, {
@@ -85,7 +79,7 @@ export const OrderFormSchema = z.object({
 })
 .refine(data => {
     if (data.tipoPago === 'Tarjeta') {
-        return data.comprobanteDomicilio && typeof data.comprobanteDomicilio === 'object' && 'length' in data.comprobanteDomicilio && data.comprobanteDomicilio.length > 0;
+        return data.comprobanteDomicilio && data.comprobanteDomicilio.length > 0;
     }
     return true;
 }, {
@@ -138,4 +132,23 @@ export interface UserProfile {
     photoURL?: string;
     rfc?: string;
     phone?: string;
+}
+
+// Notification Types
+interface BaseNotification {
+  id: string;
+  userId: string;
+  orderId: string;
+  orderName: string;
+  message: string;
+  status: keyof typeof OrderStatus;
+  read: boolean;
+}
+
+export interface Notification extends BaseNotification {
+    createdAt: Date;
+}
+
+export interface NotificationFirestore extends BaseNotification {
+    createdAt: Timestamp;
 }
