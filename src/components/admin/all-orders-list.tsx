@@ -21,10 +21,7 @@ export function AllOrdersList() {
 
     const allOrdersQuery = useMemoFirebase(() => {
         if (!firestore) return null;
-        // This query is known to cause permission errors with the current security rules.
-        // It is disabled to prevent application crashes.
-        // return query(collectionGroup(firestore, 'pedidos'), orderBy('createdAt', 'desc'));
-        return null;
+        return query(collectionGroup(firestore, 'pedidos'), orderBy('createdAt', 'desc'));
     }, [firestore]);
 
     const { data: allOrders, isLoading, error } = useCollectionGroup<OrderFirestore>(allOrdersQuery);
@@ -33,7 +30,6 @@ export function AllOrdersList() {
     const [paymentTypeFilter, setPaymentTypeFilter] = useState('');
 
     const mappedAndFilteredOrders: Order[] = useMemo(() => {
-        // Since the query is disabled, this will always be empty.
         if (!allOrders) return [];
         return allOrders
             .map(order => ({
@@ -50,12 +46,12 @@ export function AllOrdersList() {
     }, [allOrders, statusFilter, paymentTypeFilter]);
 
 
-    if (error || !allOrdersQuery) {
+    if (error) {
         return (
             <Alert variant="destructive">
                 <ShieldAlert className="h-4 w-4" />
-                <AlertTitle>Función Deshabilitada</AlertTitle>
-                <AlertDescription>La vista de "Todos los Pedidos" está temporalmente deshabilitada debido a restricciones de permisos. Por favor, gestione los pedidos individualmente a través del <a href="/admin/dashboard" className="underline font-semibold">Dashboard de Administrador</a>.</AlertDescription>
+                <AlertTitle>Error de Permisos</AlertTitle>
+                <AlertDescription>No se pudo cargar la lista de todos los pedidos. Asegúrese de que las reglas de seguridad de Firestore permitan a los administradores realizar consultas de grupo en la colección 'pedidos'.</AlertDescription>
             </Alert>
         );
     }
@@ -89,7 +85,7 @@ export function AllOrdersList() {
                     <Frown className="mx-auto h-12 w-12 text-muted-foreground" />
                     <h3 className="mt-4 text-lg font-semibold font-headline">No se encontraron pedidos</h3>
                     <p className="mt-2 text-sm text-muted-foreground">
-                        No hay pedidos que coincidan con los filtros seleccionados.
+                        No hay pedidos que coincidan con los filtros seleccionados, o no hay pedidos en el sistema.
                     </p>
                 </div>
             )}
