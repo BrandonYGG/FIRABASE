@@ -103,7 +103,7 @@ export function OrderForm() {
         const precio = Number(item.precioUnitario) || 0;
         return sum + (cantidad * precio);
     }, 0);
-    form.setValue('total', total);
+    form.setValue('total', total, { shouldValidate: true });
   }, [materiales, form]);
 
   const municipios = useMemo(() => {
@@ -472,7 +472,7 @@ export function OrderForm() {
                                                             type="number"
                                                             min="0"
                                                             {...field}
-                                                            onChange={e => field.onChange(e.target.valueAsNumber || undefined)}
+                                                            onChange={e => field.onChange(e.target.value === '' ? undefined : e.target.valueAsNumber)}
                                                             value={field.value ?? ""}
                                                         />
                                                     </FormControl>
@@ -706,3 +706,5 @@ export function OrderForm() {
     </Card>
   );
 }
+
+    
