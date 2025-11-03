@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 import type { Timestamp } from 'firebase/firestore';
 
@@ -138,3 +139,5 @@ export interface UserProfile {
     rfc?: string;
     phone?: string;
 }
+
+    

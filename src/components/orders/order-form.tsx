@@ -85,7 +85,7 @@ export function OrderForm() {
       frecuenciaCredito: undefined,
       metodoPago: '',
       total: 0, 
-      materiales: [{ materialId: '', cantidad: 1, precioUnitario: 0, descripcion: '' }],
+      materiales: [{ materialId: '', cantidad: undefined, precioUnitario: 0, descripcion: '' }],
     },
   });
 
@@ -469,7 +469,7 @@ export function OrderForm() {
                                                 <FormItem className="sm:col-span-2">
                                                     <FormLabel>Cantidad</FormLabel>
                                                     <FormControl>
-                                                        <Input type="number" min="0" {...field} onChange={e => field.onChange(e.target.value === '' ? 0 : parseInt(e.target.value, 10))} />
+                                                        <Input type="number" min="0" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value, 10))} />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
@@ -494,7 +494,7 @@ export function OrderForm() {
                                     type="button"
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => append({ materialId: '', cantidad: 1, precioUnitario: 0, descripcion: '' })}
+                                    onClick={() => append({ materialId: '', cantidad: undefined, precioUnitario: 0, descripcion: '' })}
                                 >
                                     <PlusCircle className="mr-2 h-4 w-4" />
                                     Añadir Material
@@ -701,3 +701,5 @@ export function OrderForm() {
     </Card>
   );
 }
+
+    
