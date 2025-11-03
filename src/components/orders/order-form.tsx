@@ -469,7 +469,13 @@ export function OrderForm() {
                                                 <FormItem className="sm:col-span-2">
                                                     <FormLabel>Cantidad</FormLabel>
                                                     <FormControl>
-                                                        <Input type="number" min="0" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value, 10))} />
+                                                        <Input 
+                                                            type="number" 
+                                                            min="0"
+                                                            {...field} 
+                                                            onChange={e => field.onChange(e.target.value === '' ? '' : parseInt(e.target.value, 10))}
+                                                            value={field.value ?? ''}
+                                                        />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
