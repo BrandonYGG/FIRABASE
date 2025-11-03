@@ -34,11 +34,11 @@ service cloud.firestore {
       // Admins can read/write/delete any order.
       // Users can only read/write/delete their own orders.
       allow read, write, delete: if isOwner(userId) || isAdmin();
-      allow list: if isAdmin();
+      allow list: if isOwner(userId) || isAdmin();
     }
     
     // This rule allows an admin to query across all 'pedidos' subcollections.
-    match /{path=**}/pedidos/{orderId} {
+    match /{path=**}/pedidos/{pedido} {
       allow list: if isAdmin();
     }
 
