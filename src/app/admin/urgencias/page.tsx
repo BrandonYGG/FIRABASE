@@ -88,7 +88,7 @@ export default function UrgenciesPage() {
                 <p className="text-muted-foreground">Clasificación automática de pedidos según la fecha de entrega límite.</p>
             </div>
 
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 overflow-hidden">
                 {loading ? (
                     <>
                         <Skeleton className="w-full h-full" />
@@ -106,4 +106,3 @@ export default function UrgenciesPage() {
         </div>
     );
 }
-
