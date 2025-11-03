@@ -96,7 +96,7 @@ export default function DashboardLayout({
             <SidebarHeader>
                 <div className="flex items-center space-x-2 px-2">
                     <Construction className="h-6 w-6 text-primary" />
-                    <span className="font-bold font-headline text-lg">OrderFlow</span>
+                    <span className="font-bold font-headline text-lg group-data-[collapsible=icon]:hidden">OrderFlow</span>
                 </div>
             </SidebarHeader>
             <SidebarContent>

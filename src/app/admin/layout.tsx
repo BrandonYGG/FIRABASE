@@ -90,7 +90,7 @@ export default function AdminLayout({
             <SidebarHeader>
                 <div className="flex items-center space-x-2 px-2">
                     <Shield className="h-6 w-6 text-primary" />
-                    <span className="font-bold font-headline text-lg">AdminFlow</span>
+                    <span className="font-bold font-headline text-lg group-data-[collapsible=icon]:hidden">AdminFlow</span>
                 </div>
             </SidebarHeader>
             <SidebarContent>
