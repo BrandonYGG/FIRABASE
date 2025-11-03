@@ -40,6 +40,12 @@ const nextConfig: NextConfig = {
         hostname: 'cdn1.iconfinder.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'storage.googleapis.com',
+        port: '',
+        pathname: '/**',
       }
     ],
   },

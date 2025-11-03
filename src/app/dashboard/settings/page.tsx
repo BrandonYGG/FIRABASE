@@ -7,52 +7,34 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useUser, useFirestore, useStorage } from "@/firebase";
+import { useUser, useFirestore } from "@/firebase";
 import { doc, updateDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { Camera, Loader2 } from "lucide-react";
-import React, { useState, useRef, useEffect } from "react";
+import { Loader2 } from "lucide-react";
+import React, { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { updateProfile } from "firebase/auth";
+import { avatars } from "@/lib/data/avatars";
+import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 export default function SettingsPage() {
     const { user, isUserLoading } = useUser();
     const firestore = useFirestore();
-    const storage = useStorage();
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [avatarFile, setAvatarFile] = useState<File | null>(null);
-    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+    const [selectedAvatarUrl, setSelectedAvatarUrl] = useState<string | null>(null);
     const [displayName, setDisplayName] = useState('');
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (user) {
             setDisplayName(user.displayName || '');
-            setAvatarPreview(user.photoURL || null);
+            setSelectedAvatarUrl(user.photoURL || null);
         }
-    }, [user?.displayName, user?.photoURL]);
-
-    const handleAvatarClick = () => {
-        fileInputRef.current?.click();
-    };
-
-
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            setAvatarFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setAvatarPreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
+    }, [user]);
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        if (!user || !firestore || !storage) {
+        if (!user || !firestore) {
             toast({ title: "Error", description: "Servicios de Firebase no disponibles.", variant: 'destructive' });
             return;
         }
@@ -60,24 +42,15 @@ export default function SettingsPage() {
         setIsSubmitting(true);
 
         const nameChanged = displayName !== (user.displayName || '');
-        const avatarChanged = avatarFile !== null;
+        const avatarChanged = selectedAvatarUrl !== (user.photoURL || null);
 
         if (!nameChanged && !avatarChanged) {
-            toast({ title: "Sin cambios", description: "No has modificado tu nombre ni tu foto." });
+            toast({ title: "Sin cambios", description: "No has modificado tu nombre ni tu avatar." });
             setIsSubmitting(false);
             return;
         }
 
         try {
-            let photoURL: string | undefined = avatarPreview || user.photoURL || undefined;
-
-            // 1. Upload avatar if it changed
-            if (avatarFile) {
-                const storageRef = ref(storage, `profile-pictures/${user.uid}/${avatarFile.name}`);
-                const uploadResult = await uploadBytes(storageRef, avatarFile);
-                photoURL = await getDownloadURL(uploadResult.ref);
-            }
-
             const authUpdates: { displayName?: string; photoURL?: string } = {};
             const firestoreUpdates: { displayName?: string; photoURL?: string } = {};
 
@@ -85,17 +58,17 @@ export default function SettingsPage() {
                 authUpdates.displayName = displayName;
                 firestoreUpdates.displayName = displayName;
             }
-            if (photoURL && photoURL !== user.photoURL) {
-                authUpdates.photoURL = photoURL;
-                firestoreUpdates.photoURL = photoURL;
+            if (avatarChanged && selectedAvatarUrl) {
+                authUpdates.photoURL = selectedAvatarUrl;
+                firestoreUpdates.photoURL = selectedAvatarUrl;
             }
 
-            // 2. Update Auth Profile
+            // Update Auth Profile
             if (Object.keys(authUpdates).length > 0) {
                 await updateProfile(user, authUpdates);
             }
             
-            // 3. Update Firestore Document
+            // Update Firestore Document
             if (Object.keys(firestoreUpdates).length > 0) {
                 const userRef = doc(firestore, 'users', user.uid);
                 await updateDoc(userRef, firestoreUpdates);
@@ -115,7 +88,6 @@ export default function SettingsPage() {
             });
         } finally {
             setIsSubmitting(false);
-            setAvatarFile(null);
         }
     };
 
@@ -160,41 +132,39 @@ export default function SettingsPage() {
             <CardHeader>
                 <CardTitle>Detalles del Perfil</CardTitle>
                 <CardDescription>
-                    Actualiza tu nombre y foto de perfil.
+                    Actualiza tu nombre y elige un avatar para tu perfil.
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="flex items-center space-x-6">
-                        <div className="relative">
-                            <Avatar className="h-24 w-24">
-                                {avatarPreview && <AvatarImage src={avatarPreview} alt="Avatar de usuario" className="object-cover" />}
-                                <AvatarFallback>{displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}</AvatarFallback>
-                            </Avatar>
-                            <Button 
-                                type="button" 
-                                variant="outline" 
-                                size="icon" 
-                                className="absolute bottom-0 right-0 rounded-full h-8 w-8"
-                                onClick={handleAvatarClick}
-                                aria-label="Cambiar foto de perfil"
-                            >
-                                <Camera className="h-4 w-4"/>
-                            </Button>
-                            <Input 
-                                type="file" 
-                                ref={fileInputRef} 
-                                className="hidden" 
-                                accept="image/png, image/jpeg, image/webp"
-                                onChange={handleFileChange}
-                            />
-                        </div>
-                        <div className="flex-grow space-y-2">
-                             <Label htmlFor="name">Nombre Completo o de Empresa</Label>
-                             <Input id="name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
-                             <p className="text-sm text-muted-foreground">Este es tu correo electrónico: {user.email}</p>
+                <form onSubmit={handleSubmit} className="space-y-8">
+                    <div className="space-y-2">
+                        <Label htmlFor="name">Nombre Completo o de Empresa</Label>
+                        <Input id="name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+                        <p className="text-sm text-muted-foreground">Este es tu correo electrónico: {user.email}</p>
+                    </div>
+
+                    <div className="space-y-4">
+                        <Label>Elige tu Avatar</Label>
+                        <div className="grid grid-cols-6 sm:grid-cols-8 gap-3">
+                            {avatars.map((avatar) => (
+                                <button
+                                    key={avatar.id}
+                                    type="button"
+                                    onClick={() => setSelectedAvatarUrl(avatar.url)}
+                                    className={cn(
+                                        "rounded-full focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-transform hover:scale-105",
+                                        selectedAvatarUrl === avatar.url && "ring-2 ring-primary ring-offset-2 scale-105"
+                                    )}
+                                >
+                                    <Avatar className="h-16 w-16 border">
+                                        <AvatarImage src={avatar.url} alt={`Avatar ${avatar.id}`} className="object-cover" />
+                                        <AvatarFallback>{avatar.id}</AvatarFallback>
+                                    </Avatar>
+                                </button>
+                            ))}
                         </div>
                     </div>
+                    
                     <div className="flex justify-end">
                         <Button type="submit" disabled={isSubmitting}>
                             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
