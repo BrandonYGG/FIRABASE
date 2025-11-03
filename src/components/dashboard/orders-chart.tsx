@@ -29,26 +29,24 @@ export function OrdersChart({ orders, loading }: OrdersChartProps) {
   const monthlyData = useMemo(() => {
     if (!orders) return [];
 
-    const dataByMonth: { [key: string]: { month: string; total: number } } = {};
+    const dataByMonth: { [key: string]: { month: string; date: Date; total: number } } = {};
 
     orders.forEach((order) => {
-      const monthKey = format(order.createdAt, 'MMM yyyy', { locale: es });
+      const monthKey = format(order.createdAt, 'yyyy-MM');
       if (!dataByMonth[monthKey]) {
         dataByMonth[monthKey] = {
           month: format(order.createdAt, 'MMM', { locale: es }),
+          date: new Date(order.createdAt.getFullYear(), order.createdAt.getMonth(), 1),
           total: 0,
         };
       }
       dataByMonth[monthKey].total += order.total;
     });
+    
+    // Sort chronologically
+    const sortedData = Object.values(dataByMonth).sort((a, b) => a.date.getTime() - b.date.getTime());
 
-    const sortedMonths = Object.values(dataByMonth).sort((a, b) => {
-        const dateA = new Date(`01 ${a.month} 2023`);
-        const dateB = new Date(`01 ${b.month} 2023`);
-        return dateA.getTime() - dateB.getTime();
-    });
-
-    return sortedMonths;
+    return sortedData;
   }, [orders]);
 
   if (loading) {
