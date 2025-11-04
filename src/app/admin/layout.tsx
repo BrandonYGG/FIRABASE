@@ -28,13 +28,14 @@ import {
   SidebarTrigger,
   SidebarFooter
 } from '@/components/ui/sidebar';
-import { Shield, LayoutDashboard, Users, ListOrdered, FilePlus2, LogOut, Settings, CalendarIcon, Moon, Sun, Loader2, Siren } from 'lucide-react';
+import { Shield, LayoutDashboard, ListOrdered, FilePlus2, LogOut, Settings, CalendarIcon, Moon, Sun, Loader2, Siren } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useTheme } from 'next-themes';
 import { useAuth, useUser } from '@/firebase';
+import { Notifications } from '@/components/notifications/notifications';
 
 export default function AdminLayout({
   children,
@@ -130,6 +131,7 @@ export default function AdminLayout({
                  <div className="flex items-center gap-4">
                  </div>
                  <div className="ml-auto flex items-center gap-2">
+                    <Notifications />
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" className="md:h-8 md:w-8">

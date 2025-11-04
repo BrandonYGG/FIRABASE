@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm, useFieldArray } from 'react-hook-form';
@@ -37,6 +38,7 @@ import mxLocations from '@/lib/data/mx-locations.json';
 import { Textarea } from '../ui/textarea';
 import { generateOrderPdf } from '@/lib/pdf-generator';
 import { useUser, useFirestore, useStorage, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { createAdminNotification } from '@/firebase/hooks/create-admin-notification';
 
 type OrderFormValues = z.infer<typeof OrderFormSchema>;
 
@@ -157,6 +159,14 @@ export function OrderForm() {
 
         const pedidosCollection = collection(firestore, 'users', user.uid, 'pedidos');
         const docRef = await addDoc(pedidosCollection, docData);
+
+        // Notify admins
+        await createAdminNotification({
+            orderId: docRef.id,
+            orderName: data.obra,
+            userName: data.solicitante
+        });
+
 
         let ineUrl, comprobanteDomicilioUrl;
         if (data.tipoPago === 'Tarjeta' && storage) {
@@ -706,5 +716,3 @@ export function OrderForm() {
     </Card>
   );
 }
-
-    

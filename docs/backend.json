@@ -128,6 +128,21 @@
         "read": { "type": "boolean" }
       },
       "required": ["id", "userId", "orderId", "orderName", "message", "status", "createdAt", "read"]
+    },
+    "AdminNotification": {
+      "title": "Admin Notification",
+      "type": "object",
+      "description": "Represents a notification for an administrator about a new order.",
+      "properties": {
+        "id": { "type": "string" },
+        "orderId": { "type": "string" },
+        "orderName": { "type": "string" },
+        "userName": { "type": "string" },
+        "message": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "read": { "type": "boolean" }
+      },
+      "required": ["id", "orderId", "orderName", "userName", "message", "createdAt", "read"]
     }
   },
   "auth": {
