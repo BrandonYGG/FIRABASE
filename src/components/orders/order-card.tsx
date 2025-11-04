@@ -9,7 +9,7 @@ import { OrderStatus } from '@/lib/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { updateOrderStatus } from '@/firebase/hooks/update-order-status';
 import { useToast } from '@/hooks/use-toast';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,16 +37,22 @@ type OrderCardProps = {
 };
 
 export function OrderCard({ order, isAdminView = false }: OrderCardProps) {
+  const [currentStatus, setCurrentStatus] = useState(order.status);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    setCurrentStatus(order.status);
+  }, [order.status]);
   
   const handleStatusChange = async (newStatus: string) => {
-    if (newStatus === order.status) return;
+    if (newStatus === currentStatus) return;
 
     setIsUpdating(true);
     try {
         await updateOrderStatus(order.userId, order.id, newStatus as keyof typeof OrderStatus);
+        setCurrentStatus(newStatus as keyof typeof OrderStatus); // Update local state immediately
         toast({
             title: "Estado Actualizado",
             description: `El pedido de ${order.obra} ahora está ${newStatus}.`
@@ -86,18 +92,18 @@ export function OrderCard({ order, isAdminView = false }: OrderCardProps) {
   const availableStatuses = useMemo(() => {
     const allStatuses = Object.values(OrderStatus);
     // If the order is "En proceso" or later, remove "Pendiente" from the options
-    if (order.status === OrderStatus.EnProceso || order.status === OrderStatus.Entregado || order.status === OrderStatus.Cancelado) {
+    if (currentStatus === OrderStatus.EnProceso || currentStatus === OrderStatus.Entregado || currentStatus === OrderStatus.Cancelado) {
         return allStatuses.filter(status => status !== OrderStatus.Pendiente);
     }
     return allStatuses;
-  }, [order.status]);
+  }, [currentStatus]);
 
 
-  const isDelivered = order.status === OrderStatus.Entregado;
+  const isDelivered = currentStatus === OrderStatus.Entregado;
 
   return (
     <Dialog>
-      <Card className="flex flex-col min-h-[220px]">
+      <Card className="flex flex-col min-h-[240px] justify-between">
         <CardHeader>
           <UrgencyBadge date={order.fechaMaxEntrega} />
           <CardTitle className="text-lg font-headline truncate mt-2" title={order.obra}>{order.obra}</CardTitle>
@@ -120,13 +126,13 @@ export function OrderCard({ order, isAdminView = false }: OrderCardProps) {
                   Entregado
                 </Badge>
               ) : (
-                <Select onValueChange={handleStatusChange} defaultValue={order.status}>
+                <Select onValueChange={handleStatusChange} defaultValue={currentStatus}>
                   <SelectTrigger className="w-full h-9 text-xs">
                     <SelectValue placeholder="Cambiar estado" />
                   </SelectTrigger>
                   <SelectContent>
                     {availableStatuses.map((status) => (
-                      <SelectItem key={status} value={status} className="text-xs">
+                      <SelectItem key={status} value={status} className="text-xs" disabled={status === currentStatus}>
                         {status}
                       </SelectItem>
                     ))}
@@ -135,12 +141,12 @@ export function OrderCard({ order, isAdminView = false }: OrderCardProps) {
               )}
             </div>
           ) : (
-            <Badge className="text-xs" variant={order.status === 'Entregado' ? 'secondary' : order.status === 'Cancelado' ? 'destructive' : 'default'}>
-              {order.status}
+            <Badge className="text-xs" variant={currentStatus === 'Entregado' ? 'secondary' : currentStatus === 'Cancelado' ? 'destructive' : 'default'}>
+              {currentStatus}
             </Badge>
           )}
         </CardContent>
-        <CardFooter className="flex justify-end items-center bg-muted/50 py-2 px-4 rounded-b-lg">
+        <CardFooter className="flex justify-end items-center bg-muted/50 py-2 px-4 rounded-b-lg mt-auto">
           <div className="flex items-center gap-2">
             {isAdminView && (
               <AlertDialog>
@@ -181,3 +187,4 @@ export function OrderCard({ order, isAdminView = false }: OrderCardProps) {
     </Dialog>
   );
 }
+
