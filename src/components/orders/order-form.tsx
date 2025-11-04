@@ -441,7 +441,7 @@ export function OrderForm() {
                                     const subtotal = (Number(cantidad) || 0) * (Number(precioUnitario) || 0);
 
                                     return (
-                                    <div key={field.id} className="grid grid-cols-1 sm:grid-cols-12 gap-4 p-4 border rounded-md relative">
+                                    <div key={field.id} className="grid grid-cols-1 sm:grid-cols-12 gap-x-4 gap-y-2 p-4 border rounded-md relative items-end">
                                         <FormField
                                             control={form.control}
                                             name={`materiales.${index}.materialId`}
@@ -490,13 +490,19 @@ export function OrderForm() {
                                                 </FormItem>
                                             )}
                                         />
-                                        <div className="sm:col-span-3 flex flex-col justify-center">
+                                        <div className="sm:col-span-2 flex flex-col justify-end">
+                                            <FormLabel>Precio Unitario</FormLabel>
+                                            <p className="font-medium h-10 flex items-center text-sm">
+                                               S/ {precioUnitario.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                                            </p>
+                                        </div>
+                                        <div className="sm:col-span-2 flex flex-col justify-end">
                                             <FormLabel>Subtotal</FormLabel>
                                             <p className="font-medium h-10 flex items-center">
                                                S/ {subtotal.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                                             </p>
                                         </div>
-                                        <div className="sm:col-span-3 flex items-end">
+                                        <div className="sm:col-span-2 flex items-center justify-end">
                                             <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}>
                                                 <Trash2 className="h-4 w-4" />
                                                 <span className="sr-only">Eliminar material</span>
