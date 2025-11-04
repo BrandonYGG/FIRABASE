@@ -9,7 +9,7 @@ import { OrderStatus } from '@/lib/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { updateOrderStatus } from '@/firebase/hooks/update-order-status';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -83,6 +83,15 @@ export function OrderCard({ order, isAdminView = false }: OrderCardProps) {
     }
   };
 
+  const availableStatuses = useMemo(() => {
+    const allStatuses = Object.values(OrderStatus);
+    // If the order is "En proceso" or later, remove "Pendiente" from the options
+    if (order.status === OrderStatus.EnProceso || order.status === OrderStatus.Entregado || order.status === OrderStatus.Cancelado) {
+        return allStatuses.filter(status => status !== OrderStatus.Pendiente);
+    }
+    return allStatuses;
+  }, [order.status]);
+
 
   const isDelivered = order.status === OrderStatus.Entregado;
 
@@ -116,7 +125,7 @@ export function OrderCard({ order, isAdminView = false }: OrderCardProps) {
                     <SelectValue placeholder="Cambiar estado" />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.values(OrderStatus).map((status) => (
+                    {availableStatuses.map((status) => (
                       <SelectItem key={status} value={status} className="text-xs">
                         {status}
                       </SelectItem>
