@@ -64,8 +64,8 @@ export default function UrgenciesPage() {
     }, [firestore, user]);
 
     const classifiedOrders = useMemo(() => {
-        const urgent = allOrders.filter(o => getUrgency(o.fechaMaxEntrega).level === 'Urgent');
-        const soon = allOrders.filter(o => getUrgency(o.fechaMaxEntrega).level === 'Soon');
+        const urgent = allOrders.filter(o => getUrgency(o.fechaMaxEntrega).level === 'Urgente');
+        const soon = allOrders.filter(o => getUrgency(o.fechaMaxEntrega).level === 'Pronto');
         const normal = allOrders.filter(o => getUrgency(o.fechaMaxEntrega).level === 'Normal');
         return { urgent, soon, normal };
     }, [allOrders]);
@@ -97,8 +97,8 @@ export default function UrgenciesPage() {
                     </>
                 ) : (
                     <>
-                        <UrgencyColumn urgency={URGENCY_LEVELS.Urgent} orders={classifiedOrders.urgent} />
-                        <UrgencyColumn urgency={URGENCY_LEVELS.Soon} orders={classifiedOrders.soon} />
+                        <UrgencyColumn urgency={URGENCY_LEVELS.Urgente} orders={classifiedOrders.urgent} />
+                        <UrgencyColumn urgency={URGENCY_LEVELS.Pronto} orders={classifiedOrders.soon} />
                         <UrgencyColumn urgency={URGENCY_LEVELS.Normal} orders={classifiedOrders.normal} />
                     </>
                 )}

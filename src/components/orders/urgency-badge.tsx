@@ -2,18 +2,18 @@
 import { Badge } from '@/components/ui/badge';
 import { differenceInDays } from 'date-fns';
 
-export type UrgencyLevel = 'Urgent' | 'Soon' | 'Normal';
+export type UrgencyLevel = 'Urgente' | 'Pronto' | 'Normal';
 export type Urgency = { level: UrgencyLevel; text: string; suggestion: string; variant: 'destructive' | 'default' | 'secondary' };
 
 export const URGENCY_LEVELS: Record<UrgencyLevel, Urgency> = {
-  Urgent: { 
-    level: 'Urgent', 
+  Urgente: { 
+    level: 'Urgente', 
     text: 'Urgente', 
     variant: 'destructive',
     suggestion: "Sugerencia IA: Entrega urgente. Se recomienda confirmar disponibilidad del proveedor." 
   },
-  Soon: { 
-    level: 'Soon', 
+  Pronto: { 
+    level: 'Pronto', 
     text: 'Pronto', 
     variant: 'default',
     suggestion: "Sugerencia IA: El tiempo de entrega es moderado. Planifique con sus proveedores."
@@ -36,10 +36,10 @@ export function getUrgency(date: Date): Urgency {
   const daysDiff = differenceInDays(deliveryDate, today);
 
   if (daysDiff <= 3) {
-    return URGENCY_LEVELS.Urgent;
+    return URGENCY_LEVELS.Urgente;
   }
   if (daysDiff <= 10) {
-    return URGENCY_LEVELS.Soon;
+    return URGENCY_LEVELS.Pronto;
   }
   return URGENCY_LEVELS.Normal;
 }
@@ -59,7 +59,7 @@ export function UrgencyBadge({ date, showText = false }: UrgencyBadgeProps) {
   }
 
   return (
-    <Badge className={`${variantClass[urgency.variant]}`}>
+    <Badge className={`${variantClass[urgency.variant]} mt-1`}>
       {showText ? urgency.text : urgency.level}
     </Badge>
   );
