@@ -100,13 +100,20 @@ export function OrderForm() {
   const materiales = form.watch('materiales');
 
   useEffect(() => {
-    const total = materiales.reduce((sum, item) => {
-        const cantidad = Number(item.cantidad) || 0;
-        const precio = Number(item.precioUnitario) || 0;
-        return sum + (cantidad * precio);
-    }, 0);
-    form.setValue('total', total, { shouldValidate: true });
-  }, [materiales, form]);
+    const subscription = form.watch((value, { name, type }) => {
+      if (name && name.startsWith('materiales')) {
+        const materialesValues = value.materiales || [];
+        const total = materialesValues.reduce((sum, item) => {
+          const cantidad = Number(item?.cantidad) || 0;
+          const precio = Number(item?.precioUnitario) || 0;
+          return sum + (cantidad * precio);
+        }, 0);
+        form.setValue('total', total, { shouldValidate: true });
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+
 
   const municipios = useMemo(() => {
     if (!selectedEstado) return [];
@@ -702,7 +709,7 @@ export function OrderForm() {
                                     />
                                 </FormControl>
                                 <FormDescription>
-                                    No mayor a 3 meses. El archivo puede ser JPG (fotografía) o PDF. ¿Necesitas reducir el tamaño? <a href="https://www.iloveimg.com/es/comprimir-imagen/comprimir-jpg" target="_blank" rel="noopener noreferrer" className="underline text-primary">Comprimir imagen</a>, <a href="https://www.ilovepdf.com/es/comprimir_pdf" target="_blank" rel="noopener noreferrer" className="underline text-primary">Comprimir PDF</a>.
+                                    No mayor a 3 meses. El archivo puede ser JPG (fotografía) o PDF. ¿Necesitas reducir el tamaño? <a href="https://wwwai.loveimg.com/es/comprimir-imagen/comprimir-jpg" target="_blank" rel="noopener noreferrer" className="underline text-primary">Comprimir imagen</a>, <a href="https://www.ilovepdf.com/es/comprimir_pdf" target="_blank" rel="noopener noreferrer" className="underline text-primary">Comprimir PDF</a>.
                                 </FormDescription>
                                 <FormMessage />
                             </FormItem>
