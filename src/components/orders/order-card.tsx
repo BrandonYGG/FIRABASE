@@ -105,7 +105,7 @@ export function OrderCard({ order, isAdminView = false }: OrderCardProps) {
     <Dialog>
       <Card className="flex flex-col min-h-[240px] justify-between">
         <CardHeader>
-          <UrgencyBadge date={order.fechaMaxEntrega} />
+          {!isDelivered && <UrgencyBadge date={order.fechaMaxEntrega} />}
           <CardTitle className="text-lg font-headline truncate mt-2" title={order.obra}>{order.obra}</CardTitle>
           <CardDescription>
             Solicitante: {order.solicitante}
@@ -187,4 +187,3 @@ export function OrderCard({ order, isAdminView = false }: OrderCardProps) {
     </Dialog>
   );
 }
-
