@@ -1,9 +1,9 @@
 
 'use client';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { UserProfileWithId, OrderFirestore, Order } from '@/lib/types';
@@ -79,6 +79,8 @@ export function AdminDashboard() {
     const firestore = useFirestore();
     const { user: adminUser } = useUser();
     const [searchQuery, setSearchQuery] = useState('');
+    const [allOrders, setAllOrders] = useState<Order[]>([]);
+    const [metricsLoading, setMetricsLoading] = useState(true);
     
     const usersQuery = useMemoFirebase(() => {
         if (!firestore) return null;
@@ -87,6 +89,45 @@ export function AdminDashboard() {
 
     const { data: users, isLoading: usersLoading, error: usersError } = useCollection<UserProfileWithId>(usersQuery);
     
+    useEffect(() => {
+        const fetchAllOrders = async () => {
+            if (!firestore || !users) return;
+            
+            setMetricsLoading(true);
+            try {
+                const ordersPromises = users.map(u => {
+                    const ordersCollection = collection(firestore, 'users', u.id, 'pedidos');
+                    return getDocs(ordersCollection);
+                });
+
+                const ordersSnapshots = await Promise.all(ordersPromises);
+                
+                const fetchedOrders: Order[] = [];
+                ordersSnapshots.forEach(snapshot => {
+                    snapshot.docs.forEach(doc => {
+                        const data = doc.data() as OrderFirestore;
+                        fetchedOrders.push({
+                            ...data,
+                            id: doc.id,
+                            fechaMinEntrega: data.fechaMinEntrega.toDate(),
+                            fechaMaxEntrega: data.fechaMaxEntrega.toDate(),
+                            createdAt: data.createdAt.toDate(),
+                        });
+                    });
+                });
+                setAllOrders(fetchedOrders);
+            } catch (err) {
+                console.error("Error fetching all orders for metrics:", err);
+            } finally {
+                setMetricsLoading(false);
+            }
+        };
+
+        if (users) {
+            fetchAllOrders();
+        }
+    }, [firestore, users]);
+
     const filteredUsers = useMemo(() => {
         if (!users || !adminUser) return [];
         
@@ -102,12 +143,15 @@ export function AdminDashboard() {
     }, [users, adminUser, searchQuery]);
 
     const globalMetrics = useMemo(() => {
-        if (!users) return { totalUsers: 0 };
-        const totalUsers = users.filter(user => user.id !== adminUser?.uid).length;
-        return { totalUsers };
-    }, [users, adminUser]);
+        const totalUsers = users ? users.filter(user => user.id !== adminUser?.uid).length : 0;
+        const totalOrders = allOrders.length;
+        const totalAmount = allOrders.reduce((sum, order) => sum + order.total, 0);
+        const pendingOrders = allOrders.filter(o => o.status === 'Pendiente').length;
+
+        return { totalUsers, totalOrders, totalAmount, pendingOrders };
+    }, [users, adminUser, allOrders]);
     
-    const isLoading = usersLoading;
+    const isLoading = usersLoading || metricsLoading;
     
     if (usersError) {
         return (
@@ -127,29 +171,27 @@ export function AdminDashboard() {
                         <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        {isLoading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{globalMetrics.totalUsers}</div>}
+                        {usersLoading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{globalMetrics.totalUsers}</div>}
                         <p className="text-xs text-muted-foreground">Usuarios registrados en la plataforma.</p>
                     </CardContent>
                 </Card>
-                 <Link href="/admin/pedidos">
-                    <Card className="hover:bg-muted/50 transition-colors">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Pedidos Globales</CardTitle>
-                            <ListOrdered className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">-</div>
-                            <p className="text-xs text-muted-foreground">Ver y filtrar todos los pedidos.</p>
-                        </CardContent>
-                    </Card>
-                 </Link>
+                 <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Pedidos Globales</CardTitle>
+                        <ListOrdered className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        {isLoading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{globalMetrics.totalOrders}</div>}
+                        <p className="text-xs text-muted-foreground">Total de pedidos en el sistema.</p>
+                    </CardContent>
+                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Monto Global</CardTitle>
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                         <div className="text-2xl font-bold">-</div>
+                         {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">${globalMetrics.totalAmount.toLocaleString('es-MX')}</div>}
                         <p className="text-xs text-muted-foreground">Suma de todos los pedidos.</p>
                     </CardContent>
                 </Card>
@@ -159,7 +201,7 @@ export function AdminDashboard() {
                         <FileClock className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">-</div>
+                        {isLoading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{globalMetrics.pendingOrders}</div>}
                         <p className="text-xs text-muted-foreground">Pedidos esperando aprobación.</p>
                     </CardContent>
                 </Card>
@@ -221,5 +263,7 @@ export function AdminDashboard() {
         </div>
     )
 }
+
+    
 
     
