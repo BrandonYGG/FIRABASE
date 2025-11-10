@@ -32,7 +32,7 @@ export default function Home() {
           <div className="absolute inset-0 bg-black/50" />
           <div className="relative z-10 p-4">
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
-              OrderFlow Construct
+              Tlapalería los Pinos
             </h1>
             <p className="mt-4 max-w-2xl mx-auto text-lg md:text-xl text-white">
               Digitalizando la gestión de materiales para su obra.
@@ -53,7 +53,7 @@ export default function Home() {
         <section id="features" className="container mx-auto px-4 py-16 md:py-24 text-center">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Una plataforma, todo el control</h2>
             <p className="max-w-3xl mx-auto text-muted-foreground text-lg mb-12">
-                Desde la solicitud hasta la entrega, OrderFlow Construct centraliza y simplifica cada paso del proceso de adquisición de materiales.
+                Desde la solicitud hasta la entrega, Tlapalería los Pinos centraliza y simplifica cada paso del proceso de adquisición de materiales.
             </p>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
                 <Card className="hover:shadow-lg transition-shadow duration-300 text-left">
@@ -159,7 +159,7 @@ export default function Home() {
                                     <p className="text-sm text-muted-foreground">Octubre 2025</p>
                                 </CardHeader>
                                 <CardContent>
-                                    <p>¡Estamos emocionados de lanzar la primera versión de OrderFlow Construct! Ahora puedes registrar tus pedidos, gestionar tu historial y aprovechar las primeras funcionalidades de nuestra inteligencia artificial. ¡Próximamente integraremos más cosas!</p>
+                                    <p>¡Estamos emocionados de lanzar la primera versión de Tlapalería los Pinos! Ahora puedes registrar tus pedidos, gestionar tu historial y aprovechar las primeras funcionalidades de nuestra inteligencia artificial. ¡Próximamente integraremos más cosas!</p>
                                 </CardContent>
                             </Card>
                         </div>
@@ -171,7 +171,7 @@ export default function Home() {
       </main>
       <footer className="bg-background border-t">
         <div className="container mx-auto px-4 py-6 text-center text-muted-foreground">
-            <p>&copy; {currentYear} OrderFlow Construct. Todos los derechos reservados.</p>
+            <p>&copy; {currentYear} Tlapalería los Pinos. Todos los derechos reservados.</p>
         </div>
       </footer>
     </div>
