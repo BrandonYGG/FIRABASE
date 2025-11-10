@@ -198,7 +198,7 @@ export function generateOrderPdf(order: Order) {
     doc.setFontSize(10);
     doc.setTextColor(150);
     doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.width / 2, doc.internal.pageSize.height - 10, { align: 'center' });
-    doc.text(`© ${new Date().getFullYear()} OrderFlow Construct`, 14, doc.internal.pageSize.height - 10);
+    doc.text(`© ${new Date().getFullYear()} Tlapalería los Pinos`, 14, doc.internal.pageSize.height - 10);
   }
 
   // Save the PDF
