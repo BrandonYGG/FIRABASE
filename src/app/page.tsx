@@ -159,7 +159,7 @@ export default function Home() {
                                     <p className="text-sm text-muted-foreground">Octubre 2025</p>
                                 </CardHeader>
                                 <CardContent>
-                                    <p>¡Estamos emocionados de lanzar la primera versión de OrderFlow Construct! Ahora puedes registrar tus pedidos, gestionar tu historial y aprovechar las primeras funcionalidades de nuestra inteligencia artificial. ¡Próximamente integraremos más características para ti!</p>
+                                    <p>¡Estamos emocionados de lanzar la primera versión de OrderFlow Construct! Ahora puedes registrar tus pedidos, gestionar tu historial y aprovechar las primeras funcionalidades de nuestra inteligencia artificial. ¡Próximamente integraremos más cosas!</p>
                                 </CardContent>
                             </Card>
                         </div>
